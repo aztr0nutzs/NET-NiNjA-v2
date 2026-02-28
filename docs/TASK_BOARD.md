@@ -1,7 +1,6 @@
 # Task Board
 
 ## Backlog
-- [ ] Validate zero console errors in Android WebView/runtime
 - [ ] Move mp4/png assets into `assets/www/media/` and update paths
 - [ ] Add demo-mode toggle in Config screen
 
@@ -10,3 +9,4 @@
 - [x] Guardrails + build plan
 - [x] Vendor all external CSS/JS/fonts/icons into `assets/www/vendor/`
 - [x] Add low-FX performance mode
+- [x] Validate zero console errors in Android WebView/runtime
