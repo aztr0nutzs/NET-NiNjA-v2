@@ -21,5 +21,8 @@ class NativeBridge(
   fun requestWifiScan(): String = activity.requestWifiScanFromJs()
 
   @JavascriptInterface
+  fun getLastWifiScan(): String = activity.getLastWifiScanJson(requireEnabled = false)
+
+  @JavascriptInterface
   fun exportDiagnostics(payload: String?): String = activity.exportDiagnosticsFromJs(payload)
 }

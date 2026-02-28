@@ -38,6 +38,8 @@ class MainActivity : AppCompatActivity() {
   private var activeScanRequestId = 0
   private var pendingScanAfterPermission = false
   private var lastScanResults = JSONArray()
+  private var lastScanSource = "none"
+  private var lastScanAtEpochMs = 0L
   private val handler = Handler(Looper.getMainLooper())
 
   private val permissionLauncher =
@@ -109,7 +111,7 @@ class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
 
     prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-    bridgeEnabled = prefs.getBoolean(KEY_BRIDGE_ENABLED, false)
+    bridgeEnabled = prefs.getBoolean(KEY_BRIDGE_ENABLED, true)
     wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
     webView = WebView(this)
@@ -141,7 +143,8 @@ class MainActivity : AppCompatActivity() {
           emitNativeEvent(
             type = "wifi_scan_results",
             payload = JSONObject()
-              .put("source", "cached")
+              .put("source", lastScanSource)
+              .put("capturedAt", lastScanAtEpochMs)
               .put("results", JSONArray(lastScanResults.toString()))
               .put("count", lastScanResults.length()),
           )
@@ -225,6 +228,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     return performWifiScan(origin = "user")
+  }
+
+  fun getLastWifiScanJson(requireEnabled: Boolean): String {
+    if (requireEnabled && !bridgeEnabled) {
+      return errorJson("bridge_disabled", "Enable native bridge before requesting scan data.")
+    }
+
+    return JSONObject()
+      .put("ok", true)
+      .put(
+        "scan",
+        JSONObject()
+          .put("source", lastScanSource)
+          .put("capturedAt", lastScanAtEpochMs)
+          .put("count", lastScanResults.length())
+          .put("results", JSONArray(lastScanResults.toString())),
+      )
+      .toString()
   }
 
   fun exportDiagnosticsFromJs(payload: String?): String {
@@ -362,7 +383,6 @@ class MainActivity : AppCompatActivity() {
     activeScanRequestId = 0
 
     val results = wifiManager.scanResults
-      .filter { !it.SSID.isNullOrBlank() }
       .sortedByDescending { it.level }
       .distinctBy { it.BSSID }
 
@@ -370,7 +390,7 @@ class MainActivity : AppCompatActivity() {
     results.forEach { result ->
       payloadResults.put(
         JSONObject()
-          .put("ssid", result.SSID)
+          .put("ssid", result.SSID?.takeIf { it.isNotBlank() } ?: "Hidden Network")
           .put("bssid", result.BSSID)
           .put("signalLevel", result.level)
           .put("frequency", result.frequency)
@@ -380,11 +400,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     lastScanResults = payloadResults
+    lastScanSource = source
+    lastScanAtEpochMs = System.currentTimeMillis()
 
     emitNativeEvent(
       type = "wifi_scan_results",
       payload = JSONObject()
         .put("source", source)
+        .put("capturedAt", lastScanAtEpochMs)
         .put("count", payloadResults.length())
         .put("results", JSONArray(payloadResults.toString())),
     )

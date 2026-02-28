@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
   <meta charset="utf-8"/>
@@ -550,6 +550,91 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(0, 212, 255, 0.2);
     }
+    .app-nav {
+      background: linear-gradient(180deg, rgba(26, 28, 35, 0.95), rgba(10, 12, 18, 0.98));
+      border-top: 1px solid rgba(0, 212, 255, 0.22);
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 6px 0;
+      border-radius: 10px;
+      transition: all 0.16s ease;
+      color: rgba(148, 163, 184, 0.95);
+    }
+    .nav-tab .tab-emoji {
+      font-size: 15px;
+      line-height: 1;
+      filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.22));
+    }
+    .nav-tab .tab-label {
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .nav-tab.is-active {
+      color: #00d4ff;
+      background: linear-gradient(180deg, rgba(0, 212, 255, 0.14), rgba(168, 85, 247, 0.08));
+      box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.34), 0 0 10px rgba(0, 212, 255, 0.2);
+    }
+    .nav-tab:active {
+      transform: scale(0.98);
+    }
+    .electric-wordmark {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(42px, 10vw, 58px);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: transparent;
+      -webkit-text-stroke: 2px rgba(186, 245, 255, 0.95);
+      background-image: linear-gradient(120deg, #faff00 0%, #00e0ff 32%, #ffffff 48%, #73f1ff 66%, #faff00 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      background-size: 220% 220%;
+      text-shadow: 0 0 12px rgba(0, 212, 255, 0.5), 0 0 26px rgba(250, 255, 0, 0.36);
+      animation: sparkFlow 2.2s linear infinite;
+    }
+    .electric-wordmark::before {
+      content: "WIFI";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: transparent;
+      background-image: repeating-linear-gradient(115deg, rgba(255,255,255,0.9) 0px, rgba(255,255,255,0.9) 1px, rgba(0,212,255,0) 2px, rgba(0,212,255,0) 6px);
+      -webkit-background-clip: text;
+      background-clip: text;
+      mix-blend-mode: screen;
+      animation: sparkFlow 1.1s linear infinite reverse;
+      pointer-events: none;
+    }
+    .electric-aura {
+      position: absolute;
+      width: 76%;
+      height: 76%;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(0, 224, 255, 0.25) 0%, rgba(250, 255, 0, 0.18) 36%, rgba(2,4,8,0) 70%);
+      filter: blur(9px);
+      animation: holoPulse 2.6s ease-in-out infinite;
+    }
+    .map-node-dot {
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+    @keyframes sparkFlow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
   </style>
 </head>
 
@@ -590,11 +675,12 @@
       <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #00d4ff 1px, transparent 1px); background-size: 20px 20px;"></div>
         <div class="absolute inset-0 bg-ethereal-blue/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="electric-aura" aria-hidden="true"></div>
         <div class="relative z-10 flex items-center justify-center">
           <!-- Use a WiFi icon combined with a bolt icon to simulate electrified lightning. Both icons animate using the electrify effect. -->
-          <span class="material-symbols-outlined text-6xl sm:text-7xl electrify" style="color:#faff00; --glow-color:#faff00; z-index:1;">wifi_tethering</span>
-          <!-- Bolt overlay enlarged to sit within the Wi‑Fi arcs -->
-          <span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-6xl sm:text-7xl electrify pointer-events-none" style="color:#ff00ff; --glow-color:#ff00ff; z-index:2;">bolt</span>
+          <span class="electric-wordmark" aria-label="WiFi">WIFI</span>
+          <!-- Bolt overlay enlarged to sit within the Wiâ€‘Fi arcs -->
+          
         </div>
         <!-- Spinning Neon Square Frames -->
         <!-- Outer square frame uses the same slow spin animation as the engine gauge and is colored neon yellow -->
@@ -615,11 +701,10 @@
       <div class="flex items-end justify-between gap-4">
         <div class="flex flex-col">
           <h3 class="text-ethereal-blue text-xs sm:text-sm font-bold leading-tight tracking-[0.1em] uppercase italic">Nearby_SSIDs_Scan</h3>
-          <span id="wifiScanMeta" class="text-ethereal-blue/40 text-[9px] sm:text-[10px] font-mono">Demo feed armed</span>
+          <span id="wifiScanMeta" class="text-ethereal-blue/40 text-[9px] sm:text-[10px] font-mono">Waiting for live scan data</span>
         </div>
         <div class="flex flex-wrap justify-end gap-2">
           <button id="wifiScanBtn" class="btn-neon" style="--btn-color:#00d4ff; --btn-glow:rgba(0,212,255,0.3)">Scan</button>
-          <button id="wifiDemoBtn" class="btn-neon" style="--btn-color:#a855f7; --btn-glow:rgba(168,85,247,0.3)">Demo</button>
           <button id="wifiExportBtn" class="btn-neon" style="--btn-color:#faff00; --btn-glow:rgba(250,255,0,0.3)">Export</button>
         </div>
       </div>
@@ -638,7 +723,7 @@
         </div>
       </div>
     </div>
-    <div id="wifiEmptyState" class="w-full px-4 pt-5 text-center text-[11px] tracking-[0.2em] uppercase text-ethereal-blue/50 font-mono">No networks loaded. Use Scan for live data or Demo for fallback.</div>
+    <div id="wifiEmptyState" class="w-full px-4 pt-5 text-center text-[11px] tracking-[0.2em] uppercase text-ethereal-blue/50 font-mono">No networks loaded. Tap Scan for live discovery.</div>
     <div id="wifiDeviceList" class="flex flex-col w-full px-4 py-4 gap-4 overflow-y-auto"></div>
   </section>
 
@@ -667,7 +752,7 @@
           <input id="cfgAlerts" type="checkbox" class="toggle" />
         </label>
         <label class="flex items-center justify-between">
-          <span class="text-sm text-ethereal-blue font-mono uppercase">Demo Mode</span>
+          <span class="text-sm text-ethereal-blue font-mono uppercase">Fallback Mode (Disabled)</span>
           <input id="cfgDemoMode" type="checkbox" class="toggle" />
         </label>
         <label class="flex items-center justify-between">
@@ -760,7 +845,7 @@
           *LOCAL_NET_CONSTELLATION*
         </p>
         <p class="text-[9px] text-ethereal-blue/40 font-mono mt-1 tracking-widest uppercase">
-          Protocol: Shadowlink_v9 // Active_Nodes: 42
+          Protocol: Native_Scan_Backend // Active_Nodes: <span id="mapActiveNodes">0</span>
         </p>
       </div>
       <!-- Map interactive area -->
@@ -780,22 +865,7 @@
                   <path d="M100 100 L200 150 L300 100 L250 250 L100 100" fill="none" stroke="#00d4ff" stroke-dasharray="4 2" stroke-width="0.5"></path>
                   <path d="M200 150 L150 300 L250 250" fill="none" stroke="#00d4ff" stroke-dasharray="4 2" stroke-width="0.5"></path>
                 </svg>
-                <!-- Node markers with pulses -->
-                <div class="absolute top-1/4 left-1/4 flex flex-col items-center">
-                  <div class="size-4 rounded-full bg-ethereal-blue shadow-[0_0_10px_#00d4ff] animate-pulse"></div>
-                  <div class="absolute -inset-2 border border-cyber-violet rounded-full opacity-60"></div>
-                  <span class="text-[8px] mt-4 text-ethereal-blue bg-black/80 px-1 uppercase">NODE_01_SEC_L1</span>
-                </div>
-                <div class="absolute top-1/3 right-1/4 flex flex-col items-center">
-                  <div class="size-3 rounded-full bg-ethereal-blue/60 shadow-[0_0_5px_#00d4ff]"></div>
-                  <div class="absolute -inset-3 border-2 border-cyber-violet/80 rounded-full"></div>
-                  <span class="text-[8px] mt-4 text-ethereal-blue bg-black/80 px-1 uppercase">NODE_02_SEC_L3</span>
-                </div>
-                <div class="absolute bottom-1/4 right-1/3 flex flex-col items-center">
-                  <div class="size-4 rounded-full bg-ethereal-blue shadow-[0_0_10px_#00d4ff]"></div>
-                  <div class="absolute -inset-1.5 border border-cyber-violet/40 rounded-full"></div>
-                  <span class="text-[8px] mt-4 text-ethereal-blue bg-black/80 px-1 uppercase">NODE_03_SEC_L2</span>
-                </div>
+                <div id="mapNodesLayer" class="absolute inset-0"></div>
                 <!-- Central numeric indicator -->
                 <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-ethereal-blue shadow-[0_0_30px_rgba(0,212,255,0.5)] overflow-hidden bg-black/80 flex items-center justify-center">
                   <div class="absolute inset-0 bg-gradient-to-tr from-cyber-violet/30 via-transparent to-ethereal-blue/20"></div>
@@ -807,7 +877,7 @@
               <div class="absolute bottom-4 left-4 right-4 flex flex-col gap-4">
                 <div class="flex items-center gap-3 bg-engine-iron/80 border border-ethereal-blue/30 p-3 rounded">
                   <span class="material-symbols-outlined text-ethereal-blue text-sm">search</span>
-                  <input class="bg-transparent border-none text-ethereal-blue placeholder:text-ethereal-blue/40 text-xs focus:ring-0 w-full uppercase" placeholder="SEARCH_NODE_ID..." />
+                  <input id="mapSearchInput" class="bg-transparent border-none text-ethereal-blue placeholder:text-ethereal-blue/40 text-xs focus:ring-0 w-full uppercase" placeholder="SEARCH SSID OR BSSID..." />
                 </div>
                 <div class="flex justify-between items-center px-2">
                   <div class="flex flex-col gap-1 w-24">
@@ -829,51 +899,30 @@
         </div>
       </div>
       <!-- Node summary cards -->
-      <div class="px-4 py-6 grid grid-cols-2 gap-4">
-        <div class="relative group">
-          <div class="bg-engine-iron/80 border border-ethereal-blue/30 rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative">
-            <div class="absolute inset-0 opacity-10 bg-ethereal-blue/20"></div>
-            <div class="flex justify-between items-start">
-              <span class="text-[10px] font-mono text-ethereal-blue uppercase">Node_L1</span>
-              <span class="material-symbols-outlined text-xs text-cyber-violet">shield</span>
-            </div>
-            <p class="text-ethereal-blue text-[11px] font-bold leading-none tracking-tight">NODE_01_SEC_L1</p>
-          </div>
-        </div>
-        <div class="relative group">
-          <div class="bg-engine-iron/80 border border-cyber-violet/50 rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative">
-            <div class="absolute inset-0 opacity-10 bg-ethereal-blue/20"></div>
-            <div class="flex justify-between items-start">
-              <span class="text-[10px] font-mono text-ethereal-blue uppercase">Node_L3</span>
-              <span class="material-symbols-outlined text-xs text-cyber-violet">security</span>
-            </div>
-            <p class="text-ethereal-blue text-[11px] font-bold leading-none tracking-tight">NODE_02_SEC_L3</p>
-          </div>
-        </div>
-      </div>
+      <div id="mapNodesList" class="px-4 py-6 grid grid-cols-2 gap-4"></div>
       <!-- Overdrive and Cloak buttons (adapted from wifi_map.html) -->
       <div class="absolute bottom-32 left-4 flex flex-col gap-3 z-30">
         <!-- Overdrive button -->
-        <button class="shard-clip-alt bg-cyber-violet/20 border border-ethereal-blue/30 text-ethereal-blue font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
+        <button id="mapOverdriveBtn" class="shard-clip-alt bg-cyber-violet/20 border border-ethereal-blue/30 text-ethereal-blue font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
           <span class="material-symbols-outlined text-sm">bolt</span>
           Overdrive
         </button>
         <!-- Cloak button -->
-        <button class="shard-clip bg-engine-iron/80 border border-cyber-violet/40 text-ethereal-blue font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
+        <button id="mapCloakBtn" class="shard-clip bg-engine-iron/80 border border-cyber-violet/40 text-ethereal-blue font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
           <span class="material-symbols-outlined text-sm">shield_with_heart</span>
           Cloak
         </button>
       </div>
       <!-- Anomaly detection card -->
-      <div class="absolute bottom-32 right-4 bg-engine-iron/80 border border-danger/50 p-3 w-44 z-30">
+      <div id="mapAlertCard" class="absolute bottom-32 right-4 bg-engine-iron/80 border border-danger/50 p-3 w-44 z-30">
         <div class="flex items-center gap-2 mb-1">
           <div class="size-2 bg-danger rounded-full shadow-[0_0_8px_#ff3c00]"></div>
-          <div class="text-[10px] text-danger uppercase font-black">Anomaly Detected</div>
+          <div id="mapScanStatus" class="text-[10px] text-danger uppercase font-black">Awaiting Live Scan</div>
         </div>
-        <div class="text-slate-400 font-mono text-[9px] leading-tight">
-          FRAC_CORE: UNSTABLE<br/>
-          UID: ABYSS_092<br/>
-          SIG: MALICIOUS
+        <div id="mapAlertText" class="text-slate-400 font-mono text-[9px] leading-tight">
+          Trigger Scan To Populate<br/>
+          Last Sync: <span id="mapLastSync">Never</span><br/>
+          Source: Native Bridge
         </div>
       </div>
     </div>
@@ -1121,22 +1170,22 @@
 
 
   <!-- Global bottom navigation -->
-  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-40 bg-engine-iron/80 backdrop-blur-lg border-t border-ethereal-blue/10 py-2 px-4 flex justify-between items-center">
-    <button id="navEngine" class="flex-1 flex flex-col items-center gap-1 text-slate-500 hover:text-ethereal-blue transition-colors" type="button">
-      <span class="material-symbols-outlined text-2xl">offline_bolt</span>
-      <span class="text-[9px] font-bold tracking-tighter font-mono uppercase">Engine</span>
+  <nav id="bottomNav" class="app-nav fixed bottom-0 left-0 right-0 z-40 py-2 px-3 grid grid-cols-4 gap-2 items-center">
+    <button id="navEngine" class="nav-tab" type="button">
+      <span class="tab-emoji" aria-hidden="true">&#9889;</span>
+      <span class="tab-label">Engine</span>
     </button>
-    <button id="navList" class="flex-1 flex flex-col items-center gap-1 text-slate-500 hover:text-ethereal-blue transition-colors" type="button">
-      <span class="material-symbols-outlined text-2xl">wifi</span>
-      <span class="text-[9px] font-bold tracking-tighter font-mono uppercase">WiFi</span>
+    <button id="navList" class="nav-tab" type="button">
+      <span class="tab-emoji" aria-hidden="true">&#128246;</span>
+      <span class="tab-label">WiFi</span>
     </button>
-    <button id="navMap" class="flex-1 flex flex-col items-center gap-1 text-slate-500 hover:text-ethereal-blue transition-colors" type="button">
-      <span class="material-symbols-outlined text-2xl">public</span>
-      <span class="text-[9px] font-bold tracking-tighter font-mono uppercase">Map</span>
+    <button id="navMap" class="nav-tab" type="button">
+      <span class="tab-emoji" aria-hidden="true">&#128506;</span>
+      <span class="tab-label">Map</span>
     </button>
-    <button id="navConfig" class="flex-1 flex flex-col items-center gap-1 text-slate-500 hover:text-ethereal-blue transition-colors" type="button">
-      <span class="material-symbols-outlined text-2xl">settings</span>
-      <span class="text-[9px] font-bold tracking-tighter font-mono uppercase">Config</span>
+    <button id="navConfig" class="nav-tab" type="button">
+      <span class="tab-emoji" aria-hidden="true">&#9881;</span>
+      <span class="tab-label">Config</span>
     </button>
   </nav>
 
@@ -1180,8 +1229,17 @@
         wifiPermissionState: $("wifiPermissionState"),
         wifiScanState: $("wifiScanState"),
         wifiScanBtn: $("wifiScanBtn"),
-        wifiDemoBtn: $("wifiDemoBtn"),
         wifiExportBtn: $("wifiExportBtn"),
+        mapNodesLayer: $("mapNodesLayer"),
+        mapNodesList: $("mapNodesList"),
+        mapSearchInput: $("mapSearchInput"),
+        mapActiveNodes: $("mapActiveNodes"),
+        mapValue: $("mapValue"),
+        mapScanStatus: $("mapScanStatus"),
+        mapAlertText: $("mapAlertText"),
+        mapLastSync: $("mapLastSync"),
+        mapOverdriveBtn: $("mapOverdriveBtn"),
+        mapCloakBtn: $("mapCloakBtn"),
         cfgBridgeSummary: $("cfgBridgeSummary"),
         cfgDeviceSummary: $("cfgDeviceSummary"),
         cfgRefreshDeviceBtn: $("cfgRefreshDeviceBtn"),
@@ -1513,34 +1571,6 @@
         left: document.getElementById("barsLeft"),
         right: document.getElementById("barsRight"),
       };
-      // Grab the map gauge value element to animate its number
-      const mapValueEl = document.getElementById("mapValue");
-      let mapAnimId = null;
-      /**
-       * Starts the animation loop for the map gauge. This animates the numeric
-       * readout in the center of the map gauge by oscillating between 0 and 100.
-       */
-      function startMapAnimation() {
-        if (mapAnimId) return;
-        const startT = performance.now();
-        const animate = (now) => {
-          const elapsed = (now - startT) / 1000;
-          // Oscillate value between 0 and 100 using a sine wave. Adjust frequency here.
-          const value = (Math.sin(elapsed * 2) * 0.5 + 0.5) * 100;
-          if (mapValueEl) mapValueEl.textContent = Math.round(value).toString();
-          mapAnimId = requestAnimationFrame(animate);
-        };
-        mapAnimId = requestAnimationFrame(animate);
-      }
-      /**
-       * Stops the map gauge animation if running.
-       */
-      function stopMapAnimation() {
-        if (mapAnimId) {
-          cancelAnimationFrame(mapAnimId);
-          mapAnimId = null;
-        }
-      }
       function setActive(tab) {
         // Hide all screens
         Object.values(screens).forEach((s) => {
@@ -1555,19 +1585,12 @@
         if (bars.right) bars.right.classList.toggle("hidden", tab !== "engine");
         // Update nav colors
         Object.keys(nav).forEach((k) => {
-          nav[k]?.classList.remove("text-ethereal-blue");
-          nav[k]?.classList.add("text-slate-500");
+          nav[k]?.classList.remove("is-active");
         });
         if (nav[tab]) {
-          nav[tab].classList.remove("text-slate-500");
-          nav[tab].classList.add("text-ethereal-blue");
+          nav[tab].classList.add("is-active");
         }
-        // Start or stop map animation depending on the active tab
-        if (tab === "map") {
-          startMapAnimation();
-        } else {
-          stopMapAnimation();
-        }
+        if (tab === "map") renderMapFromScan();
       }
       // initial state: engine screen
       setActive("engine");
@@ -1593,6 +1616,7 @@
           ui.scanJitter.style.opacity = "0";
           ui.statusText.textContent = (state === State.IDLE ? "READY" : ui.statusText.textContent);
         }, 350);
+        renderMapFromScan();
       });
       nav.config?.addEventListener("click", () => {
         setActive("config");
@@ -1630,13 +1654,17 @@
         },
         lastDeviceInfo: null,
         lastScanResults: [],
-        lastScanSource: "demo",
+        lastScanSource: "none",
+        lastScanCapturedAt: 0,
+        mapFilterText: "",
+        mapOverdriveEnabled: false,
+        mapCloakEnabled: false,
       };
       const defaultConfig = () => ({
         autoScan: false,
         holoFX: false,
         alerts: false,
-        demoMode: true,
+        demoMode: false,
         bridgeEnabled: false,
         neonIntensity: 70,
         scanSpeed: 50,
@@ -1673,13 +1701,6 @@
         return { color: "#a855f7", glow: "rgba(168,85,247,0.4)" };
       };
 
-      const buildDemoResults = () => ([
-        { ssid: "Neural Rig Alpha", bssid: "DE:MO:00:00:00:01", signalLevel: -42, frequency: 5805, capabilities: "[WPA3-SAE]", demo: true },
-        { ssid: "Bio-Chip Cortex", bssid: "DE:MO:00:00:00:02", signalLevel: -56, frequency: 2412, capabilities: "[WPA2-PSK-CCMP][ESS]", demo: true },
-        { ssid: "Ext. Data Core", bssid: "DE:MO:00:00:00:03", signalLevel: -71, frequency: 2462, capabilities: "[WPA2-PSK-CCMP][ESS]", demo: true },
-        { ssid: "Holopad V9", bssid: "DE:MO:00:00:00:04", signalLevel: -81, frequency: 5200, capabilities: "[ESS]", demo: true },
-      ]);
-
       const formatSecurity = (capabilities) => {
         const label = String(capabilities || "").trim();
         if (!label) return "OPEN";
@@ -1694,7 +1715,7 @@
           autoScan: cfgCtrls.autoScan.checked,
           holoFX: cfgCtrls.holoFX.checked,
           alerts: cfgCtrls.alerts.checked,
-          demoMode: cfgCtrls.demoMode.checked,
+          demoMode: false,
           bridgeEnabled: cfgCtrls.bridgeEnabled.checked,
           neonIntensity: Number(cfgCtrls.neonIntensity.value),
           scanSpeed: Number(cfgCtrls.scanSpeed.value),
@@ -1707,7 +1728,8 @@
         cfgCtrls.autoScan.checked = !!data.autoScan;
         cfgCtrls.holoFX.checked = !!data.holoFX;
         cfgCtrls.alerts.checked = !!data.alerts;
-        cfgCtrls.demoMode.checked = !!data.demoMode;
+        cfgCtrls.demoMode.checked = false;
+        cfgCtrls.demoMode.disabled = true;
         cfgCtrls.bridgeEnabled.checked = !!data.bridgeEnabled;
         cfgCtrls.neonIntensity.value = Number(data.neonIntensity);
         cfgCtrls.scanSpeed.value = Number(data.scanSpeed);
@@ -1754,7 +1776,7 @@
           const level = escapeHtml(`${network.signalLevel ?? "--"} dBm`);
           const freq = escapeHtml(network.frequency ? `${network.frequency} MHz` : "Unknown band");
           const security = escapeHtml(formatSecurity(network.capabilities));
-          const badge = source === "demo" ? "DEMO" : "LIVE";
+          const badge = source === "cached" ? "CACHED" : "LIVE";
           return `
             <div class="shard-card p-5 group" style="--edge-color:${accent.color}; --glow-color:${accent.glow};">
               <div class="flex items-center gap-4">
@@ -1781,11 +1803,85 @@
             </div>
           `;
         }).join("");
+        renderMapFromScan();
       }
 
-      function renderDemoFallback(reason) {
-        renderWifiNetworks(buildDemoResults(), "demo", reason);
-        nativeUi.wifiScanState.textContent = "Demo Fallback";
+      function formatScanTime(epochMs) {
+        if (!epochMs) return "Never";
+        try {
+          return new Date(epochMs).toLocaleTimeString();
+        } catch {
+          return "Unknown";
+        }
+      }
+
+      function mapPositionFor(index, total) {
+        const safeTotal = Math.max(1, total);
+        const angle = (Math.PI * 2 * index) / safeTotal;
+        const r = 30 + (index % 4) * 11;
+        const x = 50 + Math.cos(angle) * r;
+        const y = 50 + Math.sin(angle) * (r * 0.72);
+        return { x: clamp(x, 10, 90), y: clamp(y, 12, 88) };
+      }
+
+      function filteredMapNetworks() {
+        const query = runtime.mapFilterText.trim().toLowerCase();
+        if (!query) return runtime.lastScanResults;
+        return runtime.lastScanResults.filter((network) => {
+          const ssid = String(network.ssid || "").toLowerCase();
+          const bssid = String(network.bssid || "").toLowerCase();
+          return ssid.includes(query) || bssid.includes(query);
+        });
+      }
+
+      function updateMapStatus(networks) {
+        const live = runtime.lastScanSource !== "none";
+        nativeUi.mapActiveNodes.textContent = `${networks.length}`;
+        nativeUi.mapValue.textContent = `${networks.length}`;
+        nativeUi.mapLastSync.textContent = formatScanTime(runtime.lastScanCapturedAt);
+        nativeUi.mapScanStatus.textContent = live
+          ? `${runtime.lastScanSource.toUpperCase()} SCAN ACTIVE`
+          : "Awaiting Live Scan";
+        nativeUi.mapAlertText.innerHTML = live
+          ? `Nodes Loaded: ${networks.length}<br/>Last Sync: ${escapeHtml(formatScanTime(runtime.lastScanCapturedAt))}<br/>Source: ${escapeHtml(runtime.lastScanSource.toUpperCase())}`
+          : "Trigger Scan To Populate<br/>Last Sync: Never<br/>Source: Native Bridge";
+      }
+
+      function renderMapFromScan() {
+        const networks = filteredMapNetworks();
+        updateMapStatus(networks);
+
+        nativeUi.mapNodesLayer.innerHTML = networks.map((network, index) => {
+          const accent = signalAccent(Number(network.signalLevel ?? -90));
+          const pos = mapPositionFor(index, networks.length);
+          const ssid = escapeHtml(network.ssid || `Hidden-${index + 1}`);
+          return `
+            <div class="absolute flex flex-col items-center" style="left:${pos.x}%; top:${pos.y}%; transform:translate(-50%,-50%);">
+              <div class="size-3 rounded-full map-node-dot animate-pulse" style="background:${accent.color}; box-shadow:0 0 12px ${accent.glow};"></div>
+              <span class="text-[8px] mt-2 text-ethereal-blue bg-black/80 px-1 uppercase max-w-[110px] truncate">${ssid}</span>
+            </div>
+          `;
+        }).join("");
+
+        nativeUi.mapNodesList.innerHTML = networks.slice(0, 6).map((network, index) => {
+          const accent = signalAccent(Number(network.signalLevel ?? -90));
+          const ssid = escapeHtml(network.ssid || `Hidden-${index + 1}`);
+          const sec = escapeHtml(formatSecurity(network.capabilities));
+          const freq = escapeHtml(network.frequency ? `${network.frequency} MHz` : "Unknown band");
+          return `
+            <div class="relative group">
+              <div class="bg-engine-iron/80 border rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative" style="border-color:${accent.color}66; box-shadow:0 0 12px ${accent.glow};">
+                <div class="absolute inset-0 opacity-10" style="background:${accent.color};"></div>
+                <div class="flex justify-between items-start">
+                  <span class="text-[10px] font-mono uppercase" style="color:${accent.color};">Node_${index + 1}</span>
+                  <span class="material-symbols-outlined text-xs text-cyber-violet">wifi</span>
+                </div>
+                <p class="text-ethereal-blue text-[11px] font-bold leading-none tracking-tight truncate">${ssid}</p>
+                <p class="text-[9px] text-slate-400 font-mono">${freq} // ${sec}</p>
+              </div>
+            </div>
+          `;
+        }).join("");
       }
 
       function syncBridgeState(pushConfigToggle) {
@@ -1838,8 +1934,8 @@
           runtime.lastDeviceInfo = null;
           updateDeviceUi();
         }
-        if (cfgCtrls.demoMode.checked && runtime.lastScanSource !== "real") {
-          renderDemoFallback("Demo feed armed");
+        if (runtime.lastScanResults.length > 0) {
+          renderMapFromScan();
         }
         showCfgStatus("Settings saved.");
       }
@@ -1858,7 +1954,7 @@
         runtime.lastDeviceInfo = null;
         updateDeviceUi();
         syncBridgeState(false);
-        renderDemoFallback("Demo feed armed");
+        renderWifiNetworks([], "none", "Waiting for live scan data");
         showCfgStatus("Settings reset.");
       }
 
@@ -1914,10 +2010,8 @@
       function requestNativeWifiScan(userInitiated) {
         syncBridgeState(false);
         if (!runtime.bridgeState.available || !runtime.bridgeState.enabled) {
-          if (cfgCtrls.demoMode.checked) {
-            renderDemoFallback("Bridge offline. Demo fallback active.");
-          } else if (userInitiated) {
-            showCfgStatus("Enable Native Bridge or Demo Mode first.");
+          if (userInitiated) {
+            showCfgStatus("Enable Native Bridge first.");
           }
           return;
         }
@@ -1929,9 +2023,7 @@
         const result = nativeBridge.call("requestWifiScan");
         if (result?.ok === false) {
           nativeUi.wifiScanState.textContent = result.code || "Error";
-          if (cfgCtrls.demoMode.checked) {
-            renderDemoFallback("Live scan unavailable. Demo fallback active.");
-          } else if (userInitiated) {
+          if (userInitiated) {
             showCfgStatus(result.message || "Wi-Fi scan failed.");
           }
         } else if (result?.status === "permission_requested") {
@@ -1956,11 +2048,10 @@
         }
         if (detail.type === "wifi_scan_results") {
           const results = Array.isArray(payload.results) ? payload.results : [];
+          runtime.lastScanCapturedAt = Number(payload.capturedAt || Date.now());
           if (results.length > 0) {
             renderWifiNetworks(results, payload.source || "real", `${payload.count || results.length} networks captured`);
             nativeUi.wifiScanState.textContent = payload.source === "cached" ? "Cached Results" : "Live Results";
-          } else if (cfgCtrls.demoMode.checked) {
-            renderDemoFallback("No live networks returned. Demo fallback active.");
           } else {
             renderWifiNetworks([], payload.source || "real", "No nearby networks found");
             nativeUi.wifiScanState.textContent = "No Results";
@@ -1972,9 +2063,6 @@
           nativeUi.wifiScanState.textContent = status.replaceAll("_", " ").toUpperCase();
           if (payload.message) {
             nativeUi.wifiScanMeta.textContent = payload.message;
-          }
-          if ((status === "permission_denied" || status === "wifi_unavailable" || status === "location_services_disabled" || status === "error") && cfgCtrls.demoMode.checked) {
-            renderDemoFallback("Live scan interrupted. Demo fallback active.");
           }
           return;
         }
@@ -1991,16 +2079,34 @@
           requestNativeWifiScan(false);
           return;
         }
-        if (runtime.lastScanResults.length === 0 || (cfgCtrls.demoMode.checked && runtime.lastScanSource !== "real")) {
-          renderDemoFallback("Demo feed armed");
+        if (runtime.lastScanResults.length === 0) {
+          nativeUi.wifiScanMeta.textContent = "Waiting for live scan data";
         }
       }
+
+      nativeUi.mapSearchInput?.addEventListener("input", (event) => {
+        runtime.mapFilterText = String(event.target?.value || "");
+        renderMapFromScan();
+      });
+
+      nativeUi.mapOverdriveBtn?.addEventListener("click", () => {
+        runtime.mapOverdriveEnabled = !runtime.mapOverdriveEnabled;
+        nativeUi.mapOverdriveBtn.classList.toggle("bg-cyber-violet/20", !runtime.mapOverdriveEnabled);
+        nativeUi.mapOverdriveBtn.classList.toggle("bg-ethereal-blue/25", runtime.mapOverdriveEnabled);
+        showCfgStatus(runtime.mapOverdriveEnabled ? "Map Overdrive enabled." : "Map Overdrive disabled.");
+      });
+
+      nativeUi.mapCloakBtn?.addEventListener("click", () => {
+        runtime.mapCloakEnabled = !runtime.mapCloakEnabled;
+        nativeUi.mapCloakBtn.classList.toggle("opacity-55", runtime.mapCloakEnabled);
+        nativeUi.mapNodesLayer.classList.toggle("opacity-55", runtime.mapCloakEnabled);
+        showCfgStatus(runtime.mapCloakEnabled ? "Map Cloak enabled." : "Map Cloak disabled.");
+      });
 
       window.addEventListener(NATIVE_EVENT, handleNativeEvent);
       cfgSaveBtn?.addEventListener("click", saveConfig);
       cfgResetBtn?.addEventListener("click", resetConfig);
       nativeUi.wifiScanBtn?.addEventListener("click", () => requestNativeWifiScan(true));
-      nativeUi.wifiDemoBtn?.addEventListener("click", () => renderDemoFallback("Manual demo override"));
       nativeUi.wifiExportBtn?.addEventListener("click", exportDiagnostics);
       nativeUi.cfgRefreshDeviceBtn?.addEventListener("click", () => {
         syncBridgeState(false);
@@ -2015,9 +2121,17 @@
       loadConfig();
       syncBridgeState(true);
       updateDeviceUi();
-      renderDemoFallback("Demo feed armed");
+      const initialScan = nativeBridge.call("getLastWifiScan");
+      if (initialScan?.ok && initialScan.scan) {
+        const scan = initialScan.scan;
+        runtime.lastScanCapturedAt = Number(scan.capturedAt || 0);
+        renderWifiNetworks(Array.isArray(scan.results) ? scan.results : [], scan.source || "none", "Restored last native scan snapshot");
+      } else {
+        renderWifiNetworks([], "none", "Waiting for live scan data");
+      }
       resetUI();
     })();
   </script>
 </body>
 </html>
+

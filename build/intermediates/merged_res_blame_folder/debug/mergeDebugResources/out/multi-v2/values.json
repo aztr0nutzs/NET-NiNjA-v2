@@ -40,6 +40,23 @@
                     }
                 },
                 {
+                    "source": "C:\\Users\\Administrator\\AndroidStudioProjects\\NET-NiNjA-v2\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "0",
+                        "startColumns": "11",
+                        "startOffsets": "11",
+                        "endColumns": "53",
+                        "endOffsets": "53"
+                    },
+                    "to": {
+                        "startLines": "299",
+                        "startColumns": "4",
+                        "startOffsets": "19429",
+                        "endColumns": "46",
+                        "endOffsets": "19471"
+                    }
+                },
+                {
                     "source": "C:\\Users\\Administrator\\.gradle\\caches\\8.9\\transforms\\80ff010db98039b46a7a6a2dbf3485f3\\transformed\\activity-1.7.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,3",
@@ -57,20 +74,22 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\Administrator\\Desktop\\NET-NiNjA-v2\\src\\main\\res\\values\\strings.xml",
+                    "source": "C:\\Users\\Administrator\\AndroidStudioProjects\\NET-NiNjA-v2\\src\\main\\res\\values\\themes.xml",
                     "from": {
-                        "startLines": "0",
-                        "startColumns": "11",
-                        "startOffsets": "11",
-                        "endColumns": "53",
-                        "endOffsets": "53"
+                        "startLines": "1",
+                        "startColumns": "2",
+                        "startOffsets": "62",
+                        "endLines": "5",
+                        "endColumns": "10",
+                        "endOffsets": "362"
                     },
                     "to": {
-                        "startLines": "299",
+                        "startLines": "1715",
                         "startColumns": "4",
-                        "startOffsets": "19429",
-                        "endColumns": "46",
-                        "endOffsets": "19471"
+                        "startOffsets": "113831",
+                        "endLines": "1719",
+                        "endColumns": "10",
+                        "endOffsets": "114127"
                     }
                 },
                 {
@@ -143,25 +162,6 @@
                         "startOffsets": "19346",
                         "endColumns": "82",
                         "endOffsets": "19424"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Administrator\\Desktop\\NET-NiNjA-v2\\src\\main\\res\\values\\themes.xml",
-                    "from": {
-                        "startLines": "1",
-                        "startColumns": "2",
-                        "startOffsets": "62",
-                        "endLines": "5",
-                        "endColumns": "10",
-                        "endOffsets": "362"
-                    },
-                    "to": {
-                        "startLines": "1715",
-                        "startColumns": "4",
-                        "startOffsets": "113831",
-                        "endLines": "1719",
-                        "endColumns": "10",
-                        "endOffsets": "114127"
                     }
                 },
                 {
