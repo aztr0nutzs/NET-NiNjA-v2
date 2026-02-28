@@ -7,4 +7,3 @@ dependencyResolutionManagement {
   repositories { google(); mavenCentral() }
 }
 rootProject.name = "NetNinjaV21"
-include(":app")

@@ -1,7 +1,7 @@
 # Copy/paste prompts
 
 ## Codex (Web HUD Lead) - vendorization
-Work ONLY in `app/src/main/assets/www/`.
+Work ONLY in `src/main/assets/www/`.
 Goal: remove ALL external URLs and vendor required assets locally under `vendor/`.
 Preserve visuals/animations/behavior. Keep mobile-first.
 

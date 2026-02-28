@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.netninja.v21-mergeDebugResources-21:/values-v18/values-v18.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\Administrator\\.gradle\\caches\\8.9\\transforms\\6f3f01e0404601aaba9c55e48301c269\\transformed\\appcompat-1.7.0\\res\\values-v18\\values-v18.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    }
+                }
+            ]
+        }
+    ]
+}
