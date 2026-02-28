@@ -551,37 +551,44 @@
       border: 1px solid rgba(0, 212, 255, 0.2);
     }
     .app-nav {
-      background: linear-gradient(180deg, rgba(26, 28, 35, 0.95), rgba(10, 12, 18, 0.98));
-      border-top: 1px solid rgba(0, 212, 255, 0.22);
-      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      background: rgba(5, 5, 5, 0.9);
+      backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .italic-heavy {
+      font-style: italic;
+      font-weight: 800;
+      transform: skewX(-5deg);
     }
     .nav-tab {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      padding: 6px 0;
-      border-radius: 10px;
-      transition: all 0.16s ease;
-      color: rgba(148, 163, 184, 0.95);
+      gap: 4px;
+      padding: 2px 0;
+      color: #64748b;
+      transition: color 0.16s ease;
     }
-    .nav-tab .tab-emoji {
-      font-size: 15px;
-      line-height: 1;
-      filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.22));
+    .nav-tab .material-symbols-outlined {
+      font-size: 24px;
+      font-variation-settings: "FILL" 0;
     }
     .nav-tab .tab-label {
       font-size: 10px;
-      letter-spacing: 0.16em;
-      font-weight: 700;
       text-transform: uppercase;
-      font-family: "JetBrains Mono", monospace;
+      letter-spacing: 0.03em;
+    }
+    .nav-tab:hover {
+      color: #cbd5e1;
     }
     .nav-tab.is-active {
-      color: #00d4ff;
-      background: linear-gradient(180deg, rgba(0, 212, 255, 0.14), rgba(168, 85, 247, 0.08));
-      box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.34), 0 0 10px rgba(0, 212, 255, 0.2);
+      color: #00f3ff;
+      text-shadow: 0 0 15px rgba(0, 243, 255, 0.65);
+    }
+    .nav-tab.is-active .material-symbols-outlined {
+      font-variation-settings: "FILL" 1;
     }
     .nav-tab:active {
       transform: scale(0.98);
@@ -958,7 +965,7 @@
     <header class="relative z-20 flex items-center justify-between p-4 pt-3 sm:p-6 sm:pt-6 bg-gradient-to-b from-void-black/75 to-transparent">
       <div class="flex flex-col">
         <span class="text-[10px] tracking-[0.3em] text-ethereal-blue/70 font-mono uppercase">SYSTEM STATUS</span>
-        <h2 class="text-ethereal-blue text-sm sm:text-base font-black leading-tight flex items-center gap-2 italic chromatic-aberration">
+        <h2 class="text-sm sm:text-base leading-tight flex items-center gap-2 italic-heavy chromatic-aberration" style="color:#dfff11;">
           <span class="material-symbols-outlined text-base">terminal</span>
           PSYCHO-ENGINE / HOLO MERGE
         </h2>
@@ -1003,7 +1010,8 @@
         <div class="relative group w-full flex items-center justify-center">
           <div id="aura" class="absolute -inset-10 bg-ethereal-blue/10 blur-3xl rounded-full" style="animation: holoPulse 4.5s ease-in-out infinite;"></div>
           <!-- Spinning diamond frame around the gauge -->
-          <div class="absolute -inset-6 sm:-inset-8 engine-frame rounded-3xl rotate-45 opacity-45 border-2 border-white/5 animate-[spin_60s_linear_infinite]"></div>
+          <div class="absolute -inset-6 sm:-inset-8 rounded-3xl rotate-45 opacity-55 border-2 animate-[spin_60s_linear_infinite]" style="border-color:rgba(255,0,255,0.55);"></div>
+          <div class="absolute -inset-10 sm:-inset-12 rounded-3xl rotate-45 opacity-50 border-2 border-dashed animate-[spin_72s_linear_infinite_reverse]" style="border-color:rgba(223,255,17,0.72);"></div>
 
           <div class="relative size-64 sm:size-80 flex items-center justify-center transform-gpu">
             <!-- Outer glow rings spinning at different speeds -->
@@ -1170,23 +1178,25 @@
 
 
   <!-- Global bottom navigation -->
-  <nav id="bottomNav" class="app-nav fixed bottom-0 left-0 right-0 z-40 py-2 px-3 grid grid-cols-4 gap-2 items-center">
-    <button id="navEngine" class="nav-tab" type="button">
-      <span class="tab-emoji" aria-hidden="true">&#9889;</span>
-      <span class="tab-label">Engine</span>
-    </button>
-    <button id="navList" class="nav-tab" type="button">
-      <span class="tab-emoji" aria-hidden="true">&#128246;</span>
-      <span class="tab-label">WiFi</span>
-    </button>
-    <button id="navMap" class="nav-tab" type="button">
-      <span class="tab-emoji" aria-hidden="true">&#128506;</span>
-      <span class="tab-label">Map</span>
-    </button>
-    <button id="navConfig" class="nav-tab" type="button">
-      <span class="tab-emoji" aria-hidden="true">&#9881;</span>
-      <span class="tab-label">Config</span>
-    </button>
+  <nav id="bottomNav" class="app-nav fixed bottom-0 left-0 right-0 z-40">
+    <div class="flex gap-2 px-4 pb-8 pt-4">
+      <button id="navEngine" class="nav-tab italic-heavy flex-1" type="button">
+        <span class="material-symbols-outlined">speed</span>
+        <span class="tab-label">Core</span>
+      </button>
+      <button id="navList" class="nav-tab italic-heavy flex-1" type="button">
+        <span class="material-symbols-outlined">insights</span>
+        <span class="tab-label">Graph</span>
+      </button>
+      <button id="navMap" class="nav-tab italic-heavy flex-1" type="button">
+        <span class="material-symbols-outlined">public</span>
+        <span class="tab-label">Nodes</span>
+      </button>
+      <button id="navConfig" class="nav-tab italic-heavy flex-1" type="button">
+        <span class="material-symbols-outlined">security</span>
+        <span class="tab-label">Shield</span>
+      </button>
+    </div>
   </nav>
 
   <script>
@@ -1595,10 +1605,13 @@
       // initial state: engine screen
       setActive("engine");
       // Event bindings
-      nav.engine?.addEventListener("click", () => setActive("engine"));
+      nav.engine?.addEventListener("click", () => {
+        setActive("engine");
+        ui.statusText.textContent = "CORE";
+      });
       nav.list?.addEventListener("click", () => {
         setActive("list");
-        ui.statusText.textContent = "WIFI";
+        ui.statusText.textContent = "GRAPH";
         ui.scanJitter.style.opacity = "1";
         ui.scanJitter.style.animation = "jitter 0.35s linear 1";
         setTimeout(() => {
@@ -1609,7 +1622,7 @@
       });
       nav.map?.addEventListener("click", () => {
         setActive("map");
-        ui.statusText.textContent = "MAP";
+        ui.statusText.textContent = "NODES";
         ui.scanJitter.style.opacity = "1";
         ui.scanJitter.style.animation = "jitter 0.35s linear 1";
         setTimeout(() => {
@@ -1620,7 +1633,7 @@
       });
       nav.config?.addEventListener("click", () => {
         setActive("config");
-        ui.statusText.textContent = "CONFIG";
+        ui.statusText.textContent = "SHIELD";
         ui.scanJitter.style.opacity = "1";
         ui.scanJitter.style.animation = "jitter 0.35s linear 1";
         setTimeout(() => {
