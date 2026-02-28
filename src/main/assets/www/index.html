@@ -611,125 +611,35 @@
       </div>
     </div>
     <!-- Scan header -->
-    <div class="w-full px-4 py-2 flex justify-between items-end border-b border-ethereal-blue/20">
-      <h3 class="text-ethereal-blue text-xs sm:text-sm font-bold leading-tight tracking-[0.1em] uppercase italic">Nearby_SSIDs_Scan</h3>
-      <span class="text-ethereal-blue/40 text-[9px] sm:text-[10px] font-mono">0.0034ms offset</span>
-    </div>
-    <!-- Device List -->
-    <div class="flex flex-col w-full px-4 py-4 gap-4 overflow-y-auto">
-      <div class="shard-card p-5 group" style="--edge-color: #00ff9d; --glow-color: rgba(0, 255, 157, 0.4);">
-        <div class="flex items-center space-x-5">
-          <div class="w-12 h-12 flex items-center justify-center perspective-[500px]">
-            <div class="model-cube" style="--model-color: #00ff9d; --model-rgb: 0, 255, 157;">
-              <div class="cube-face front"><span class="material-icons" style="color:#00ff9d;">memory</span></div>
-              <div class="cube-face back"><span class="material-icons" style="color:#00ff9d;">memory</span></div>
-              <div class="cube-face right"></div>
-              <div class="cube-face left"></div>
-              <div class="cube-face top"></div>
-              <div class="cube-face bottom"></div>
-            </div>
-          </div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start">
-              <h3 class="text-lg uppercase tracking-wider" style="font-family: 'Orbitron', sans-serif; color:#ffffff;">Neural Rig Alpha</h3>
-              <span class="w-2 h-2 rounded-full shadow-neon animate-pulse" style="background-color:#00ff9d;"></span>
-            </div>
-            <div class="mt-3 relative h-4 w-full liquid-bar-container">
-              <div class="liquid-bar-fill w-[85%]" style="--bar-start:#00ff9d; --bar-mid:#00ccff; --bar-end:#00ff9d;"></div>
-            </div>
-            <div class="flex justify-between items-end mt-2 text-[10px] font-bold tracking-widest">
-              <span class="text-gray-400">SIGNAL_STRENGTH</span>
-              <span style="color:#00ff9d; text-shadow:0 0 5px rgba(0,255,157,0.8);">12.4 Gbps // SECURE</span>
-            </div>
-          </div>
+    <div class="w-full px-4 py-3 flex flex-col gap-3 border-b border-ethereal-blue/20">
+      <div class="flex items-end justify-between gap-4">
+        <div class="flex flex-col">
+          <h3 class="text-ethereal-blue text-xs sm:text-sm font-bold leading-tight tracking-[0.1em] uppercase italic">Nearby_SSIDs_Scan</h3>
+          <span id="wifiScanMeta" class="text-ethereal-blue/40 text-[9px] sm:text-[10px] font-mono">Demo feed armed</span>
         </div>
-        <div class="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 rounded-br-xl" style="border-color:#00ff9d; opacity:0.3;"></div>
+        <div class="flex flex-wrap justify-end gap-2">
+          <button id="wifiScanBtn" class="btn-neon" style="--btn-color:#00d4ff; --btn-glow:rgba(0,212,255,0.3)">Scan</button>
+          <button id="wifiDemoBtn" class="btn-neon" style="--btn-color:#a855f7; --btn-glow:rgba(168,85,247,0.3)">Demo</button>
+          <button id="wifiExportBtn" class="btn-neon" style="--btn-color:#faff00; --btn-glow:rgba(250,255,0,0.3)">Export</button>
+        </div>
       </div>
-      <div class="shard-card p-5 group" style="--edge-color: #00f3ff; --glow-color: rgba(0, 243, 255, 0.4);">
-        <div class="flex items-center space-x-5">
-          <div class="w-12 h-12 flex items-center justify-center perspective-[500px]">
-            <div class="model-cube" style="--model-color: #00f3ff; --model-rgb: 0, 243, 255; animation-direction: reverse;">
-              <div class="cube-face front"><span class="material-icons" style="color:#00f3ff;">fingerprint</span></div>
-              <div class="cube-face back"><span class="material-icons" style="color:#00f3ff;">fingerprint</span></div>
-              <div class="cube-face right"></div>
-              <div class="cube-face left"></div>
-              <div class="cube-face top"></div>
-              <div class="cube-face bottom"></div>
-            </div>
-          </div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start">
-              <h3 class="text-lg uppercase tracking-wider" style="font-family: 'Orbitron', sans-serif; color:#ffffff;">Bio‑Chip Cortex</h3>
-              <span class="w-2 h-2 rounded-full shadow-neon-cyan animate-pulse" style="background-color:#00f3ff;"></span>
-            </div>
-            <div class="mt-3 relative h-4 w-full liquid-bar-container">
-              <div class="liquid-bar-fill w-[62%]" style="--bar-start:#00f3ff; --bar-mid:#0088ff; --bar-end:#00f3ff;"></div>
-            </div>
-            <div class="flex justify-between items-end mt-2 text-[10px] font-bold tracking-widest">
-              <span class="text-gray-400">SIGNAL_STRENGTH</span>
-              <span style="color:#00f3ff; text-shadow:0 0 5px rgba(0,243,255,0.8);">8.2 Gbps // STABLE</span>
-            </div>
-          </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div class="soft-frost border border-ethereal-blue/20 rounded-lg px-3 py-2">
+          <div class="text-[9px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Bridge</div>
+          <div id="wifiBridgeState" class="text-xs font-bold text-ethereal-blue mt-1">Offline</div>
         </div>
-        <div class="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 rounded-br-xl" style="border-color:#00f3ff; opacity:0.3;"></div>
-      </div>
-      <div class="shard-card p-5 group" style="--edge-color: #ffaa00; --glow-color: rgba(255, 170, 0, 0.4);">
-        <div class="flex items-center space-x-5">
-          <div class="w-12 h-12 flex items-center justify-center perspective-[500px]">
-            <div class="model-cube" style="--model-color: #ffaa00; --model-rgb: 255, 170, 0; animation-duration: 12s;">
-              <div class="cube-face front"><span class="material-icons" style="color:#ffaa00;">storage</span></div>
-              <div class="cube-face back"><span class="material-icons" style="color:#ffaa00;">storage</span></div>
-              <div class="cube-face right"></div>
-              <div class="cube-face left"></div>
-              <div class="cube-face top"></div>
-              <div class="cube-face bottom"></div>
-            </div>
-          </div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start">
-              <h3 class="text-lg uppercase tracking-wider" style="font-family: 'Orbitron', sans-serif; color:#ffffff;">Ext. Data Core</h3>
-              <span class="w-2 h-2 rounded-full shadow-neon-orange animate-pulse" style="background-color:#ffaa00;"></span>
-            </div>
-            <div class="mt-3 relative h-4 w-full liquid-bar-container">
-              <div class="liquid-bar-fill w-[45%]" style="--bar-start:#ffaa00; --bar-mid:#ffdd00; --bar-end:#ffaa00;"></div>
-            </div>
-            <div class="flex justify-between items-end mt-2 text-[10px] font-bold tracking-widest">
-              <span class="text-gray-400">SIGNAL_STRENGTH</span>
-              <span style="color:#ffaa00; text-shadow:0 0 5px rgba(255,170,0,0.8);">WARN // LOW FLOW</span>
-            </div>
-          </div>
+        <div class="soft-frost border border-ethereal-blue/20 rounded-lg px-3 py-2">
+          <div class="text-[9px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Permissions</div>
+          <div id="wifiPermissionState" class="text-xs font-bold text-ethereal-blue mt-1">Tap Scan To Grant</div>
         </div>
-        <div class="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 rounded-br-xl" style="border-color:#ffaa00; opacity:0.3;"></div>
-      </div>
-      <div class="shard-card p-5 group" style="--edge-color: #a855f7; --glow-color: rgba(168, 85, 247, 0.4);">
-        <div class="flex items-center space-x-5">
-          <div class="w-12 h-12 flex items-center justify-center perspective-[500px]">
-            <div class="model-cube" style="--model-color: #a855f7; --model-rgb: 168, 85, 247; animation-duration: 6s;">
-              <div class="cube-face front"><span class="material-icons" style="color:#a855f7;">tablet_mac</span></div>
-              <div class="cube-face back"><span class="material-icons" style="color:#a855f7;">tablet_mac</span></div>
-              <div class="cube-face right"></div>
-              <div class="cube-face left"></div>
-              <div class="cube-face top"></div>
-              <div class="cube-face bottom"></div>
-            </div>
-          </div>
-          <div class="flex-1">
-            <div class="flex justify-between items-start">
-              <h3 class="text-lg uppercase tracking-wider" style="font-family: 'Orbitron', sans-serif; color:#ffffff;">Holopad V9</h3>
-              <span class="w-2 h-2 rounded-full shadow-purple animate-pulse" style="background-color:#a855f7;"></span>
-            </div>
-            <div class="mt-3 relative h-4 w-full liquid-bar-container">
-              <div class="liquid-bar-fill w-[95%]" style="--bar-start:#a855f7; --bar-mid:#d8b4fe; --bar-end:#a855f7;"></div>
-            </div>
-            <div class="flex justify-between items-end mt-2 text-[10px] font-bold tracking-widest">
-              <span class="text-gray-400">SIGNAL_STRENGTH</span>
-              <span style="color:#a855f7; text-shadow:0 0 5px rgba(168,85,247,0.8);">15.0 Gbps // MAX</span>
-            </div>
-          </div>
+        <div class="soft-frost border border-ethereal-blue/20 rounded-lg px-3 py-2">
+          <div class="text-[9px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Scanner</div>
+          <div id="wifiScanState" class="text-xs font-bold text-ethereal-blue mt-1">Standby</div>
         </div>
-        <div class="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 rounded-br-xl" style="border-color:#a855f7; opacity:0.3;"></div>
       </div>
     </div>
+    <div id="wifiEmptyState" class="w-full px-4 pt-5 text-center text-[11px] tracking-[0.2em] uppercase text-ethereal-blue/50 font-mono">No networks loaded. Use Scan for live data or Demo for fallback.</div>
+    <div id="wifiDeviceList" class="flex flex-col w-full px-4 py-4 gap-4 overflow-y-auto"></div>
   </section>
 
   <!-- Configuration Screen -->
@@ -755,6 +665,14 @@
         <label class="flex items-center justify-between">
           <span class="text-sm text-ethereal-blue font-mono uppercase">Alerts</span>
           <input id="cfgAlerts" type="checkbox" class="toggle" />
+        </label>
+        <label class="flex items-center justify-between">
+          <span class="text-sm text-ethereal-blue font-mono uppercase">Demo Mode</span>
+          <input id="cfgDemoMode" type="checkbox" class="toggle" />
+        </label>
+        <label class="flex items-center justify-between">
+          <span class="text-sm text-ethereal-blue font-mono uppercase">Native Bridge</span>
+          <input id="cfgBridgeEnabled" type="checkbox" class="toggle" />
         </label>
       </div>
       <!-- Slider settings -->
@@ -790,6 +708,20 @@
       <div class="flex justify-start gap-4 pt-4">
         <button id="cfgSaveBtn" class="btn-neon" style="--btn-color:#00d4ff; --btn-glow:rgba(0,212,255,0.3)">Save</button>
         <button id="cfgResetBtn" class="btn-neon" style="--btn-color:#ff3c00; --btn-glow:rgba(255,60,0,0.3)">Reset</button>
+      </div>
+      <div class="space-y-3 border border-ethereal-blue/20 rounded-lg p-4 soft-frost">
+        <div>
+          <div class="text-[10px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Bridge State</div>
+          <div id="cfgBridgeSummary" class="text-sm text-ethereal-blue mt-1">Checking native layer...</div>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Device Info</div>
+          <div id="cfgDeviceSummary" class="text-sm text-slate-300 mt-1">No device snapshot yet.</div>
+        </div>
+        <div class="flex flex-wrap gap-3 pt-1">
+          <button id="cfgRefreshDeviceBtn" class="btn-neon" style="--btn-color:#00ff9d; --btn-glow:rgba(0,255,157,0.3)">Refresh Device</button>
+          <button id="cfgExportDiagBtn" class="btn-neon" style="--btn-color:#faff00; --btn-glow:rgba(250,255,0,0.3)">Export Diag</button>
+        </div>
       </div>
       <p id="cfgStatusMsg" class="text-[10px] text-cyber-violet uppercase mt-2 hidden">Settings saved.</p>
     </div>
@@ -1240,6 +1172,22 @@
         wavePath: $("wavePath"),
       };
 
+      const nativeUi = {
+        wifiDeviceList: $("wifiDeviceList"),
+        wifiEmptyState: $("wifiEmptyState"),
+        wifiScanMeta: $("wifiScanMeta"),
+        wifiBridgeState: $("wifiBridgeState"),
+        wifiPermissionState: $("wifiPermissionState"),
+        wifiScanState: $("wifiScanState"),
+        wifiScanBtn: $("wifiScanBtn"),
+        wifiDemoBtn: $("wifiDemoBtn"),
+        wifiExportBtn: $("wifiExportBtn"),
+        cfgBridgeSummary: $("cfgBridgeSummary"),
+        cfgDeviceSummary: $("cfgDeviceSummary"),
+        cfgRefreshDeviceBtn: $("cfgRefreshDeviceBtn"),
+        cfgExportDiagBtn: $("cfgExportDiagBtn"),
+      };
+
       const State = Object.freeze({
         IDLE: "IDLE",
         PING: "PING",
@@ -1634,6 +1582,7 @@
           ui.scanJitter.style.opacity = "0";
           ui.statusText.textContent = (state === State.IDLE ? "READY" : ui.statusText.textContent);
         }, 350);
+        onListTabSelected();
       });
       nav.map?.addEventListener("click", () => {
         setActive("map");
@@ -1656,11 +1605,50 @@
         }, 350);
       });
 
-      // Configuration persistence logic: load, save and reset user settings
+      const NATIVE_EVENT = "netninja:native";
+      const cfgKey = "nn_cfg";
+      const nativeBridge = {
+        available() {
+          return !!(window.NetNinjaBridge && typeof window.NetNinjaBridge.getBridgeState === "function");
+        },
+        call(method, ...args) {
+          if (!this.available() || typeof window.NetNinjaBridge[method] !== "function") return null;
+          try {
+            return JSON.parse(window.NetNinjaBridge[method](...args));
+          } catch {
+            return null;
+          }
+        },
+      };
+      const runtime = {
+        bridgeState: {
+          available: nativeBridge.available(),
+          enabled: false,
+          canScan: false,
+          scanPermissionGranted: false,
+          locationServicesEnabled: false,
+        },
+        lastDeviceInfo: null,
+        lastScanResults: [],
+        lastScanSource: "demo",
+      };
+      const defaultConfig = () => ({
+        autoScan: false,
+        holoFX: false,
+        alerts: false,
+        demoMode: true,
+        bridgeEnabled: false,
+        neonIntensity: 70,
+        scanSpeed: 50,
+        accentMode: "blue",
+        perfMode: "high",
+      });
       const cfgCtrls = {
         autoScan: document.getElementById("cfgAutoScan"),
         holoFX: document.getElementById("cfgHoloFX"),
         alerts: document.getElementById("cfgAlerts"),
+        demoMode: document.getElementById("cfgDemoMode"),
+        bridgeEnabled: document.getElementById("cfgBridgeEnabled"),
         neonIntensity: document.getElementById("cfgNeonIntensity"),
         scanSpeed: document.getElementById("cfgScanSpeed"),
         accentMode: document.getElementById("cfgAccentMode"),
@@ -1669,52 +1657,211 @@
       const cfgSaveBtn = document.getElementById("cfgSaveBtn");
       const cfgResetBtn = document.getElementById("cfgResetBtn");
       const cfgStatusMsg = document.getElementById("cfgStatusMsg");
-      const cfgKey = "nn_cfg";
-      function loadConfig() {
-        const raw = localStorage.getItem(cfgKey);
-        if (!raw) return;
-        try {
-          const data = JSON.parse(raw);
-          cfgCtrls.autoScan.checked = !!data.autoScan;
-          cfgCtrls.holoFX.checked = !!data.holoFX;
-          cfgCtrls.alerts.checked = !!data.alerts;
-          if (typeof data.neonIntensity === "number") cfgCtrls.neonIntensity.value = data.neonIntensity;
-          if (typeof data.scanSpeed === "number") cfgCtrls.scanSpeed.value = data.scanSpeed;
-          if (typeof data.accentMode === "string") cfgCtrls.accentMode.value = data.accentMode;
-          if (typeof data.perfMode === "string") cfgCtrls.perfMode.value = data.perfMode;
-          applyPerfMode(cfgCtrls.perfMode.value);
-        } catch {}
-      }
-      function saveConfig() {
-        const data = {
+      let cfgStatusTimer = 0;
+
+      const escapeHtml = (value) => String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("'", "&#39;");
+
+      const signalAccent = (level) => {
+        if (level >= -50) return { color: "#00ff9d", glow: "rgba(0,255,157,0.4)" };
+        if (level >= -65) return { color: "#00f3ff", glow: "rgba(0,243,255,0.4)" };
+        if (level >= -75) return { color: "#ffaa00", glow: "rgba(255,170,0,0.4)" };
+        return { color: "#a855f7", glow: "rgba(168,85,247,0.4)" };
+      };
+
+      const buildDemoResults = () => ([
+        { ssid: "Neural Rig Alpha", bssid: "DE:MO:00:00:00:01", signalLevel: -42, frequency: 5805, capabilities: "[WPA3-SAE]", demo: true },
+        { ssid: "Bio-Chip Cortex", bssid: "DE:MO:00:00:00:02", signalLevel: -56, frequency: 2412, capabilities: "[WPA2-PSK-CCMP][ESS]", demo: true },
+        { ssid: "Ext. Data Core", bssid: "DE:MO:00:00:00:03", signalLevel: -71, frequency: 2462, capabilities: "[WPA2-PSK-CCMP][ESS]", demo: true },
+        { ssid: "Holopad V9", bssid: "DE:MO:00:00:00:04", signalLevel: -81, frequency: 5200, capabilities: "[ESS]", demo: true },
+      ]);
+
+      const formatSecurity = (capabilities) => {
+        const label = String(capabilities || "").trim();
+        if (!label) return "OPEN";
+        if (label.includes("WPA3")) return "WPA3";
+        if (label.includes("WPA2")) return "WPA2";
+        if (label.includes("WEP")) return "WEP";
+        return label.replaceAll("[", "").replaceAll("]", "") || "SECURED";
+      };
+
+      function getCurrentConfig() {
+        return {
           autoScan: cfgCtrls.autoScan.checked,
           holoFX: cfgCtrls.holoFX.checked,
           alerts: cfgCtrls.alerts.checked,
+          demoMode: cfgCtrls.demoMode.checked,
+          bridgeEnabled: cfgCtrls.bridgeEnabled.checked,
           neonIntensity: Number(cfgCtrls.neonIntensity.value),
           scanSpeed: Number(cfgCtrls.scanSpeed.value),
           accentMode: cfgCtrls.accentMode.value,
           perfMode: cfgCtrls.perfMode.value,
         };
+      }
+
+      function setConfigControls(data) {
+        cfgCtrls.autoScan.checked = !!data.autoScan;
+        cfgCtrls.holoFX.checked = !!data.holoFX;
+        cfgCtrls.alerts.checked = !!data.alerts;
+        cfgCtrls.demoMode.checked = !!data.demoMode;
+        cfgCtrls.bridgeEnabled.checked = !!data.bridgeEnabled;
+        cfgCtrls.neonIntensity.value = Number(data.neonIntensity);
+        cfgCtrls.scanSpeed.value = Number(data.scanSpeed);
+        cfgCtrls.accentMode.value = data.accentMode;
+        cfgCtrls.perfMode.value = data.perfMode;
+      }
+
+      function showCfgStatus(message) {
+        cfgStatusMsg.textContent = message;
+        cfgStatusMsg.classList.remove("hidden");
+        clearTimeout(cfgStatusTimer);
+        cfgStatusTimer = setTimeout(() => cfgStatusMsg.classList.add("hidden"), 2400);
+      }
+
+      function updateBridgeUi() {
+        const bridge = runtime.bridgeState;
+        nativeUi.wifiBridgeState.textContent = !bridge.available ? "Unavailable" : bridge.enabled ? "Armed" : "Disabled";
+        nativeUi.wifiPermissionState.textContent = !bridge.available ? "N/A" : !bridge.locationServicesEnabled ? "Location Services Off" : bridge.scanPermissionGranted ? "Granted" : "Tap Scan To Grant";
+        nativeUi.wifiScanState.textContent = !bridge.canScan ? "Hardware Offline" : bridge.enabled ? "Ready" : "Standby";
+        nativeUi.cfgBridgeSummary.textContent = !bridge.available
+          ? "Native bridge unavailable in this shell."
+          : bridge.enabled
+            ? (bridge.scanPermissionGranted ? "Bridge enabled. Scan permissions ready." : "Bridge enabled. Scan will request permissions on tap.")
+            : "Bridge loaded but disabled by config.";
+      }
+
+      function updateDeviceUi() {
+        const info = runtime.lastDeviceInfo;
+        nativeUi.cfgDeviceSummary.textContent = !info
+          ? "No device snapshot yet."
+          : `${info.manufacturer} ${info.model} / Android ${info.release} / SDK ${info.sdkInt}`;
+      }
+
+      function renderWifiNetworks(networks, source, meta) {
+        runtime.lastScanResults = networks;
+        runtime.lastScanSource = source;
+        nativeUi.wifiScanMeta.textContent = meta;
+        nativeUi.wifiEmptyState.classList.toggle("hidden", networks.length > 0);
+        nativeUi.wifiDeviceList.innerHTML = networks.map((network, index) => {
+          const accent = signalAccent(Number(network.signalLevel ?? -90));
+          const pct = Math.max(12, Math.min(100, 120 + Number(network.signalLevel ?? -90)));
+          const ssid = escapeHtml(network.ssid || `Hidden-${index + 1}`);
+          const bssid = escapeHtml(network.bssid || "N/A");
+          const level = escapeHtml(`${network.signalLevel ?? "--"} dBm`);
+          const freq = escapeHtml(network.frequency ? `${network.frequency} MHz` : "Unknown band");
+          const security = escapeHtml(formatSecurity(network.capabilities));
+          const badge = source === "demo" ? "DEMO" : "LIVE";
+          return `
+            <div class="shard-card p-5 group" style="--edge-color:${accent.color}; --glow-color:${accent.glow};">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 flex items-center justify-center rounded-xl border border-white/10" style="box-shadow:0 0 18px ${accent.glow};">
+                  <span class="material-symbols-outlined" style="color:${accent.color};">wifi</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <h3 class="text-lg uppercase tracking-wider truncate" style="font-family:'Orbitron', sans-serif; color:#ffffff;">${ssid}</h3>
+                      <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400 mt-1">${bssid}</p>
+                    </div>
+                    <span class="text-[9px] font-black tracking-[0.3em] px-2 py-1 rounded-full border" style="color:${accent.color}; border-color:${accent.color};">${badge}</span>
+                  </div>
+                  <div class="mt-3 relative h-4 w-full liquid-bar-container">
+                    <div class="liquid-bar-fill" style="width:${pct}%; --bar-start:${accent.color}; --bar-mid:${accent.color}; --bar-end:#ffffff;"></div>
+                  </div>
+                  <div class="flex flex-wrap justify-between gap-2 mt-3 text-[10px] font-bold tracking-widest">
+                    <span class="text-gray-400">${freq}</span>
+                    <span style="color:${accent.color}; text-shadow:0 0 5px ${accent.glow};">${level} // ${security}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderDemoFallback(reason) {
+        renderWifiNetworks(buildDemoResults(), "demo", reason);
+        nativeUi.wifiScanState.textContent = "Demo Fallback";
+      }
+
+      function syncBridgeState(pushConfigToggle) {
+        const bridgeState = nativeBridge.call("getBridgeState");
+        runtime.bridgeState = bridgeState || runtime.bridgeState;
+        if (pushConfigToggle && bridgeState) {
+          cfgCtrls.bridgeEnabled.checked = !!bridgeState.enabled;
+        }
+        updateBridgeUi();
+      }
+
+      function refreshDeviceInfo() {
+        const result = nativeBridge.call("getDeviceInfo");
+        if (result?.ok && result.deviceInfo) {
+          runtime.lastDeviceInfo = result.deviceInfo;
+          updateDeviceUi();
+          return true;
+        }
+        runtime.lastDeviceInfo = null;
+        updateDeviceUi();
+        return false;
+      }
+
+      function loadConfig() {
+        const raw = localStorage.getItem(cfgKey);
+        let data = defaultConfig();
+        if (raw) {
+          try {
+            data = { ...data, ...JSON.parse(raw) };
+          } catch {}
+        }
+        setConfigControls(data);
+        applyPerfMode(cfgCtrls.perfMode.value);
+      }
+
+      function saveConfig() {
+        const data = getCurrentConfig();
         localStorage.setItem(cfgKey, JSON.stringify(data));
         applyPerfMode(data.perfMode);
-        cfgStatusMsg.textContent = "Settings saved.";
-        cfgStatusMsg.classList.remove("hidden");
-        setTimeout(() => cfgStatusMsg.classList.add("hidden"), 2000);
+        if (nativeBridge.available()) {
+          const bridgeState = nativeBridge.call("setBridgeEnabled", !!data.bridgeEnabled);
+          if (bridgeState) {
+            runtime.bridgeState = bridgeState;
+          }
+        }
+        syncBridgeState(false);
+        if (runtime.bridgeState.enabled) {
+          refreshDeviceInfo();
+        } else {
+          runtime.lastDeviceInfo = null;
+          updateDeviceUi();
+        }
+        if (cfgCtrls.demoMode.checked && runtime.lastScanSource !== "real") {
+          renderDemoFallback("Demo feed armed");
+        }
+        showCfgStatus("Settings saved.");
       }
+
       function resetConfig() {
         localStorage.removeItem(cfgKey);
-        cfgCtrls.autoScan.checked = false;
-        cfgCtrls.holoFX.checked = false;
-        cfgCtrls.alerts.checked = false;
-        cfgCtrls.neonIntensity.value = 70;
-        cfgCtrls.scanSpeed.value = 50;
-        cfgCtrls.accentMode.value = "blue";
-        cfgCtrls.perfMode.value = "high";
-        applyPerfMode("high");
-        cfgStatusMsg.textContent = "Settings reset.";
-        cfgStatusMsg.classList.remove("hidden");
-        setTimeout(() => cfgStatusMsg.classList.add("hidden"), 2000);
+        const defaults = defaultConfig();
+        setConfigControls(defaults);
+        applyPerfMode(defaults.perfMode);
+        if (nativeBridge.available()) {
+          const bridgeState = nativeBridge.call("setBridgeEnabled", false);
+          if (bridgeState) {
+            runtime.bridgeState = bridgeState;
+          }
+        }
+        runtime.lastDeviceInfo = null;
+        updateDeviceUi();
+        syncBridgeState(false);
+        renderDemoFallback("Demo feed armed");
+        showCfgStatus("Settings reset.");
       }
+
       function applyPerfMode(mode) {
         const overlay = document.querySelector(".vhs-overlay");
         const buttons = document.querySelectorAll(".cybr-btn");
@@ -1732,10 +1879,143 @@
           });
         }
       }
+
+      function exportDiagnostics() {
+        syncBridgeState(false);
+        if (!runtime.bridgeState.available || !runtime.bridgeState.enabled) {
+          showCfgStatus("Enable Native Bridge before exporting diagnostics.");
+          return;
+        }
+        const payload = {
+          capturedAt: new Date().toISOString(),
+          config: getCurrentConfig(),
+          lastScan: {
+            source: runtime.lastScanSource,
+            count: runtime.lastScanResults.length,
+            results: runtime.lastScanResults,
+          },
+          engine: {
+            state,
+            latency: ui.latencyVal.textContent,
+            jitter: ui.jitterVal.textContent,
+            loss: ui.lossVal.textContent,
+            down: ui.downVal.textContent,
+            up: ui.upVal.textContent,
+          },
+        };
+        const result = nativeBridge.call("exportDiagnostics", JSON.stringify(payload));
+        if (result?.ok === false) {
+          showCfgStatus(result.message || "Diagnostics export failed.");
+        } else {
+          nativeUi.wifiScanState.textContent = "Export Requested";
+        }
+      }
+
+      function requestNativeWifiScan(userInitiated) {
+        syncBridgeState(false);
+        if (!runtime.bridgeState.available || !runtime.bridgeState.enabled) {
+          if (cfgCtrls.demoMode.checked) {
+            renderDemoFallback("Bridge offline. Demo fallback active.");
+          } else if (userInitiated) {
+            showCfgStatus("Enable Native Bridge or Demo Mode first.");
+          }
+          return;
+        }
+        if (!userInitiated && !runtime.bridgeState.scanPermissionGranted) {
+          nativeUi.wifiScanState.textContent = "Tap Scan To Grant";
+          nativeUi.wifiScanMeta.textContent = "Auto scan paused until permissions are granted";
+          return;
+        }
+        const result = nativeBridge.call("requestWifiScan");
+        if (result?.ok === false) {
+          nativeUi.wifiScanState.textContent = result.code || "Error";
+          if (cfgCtrls.demoMode.checked) {
+            renderDemoFallback("Live scan unavailable. Demo fallback active.");
+          } else if (userInitiated) {
+            showCfgStatus(result.message || "Wi-Fi scan failed.");
+          }
+        } else if (result?.status === "permission_requested") {
+          nativeUi.wifiScanState.textContent = "Permission Requested";
+          nativeUi.wifiScanMeta.textContent = "Grant permissions to continue live scanning";
+        } else {
+          nativeUi.wifiScanState.textContent = "Scanning";
+          nativeUi.wifiScanMeta.textContent = "Native scan request sent to Android";
+        }
+      }
+
+      function handleNativeEvent(event) {
+        const detail = event.detail || {};
+        const payload = detail.payload || {};
+        if (detail.type === "bridge_state") {
+          runtime.bridgeState = payload;
+          updateBridgeUi();
+          if (payload.enabled) {
+            refreshDeviceInfo();
+          }
+          return;
+        }
+        if (detail.type === "wifi_scan_results") {
+          const results = Array.isArray(payload.results) ? payload.results : [];
+          if (results.length > 0) {
+            renderWifiNetworks(results, payload.source || "real", `${payload.count || results.length} networks captured`);
+            nativeUi.wifiScanState.textContent = payload.source === "cached" ? "Cached Results" : "Live Results";
+          } else if (cfgCtrls.demoMode.checked) {
+            renderDemoFallback("No live networks returned. Demo fallback active.");
+          } else {
+            renderWifiNetworks([], payload.source || "real", "No nearby networks found");
+            nativeUi.wifiScanState.textContent = "No Results";
+          }
+          return;
+        }
+        if (detail.type === "scan_status") {
+          const status = payload.status || "idle";
+          nativeUi.wifiScanState.textContent = status.replaceAll("_", " ").toUpperCase();
+          if (payload.message) {
+            nativeUi.wifiScanMeta.textContent = payload.message;
+          }
+          if ((status === "permission_denied" || status === "wifi_unavailable" || status === "location_services_disabled" || status === "error") && cfgCtrls.demoMode.checked) {
+            renderDemoFallback("Live scan interrupted. Demo fallback active.");
+          }
+          return;
+        }
+        if (detail.type === "export_status") {
+          if (payload.status === "saved") showCfgStatus("Diagnostics exported.");
+          else if (payload.status === "cancelled") showCfgStatus("Diagnostics export cancelled.");
+          else if (payload.status === "error") showCfgStatus(payload.message || "Diagnostics export failed.");
+        }
+      }
+
+      function onListTabSelected() {
+        syncBridgeState(false);
+        if (cfgCtrls.autoScan.checked && runtime.bridgeState.enabled && runtime.bridgeState.scanPermissionGranted) {
+          requestNativeWifiScan(false);
+          return;
+        }
+        if (runtime.lastScanResults.length === 0 || (cfgCtrls.demoMode.checked && runtime.lastScanSource !== "real")) {
+          renderDemoFallback("Demo feed armed");
+        }
+      }
+
+      window.addEventListener(NATIVE_EVENT, handleNativeEvent);
       cfgSaveBtn?.addEventListener("click", saveConfig);
       cfgResetBtn?.addEventListener("click", resetConfig);
+      nativeUi.wifiScanBtn?.addEventListener("click", () => requestNativeWifiScan(true));
+      nativeUi.wifiDemoBtn?.addEventListener("click", () => renderDemoFallback("Manual demo override"));
+      nativeUi.wifiExportBtn?.addEventListener("click", exportDiagnostics);
+      nativeUi.cfgRefreshDeviceBtn?.addEventListener("click", () => {
+        syncBridgeState(false);
+        if (!runtime.bridgeState.enabled) {
+          showCfgStatus("Enable Native Bridge before requesting device info.");
+          return;
+        }
+        if (refreshDeviceInfo()) showCfgStatus("Device snapshot refreshed.");
+        else showCfgStatus("Device snapshot unavailable.");
+      });
+      nativeUi.cfgExportDiagBtn?.addEventListener("click", exportDiagnostics);
       loadConfig();
-
+      syncBridgeState(true);
+      updateDeviceUi();
+      renderDemoFallback("Demo feed armed");
       resetUI();
     })();
   </script>
