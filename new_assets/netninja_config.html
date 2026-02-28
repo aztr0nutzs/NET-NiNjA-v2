@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Net Ninja Holo Shell</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ethereal:#00d4ff;
+    --violet:#9d50bb;
+    --void:#020408;
+    --iron:#1a1c23;
+  }
+  html,body{height:100%;margin:0;background:var(--void);font-family:"Space Grotesk",sans-serif;}
+  .wrap{max-width:430px;margin:0 auto;height:100dvh;position:relative;border-left:1px solid rgba(0,212,255,.08);border-right:1px solid rgba(0,212,255,.08);overflow:hidden;}
+  .screen{position:absolute;inset:0;}
+  iframe{width:100%;height:100%;border:0;background:var(--void);}
+  /* one bottom nav to rule them all */
+  nav{position:absolute;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:space-between;gap:8px;
+      padding:8px 18px 28px;background:rgba(26,28,35,.82);backdrop-filter: blur(14px);
+      border-top:1px solid rgba(0,212,255,.10);}
+  nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:transparent;border:0;color:#64748b;padding:6px 4px;}
+  nav button .material-symbols-outlined{font-size:22px;}
+  nav button .lbl{font-size:9px;letter-spacing:-.02em;text-transform:uppercase;font-weight:700;}
+  nav button.active{color:var(--ethereal);}
+  .safePad{padding-bottom:92px; box-sizing:border-box;}
+  /* hide any inner navs if they exist */
+  .screen iframe{}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="scrSpeed" class="screen"><iframe id="ifSpeed"></iframe></div>
+  <div id="scrList" class="screen" style="display:none;"><iframe id="ifList"></iframe></div>
+  <div id="scrMap" class="screen" style="display:none;"><iframe id="ifMap"></iframe></div>
+  <div id="scrCfg" class="screen" style="display:none;"><iframe id="ifCfg"></iframe></div>
+
+  <nav id="bottomNav">
+    <button id="bSpeed" class="active" type="button"><span class="material-symbols-outlined">speed</span><span class="lbl">Speed</span></button>
+    <button id="bList" type="button"><span class="material-symbols-outlined">list_alt</span><span class="lbl">WiFi</span></button>
+    <button id="bMap" type="button"><span class="material-symbols-outlined">radar</span><span class="lbl">Map</span></button>
+    <button id="bCfg" type="button"><span class="material-symbols-outlined">settings</span><span class="lbl">Config</span></button>
+  </nav>
+
+  <template id="tplSpeed">&lt;!DOCTYPE html&gt;
+&lt;html class=&quot;dark&quot; lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;/&gt;
+  &lt;meta content=&quot;width=device-width, initial-scale=1.0&quot; name=&quot;viewport&quot;/&gt;
+  &lt;title&gt;Psycho-Engine Speedtest (HOLO Merge)&lt;/title&gt;
+
+  &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+  &lt;script src=&quot;https://cdn.tailwindcss.com?plugins=forms,container-queries&quot;&gt;&lt;/script&gt;
+
+  &lt;script id=&quot;tailwind-config&quot;&gt;
+    tailwind.config = {
+      darkMode: &quot;class&quot;,
+      theme: {
+        extend: {
+          colors: {
+            &quot;primary&quot;: &quot;#0db9f2&quot;,
+            &quot;secondary&quot;: &quot;#a855f7&quot;,
+            &quot;background-dark&quot;: &quot;#050a0c&quot;,
+            &quot;panel&quot;: &quot;#111c21&quot;,
+            &quot;ethereal-blue&quot;: &quot;#00d4ff&quot;,
+            &quot;cyber-violet&quot;: &quot;#9d50bb&quot;,
+            &quot;void-black&quot;: &quot;#020408&quot;,
+            &quot;engine-iron&quot;: &quot;#1a1c23&quot;,
+          },
+          fontFamily: {
+            &quot;display&quot;: [&quot;Space Grotesk&quot;, &quot;sans-serif&quot;],
+            &quot;mono&quot;: [&quot;JetBrains Mono&quot;, &quot;monospace&quot;],
+          },
+          borderRadius: {
+            &quot;DEFAULT&quot;: &quot;0.125rem&quot;,
+            &quot;lg&quot;: &quot;0.25rem&quot;,
+            &quot;xl&quot;: &quot;0.5rem&quot;,
+            &quot;full&quot;: &quot;0.75rem&quot;
+          },
+        },
+      },
+    };
+  &lt;/script&gt;
+
+  &lt;style type=&quot;text/tailwindcss&quot;&gt;
+    @layer utilities {
+      .vhs-overlay {
+        background:
+          linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.18) 50%),
+          linear-gradient(90deg, rgba(255,0,0,0.055), rgba(0,255,0,0.02), rgba(0,0,255,0.055));
+        background-size: 100% 4px, 3px 100%;
+        pointer-events: none;
+      }
+      .chromatic-aberration {
+        text-shadow: 1.5px 0 0 rgba(255,0,0,0.38), -1.5px 0 0 rgba(0,255,255,0.38);
+      }
+      .glitch-border {
+        box-shadow:
+          0 0 14px rgba(0,212,255,0.20),
+          0 0 30px rgba(157,80,187,0.12),
+          inset 0 0 14px rgba(0,212,255,0.10);
+      }
+      .glass-ring {
+        border: 2px solid rgba(0, 212, 255, 0.14);
+        box-shadow:
+          inset 0 0 20px rgba(0, 212, 255, 0.09),
+          0 0 18px rgba(157, 80, 187, 0.16);
+      }
+      .nitro-shard {
+        clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+      }
+      .engine-frame {
+        background: linear-gradient(145deg, #1a1c23, #020408);
+        border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 10px 10px 22px #010204, -5px -5px 15px rgba(255,255,255,0.02);
+      }
+      .neural-node {
+        background: radial-gradient(circle, rgba(0, 212, 255, 0.30) 0%, transparent 70%);
+      }
+      .perspective-center { perspective: 1200px; }
+      .rotate-x-25 { transform: rotateX(25deg); }
+      .data-heart-glow { filter: drop-shadow(0 0 15px rgba(0,212,255,0.55)); }
+      .soft-frost {
+        background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+        backdrop-filter: blur(18px);
+      }
+      .scanline-mask {
+        background-image: repeating-linear-gradient(
+          0deg,
+          rgba(255,255,255,0.00),
+          rgba(255,255,255,0.00) 2px,
+          rgba(0,212,255,0.08) 2px,
+          rgba(0,212,255,0.08) 3px
+        );
+        mix-blend-mode: overlay;
+      }
+      .tap-glow:active { filter: drop-shadow(0 0 12px rgba(0,212,255,0.45)); }
+      .header-video-frame {
+        background: linear-gradient(180deg, rgba(2,4,8,0.95), rgba(2,4,8,0.70), rgba(2,4,8,0.35), transparent);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      }
+    }
+  &lt;/style&gt;
+
+  &lt;style&gt;
+    body { min-height: max(884px, 100dvh); }
+
+    @keyframes holoPulse {
+      0%, 100% { transform: scale(1); filter: blur(28px); opacity: .28; }
+      50% { transform: scale(1.06); filter: blur(34px); opacity: .38; }
+    }
+    @keyframes drift {
+      0% { transform: translate3d(0,0,0); opacity: .35; }
+      50% { transform: translate3d(10px,-8px,0); opacity: .55; }
+      100% { transform: translate3d(0,0,0); opacity: .35; }
+    }
+    @keyframes jitter {
+      0% { transform: translate3d(0,0,0); }
+      15% { transform: translate3d(0.8px,-0.4px,0); }
+      30% { transform: translate3d(-0.6px,0.6px,0); }
+      45% { transform: translate3d(0.7px,0.2px,0); }
+      60% { transform: translate3d(-0.4px,-0.5px,0); }
+      75% { transform: translate3d(0.5px,0.6px,0); }
+      100% { transform: translate3d(0,0,0); }
+    }
+
+    /* Cyber button set (replaced with clipped cyber buttons) */
+
+/* Cyberpunk clipped-glitch buttons (from attached style.css), adapted to this layout */
+.cybr-btn {
+  --primary: hsl(var(--primary-hue), 85%, calc(var(--primary-lightness, 50) * 1%));
+  --shadow-primary: hsl(var(--shadow-primary-hue), 90%, 50%);
+  --primary-hue: 180;
+  --primary-lightness: 50;
+  --color: hsl(0, 0%, 0%);
+  --font-size: 14px;
+  --shadow-primary-hue: 300;
+  --shadow-secondary-hue: 60;
+  --shadow-secondary: hsl(var(--shadow-secondary-hue), 90%, 60%);
+  --clip: polygon(0 0, 100% 0, 100% 100%, 85% 100%, 8% 100%, 0 70%);
+  --border: 4px;
+  --shimmy-distance: 5;
+  --clip-one: polygon(0 2%, 100% 2%, 100% 95%, 8% 95%, 0 70%);
+  --clip-two: polygon(0 78%, 100% 78%, 100% 100%, 8% 100%, 0 78%);
+  --clip-three: polygon(0 44%, 100% 44%, 100% 54%, 8% 54%, 0 54%);
+  --clip-four: polygon(0 0, 100% 0, 100% 0, 8% 0, 0 0);
+  --clip-five: polygon(0 0, 100% 0, 100% 0, 8% 0, 0 0);
+  --clip-six: polygon(0 40%, 100% 40%, 100% 85%, 8% 85%, 0 70%);
+  --clip-seven: polygon(0 63%, 100% 63%, 100% 80%, 8% 80%, 0 70%);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 56px; /* keep existing size */
+  padding: 0 16px;
+
+  font-family: &quot;Space Grotesk&quot;, sans-serif;
+  font-style: italic; /* match the top header vibe */
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: var(--font-size);
+
+  border: 0;
+  outline: transparent;
+  cursor: pointer;
+
+  color: var(--color);
+  background: transparent;
+  transition: filter 0.2s, transform 0.12s;
+  clip-path: var(--clip);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.cybr-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: saturate(0.7);
+}
+
+.cybr-btn:active:not(:disabled) {
+  transform: scale(0.985);
+  filter: brightness(0.95);
+}
+
+.cybr-btn:before,
+.cybr-btn:after {
+  content: &quot;&quot;;
+  position: absolute;
+  inset: 0;
+  clip-path: var(--clip);
+  z-index: -1;
+}
+
+.cybr-btn:before {
+  background: var(--shadow-primary);
+  transform: translate(var(--border), 0);
+}
+
+.cybr-btn:after {
+  background: var(--primary);
+}
+
+.cybr-btn__glitch {
+  position: absolute;
+  top: calc(var(--border) * -1);
+  left: calc(var(--border) * -1);
+  right: calc(var(--border) * -1);
+  bottom: calc(var(--border) * -1);
+  background: var(--shadow-primary);
+  text-shadow: 2px 2px var(--shadow-primary), -2px -2px var(--shadow-secondary);
+  clip-path: var(--clip);
+  animation: glitch 2s infinite;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: &quot;Space Grotesk&quot;, sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color);
+}
+
+.cybr-btn:hover:not(:disabled) .cybr-btn__glitch {
+  display: inline-flex;
+}
+
+.cybr-btn__glitch:before {
+  content: &quot;&quot;;
+  position: absolute;
+  inset: var(--border);
+  clip-path: var(--clip);
+  background: var(--primary);
+  z-index: -1;
+}
+
+@keyframes glitch {
+  0% { clip-path: var(--clip-one); }
+  2%, 8% { clip-path: var(--clip-two); transform: translate(calc(var(--shimmy-distance) * -1%), 0); }
+  6% { clip-path: var(--clip-two); transform: translate(calc(var(--shimmy-distance) * 1%), 0); }
+  9% { clip-path: var(--clip-two); transform: translate(0, 0); }
+  10% { clip-path: var(--clip-three); transform: translate(calc(var(--shimmy-distance) * 1%), 0); }
+  13% { clip-path: var(--clip-three); transform: translate(0, 0); }
+  14%, 21% { clip-path: var(--clip-four); transform: translate(calc(var(--shimmy-distance) * 1%), 0); }
+  25% { clip-path: var(--clip-five); transform: translate(calc(var(--shimmy-distance) * 1%), 0); }
+  30% { clip-path: var(--clip-five); transform: translate(calc(var(--shimmy-distance) * -1%), 0); }
+  35%, 45% { clip-path: var(--clip-six); transform: translate(calc(var(--shimmy-distance) * -1%)); }
+  40% { clip-path: var(--clip-six); transform: translate(calc(var(--shimmy-distance) * 1%)); }
+  50% { clip-path: var(--clip-six); transform: translate(0, 0); }
+  55% { clip-path: var(--clip-seven); transform: translate(calc(var(--shimmy-distance) * 1%), 0); }
+  60% { clip-path: var(--clip-seven); transform: translate(0, 0); }
+  31%, 61%, 100% { clip-path: var(--clip-four); }
+}
+
+/* Color variants: green engage, pink abort, violet reset */
+.cybr-green { --primary-hue: 135; --shadow-primary-hue: 150; --shadow-secondary-hue: 60; --primary-lightness: 58; }
+.cybr-pink  { --primary-hue: 315; --shadow-primary-hue: 320; --shadow-secondary-hue: 180; --primary-lightness: 60; }
+.cybr-violet{ --primary-hue: 275; --shadow-primary-hue: 285; --shadow-secondary-hue: 180; --primary-lightness: 58; }
+
+@media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body class=&quot;bg-void-black font-display text-slate-100 overflow-y-auto antialiased&quot;&gt;
+  &lt;div class=&quot;fixed inset-0 vhs-overlay z-50 mix-blend-overlay opacity-30 pointer-events-none&quot;&gt;&lt;/div&gt;
+
+  &lt;div class=&quot;fixed inset-0 z-0 overflow-hidden pointer-events-none&quot;&gt;
+    &lt;div class=&quot;absolute top-[15%] left-[20%] w-1.5 h-1.5 neural-node rounded-full blur-[2px] opacity-40&quot; style=&quot;animation: drift 7s ease-in-out infinite;&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;absolute top-[40%] right-[10%] w-1 h-1 neural-node rounded-full blur-[1px] opacity-60&quot; style=&quot;animation: drift 9s ease-in-out infinite;&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;absolute bottom-[30%] left-[15%] w-2 h-2 neural-node rounded-full blur-[3px] opacity-30&quot; style=&quot;animation: drift 11s ease-in-out infinite;&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;absolute top-[70%] right-[30%] w-1 h-1 neural-node rounded-full blur-[1px] opacity-50&quot; style=&quot;animation: drift 8s ease-in-out infinite;&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;absolute top-[25%] right-[45%] w-1.5 h-1.5 neural-node rounded-full blur-[2px] opacity-35&quot; style=&quot;animation: drift 10s ease-in-out infinite;&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;absolute bottom-[18%] right-[18%] w-2 h-2 neural-node rounded-full blur-[3px] opacity-22&quot; style=&quot;animation: drift 12s ease-in-out infinite;&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;absolute top-[58%] left-[8%] w-1 h-1 neural-node rounded-full blur-[1px] opacity-55&quot; style=&quot;animation: drift 6s ease-in-out infinite;&quot;&gt;&lt;/div&gt;
+
+    &lt;div class=&quot;absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,212,255,0.08)_0%,rgba(2,4,8,0.00)_55%,rgba(2,4,8,0.90)_78%)]&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;absolute inset-0 bg-gradient-to-b from-transparent via-void-black to-void-black&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;relative flex min-h-[100dvh] w-full flex-col justify-between&quot;&gt;
+
+    &lt;!-- Header video (speed.mp4) --&gt;
+    &lt;div class=&quot;relative z-30 w-full header-video-frame&quot;&gt;
+      &lt;div class=&quot;px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4&quot;&gt;
+        &lt;div class=&quot;w-full rounded-xl overflow-hidden border border-white/10 bg-black/50&quot;&gt;
+          &lt;video
+            id=&quot;headerVid&quot;
+            class=&quot;w-full max-h-[140px] sm:max-h-[180px] object-contain bg-black&quot;
+            src=&quot;speed.mp4&quot;
+            autoplay
+            muted
+            loop
+            playsinline
+          &gt;&lt;/video&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;header class=&quot;relative z-20 flex items-center justify-between p-4 pt-3 sm:p-6 sm:pt-6 bg-gradient-to-b from-void-black/75 to-transparent&quot;&gt;
+      &lt;div class=&quot;flex flex-col&quot;&gt;
+        &lt;span class=&quot;text-[10px] tracking-[0.3em] text-ethereal-blue/70 font-mono uppercase&quot;&gt;SYSTEM STATUS&lt;/span&gt;
+        &lt;h2 class=&quot;text-ethereal-blue text-sm sm:text-base font-black leading-tight flex items-center gap-2 italic chromatic-aberration&quot;&gt;
+          &lt;span class=&quot;material-symbols-outlined text-base&quot;&gt;terminal&lt;/span&gt;
+          PSYCHO-ENGINE / HOLO MERGE
+        &lt;/h2&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;flex gap-4 items-center&quot;&gt;
+        &lt;div class=&quot;text-right hidden sm:block&quot;&gt;
+          &lt;p class=&quot;text-[10px] text-slate-500 uppercase font-mono&quot;&gt;Neural Link&lt;/p&gt;
+          &lt;p class=&quot;text-xs font-bold text-cyber-violet font-mono tracking-widest&quot;&gt;ENCRYPTED&lt;/p&gt;
+        &lt;/div&gt;
+
+        &lt;button id=&quot;btnSettings&quot; class=&quot;tap-glow size-10 rounded-full bg-ethereal-blue/10 border border-ethereal-blue/30 flex items-center justify-center text-ethereal-blue&quot; type=&quot;button&quot;&gt;
+          &lt;span class=&quot;material-symbols-outlined&quot;&gt;settings_input_component&lt;/span&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/header&gt;
+
+    &lt;main class=&quot;relative z-20 flex-1 min-h-0 flex flex-col items-center justify-center px-4 sm:px-6 perspective-center&quot;&gt;
+      &lt;div class=&quot;absolute inset-0 z-0 opacity-20&quot;&gt;
+        &lt;div class=&quot;absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#020408_70%)] z-10&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;w-full h-full bg-center bg-cover scale-110&quot;
+             style=&quot;background-image: url(&#x27;https://lh3.googleusercontent.com/aida-public/AB6AXuCZq-u9WkN5HIg-r6DbgbkFk0tVDngjoCq4_8_BDBx3wyWNCmaGxO20LTdwawL8PjRJKV_p7S-T5hpkp896wdHx_tNNWzR5Po399iz7PWgKZ8UCIu3-zxQgOpcB9oxo2_iwzayGSS04HnOFrPWGjFWQ5WdQG1tZvhOsA0mG_6jeFw2lkbNI5eZ95J1qvR3UOxrO4TupRQbqRSY71MphD1earMcsm5cJaUKoEQIT9fWSqYOG5YRzcTXfqIw3JkYXFIujgGbk_4jMAMPf&#x27;);&quot;&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;relative z-10 flex flex-col items-center w-full max-w-sm sm:max-w-md&quot;&gt;
+
+        &lt;div class=&quot;absolute -top-12 left-0 right-0 flex justify-between px-6 opacity-90 rotate-x-25&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;div class=&quot;flex flex-col items-start border-l-2 border-ethereal-blue/40 pl-2&quot;&gt;
+            &lt;span class=&quot;text-[9px] text-ethereal-blue uppercase tracking-widest font-mono&quot;&gt;Heat Level&lt;/span&gt;
+            &lt;span id=&quot;heatLabel&quot; class=&quot;text-sm font-black text-ethereal-blue&quot;&gt;IDLE&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;flex flex-col items-end border-r-2 border-cyber-violet/40 pr-2&quot;&gt;
+            &lt;span class=&quot;text-[9px] text-cyber-violet uppercase tracking-widest font-mono&quot;&gt;Pressure&lt;/span&gt;
+            &lt;span id=&quot;pressureLabel&quot; class=&quot;text-sm font-black text-cyber-violet&quot;&gt;STABLE&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;relative group w-full flex items-center justify-center&quot;&gt;
+          &lt;div id=&quot;aura&quot; class=&quot;absolute -inset-10 bg-ethereal-blue/10 blur-3xl rounded-full&quot; style=&quot;animation: holoPulse 4.5s ease-in-out infinite;&quot;&gt;&lt;/div&gt;
+          &lt;div class=&quot;absolute -inset-6 sm:-inset-8 engine-frame rounded-3xl rotate-45 opacity-45 border-2 border-white/5&quot;&gt;&lt;/div&gt;
+
+          &lt;div class=&quot;relative size-64 sm:size-80 flex items-center justify-center transform-gpu&quot;&gt;
+            &lt;div class=&quot;absolute inset-0 rounded-full glass-ring animate-[spin_10s_linear_infinite] opacity-80&quot;&gt;&lt;/div&gt;
+            &lt;div class=&quot;absolute inset-4 rounded-full glass-ring opacity-55 animate-[spin_15s_linear_infinite_reverse] border-cyber-violet/20&quot;&gt;&lt;/div&gt;
+            &lt;div class=&quot;absolute inset-2 rounded-full border border-ethereal-blue/10 opacity-60 scale-110&quot;&gt;&lt;/div&gt;
+
+            &lt;div class=&quot;absolute inset-2 flex items-center justify-center&quot;&gt;
+              &lt;div class=&quot;w-full h-full rounded-full border-[1px] border-dashed border-white/10 opacity-45&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;div class=&quot;absolute inset-0 flex items-center justify-center&quot;&gt;
+              &lt;div id=&quot;needlePivot&quot; class=&quot;absolute w-full h-full flex items-center justify-center&quot; style=&quot;transform: rotate(140deg);&quot;&gt;
+                &lt;div class=&quot;relative w-44 sm:w-52 flex items-center justify-end origin-left&quot;&gt;
+                  &lt;div class=&quot;w-28 sm:w-32 h-[3px] bg-gradient-to-r from-transparent via-ethereal-blue to-white rounded-full shadow-[0_0_20px_#00d4ff]&quot;&gt;&lt;/div&gt;
+                  &lt;div class=&quot;absolute -right-1 w-2 h-2 bg-white rounded-full blur-[2px]&quot;&gt;&lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;absolute w-36 h-20 bg-ethereal-blue/5 blur-xl rounded-full -left-12 origin-right&quot;&gt;&lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div class=&quot;absolute w-3.5 h-3.5 rounded-full bg-white/80 blur-[0.5px] shadow-[0_0_18px_rgba(0,212,255,0.35)]&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;div class=&quot;relative z-20 size-48 sm:size-56 bg-panel/70 soft-frost rounded-2xl border-2 border-ethereal-blue/35 glitch-border p-4 flex flex-col items-center justify-center overflow-hidden&quot;&gt;
+              &lt;div class=&quot;absolute inset-0 opacity-15 scanline-mask&quot;&gt;&lt;/div&gt;
+
+              &lt;div class=&quot;relative z-10 flex flex-col items-center select-none&quot;&gt;
+                &lt;span id=&quot;phaseLabel&quot; class=&quot;text-[10px] tracking-[0.5em] text-ethereal-blue/70 font-mono font-bold mb-1 uppercase italic&quot;&gt;IDLE&lt;/span&gt;
+
+                &lt;div class=&quot;flex items-baseline gap-1 chromatic-aberration&quot;&gt;
+                  &lt;span id=&quot;mainInt&quot; class=&quot;text-6xl sm:text-7xl font-black text-white tracking-tighter leading-none&quot;&gt;0&lt;/span&gt;
+                  &lt;span id=&quot;mainFrac&quot; class=&quot;text-xl font-black text-ethereal-blue&quot;&gt;.0&lt;/span&gt;
+                &lt;/div&gt;
+
+                &lt;span id=&quot;unitLabel&quot; class=&quot;text-lg font-bold text-ethereal-blue/80 tracking-widest mt-2&quot;&gt;Mbps&lt;/span&gt;
+
+                &lt;div class=&quot;mt-3 flex items-center gap-2 font-mono text-[10px] text-white/60&quot;&gt;
+                  &lt;span class=&quot;inline-flex items-center gap-1&quot;&gt;
+                    &lt;span class=&quot;w-1.5 h-1.5 rounded-full bg-ethereal-blue shadow-[0_0_8px_#00d4ff]&quot;&gt;&lt;/span&gt;
+                    &lt;span id=&quot;statusText&quot;&gt;READY&lt;/span&gt;
+                  &lt;/span&gt;
+                  &lt;span class=&quot;opacity-50&quot;&gt;|&lt;/span&gt;
+                  &lt;span id=&quot;timerText&quot; class=&quot;tracking-widest&quot;&gt;00:00&lt;/span&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div class=&quot;absolute bottom-0 left-0 right-0 h-16 opacity-25 data-heart-glow&quot;&gt;
+                &lt;svg class=&quot;w-full h-full text-ethereal-blue&quot; viewBox=&quot;0 0 200 100&quot; preserveAspectRatio=&quot;none&quot;&gt;
+                  &lt;path id=&quot;wavePath&quot; d=&quot;M0 100 L20 40 L40 80 L60 20 L80 90 L100 10 L120 70 L140 30 L160 85 L180 45 L200 100 Z&quot; fill=&quot;currentColor&quot;&gt;&lt;/path&gt;
+                &lt;/svg&gt;
+              &lt;/div&gt;
+
+              &lt;div id=&quot;scanJitter&quot; class=&quot;absolute inset-0 pointer-events-none opacity-0&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;div class=&quot;absolute -top-4 -right-4 size-12 bg-cyber-violet/20 border border-cyber-violet/50 nitro-shard flex items-center justify-center&quot;&gt;
+              &lt;span class=&quot;material-symbols-outlined text-cyber-violet text-sm&quot;&gt;bolt&lt;/span&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;mt-10 sm:mt-12 grid grid-cols-3 gap-3 w-full px-2&quot;&gt;
+          &lt;div class=&quot;bg-engine-iron/55 border-l border-ethereal-blue/40 p-3 rounded-sm&quot;&gt;
+            &lt;p class=&quot;text-[8px] text-slate-500 uppercase font-bold tracking-widest font-mono&quot;&gt;Latency&lt;/p&gt;
+            &lt;p class=&quot;text-lg font-black text-slate-100&quot;&gt;
+              &lt;span id=&quot;latencyVal&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;text-[10px] text-ethereal-blue ml-1 font-mono&quot;&gt;MS&lt;/span&gt;
+            &lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;bg-engine-iron/55 border-l border-ethereal-blue/40 p-3 rounded-sm&quot;&gt;
+            &lt;p class=&quot;text-[8px] text-slate-500 uppercase font-bold tracking-widest font-mono&quot;&gt;Jitter&lt;/p&gt;
+            &lt;p class=&quot;text-lg font-black text-slate-100&quot;&gt;
+              &lt;span id=&quot;jitterVal&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;text-[10px] text-ethereal-blue ml-1 font-mono&quot;&gt;MS&lt;/span&gt;
+            &lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;bg-engine-iron/55 border-l border-ethereal-blue/40 p-3 rounded-sm&quot;&gt;
+            &lt;p class=&quot;text-[8px] text-slate-500 uppercase font-bold tracking-widest font-mono&quot;&gt;Loss&lt;/p&gt;
+            &lt;p class=&quot;text-lg font-black text-slate-100&quot;&gt;
+              &lt;span id=&quot;lossVal&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;text-[10px] text-ethereal-blue ml-1 font-mono&quot;&gt;%&lt;/span&gt;
+            &lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;mt-4 grid grid-cols-2 gap-3 w-full px-2&quot;&gt;
+          &lt;div class=&quot;bg-panel/35 border border-white/5 p-3 rounded-md&quot;&gt;
+            &lt;p class=&quot;text-[9px] text-slate-500 uppercase font-mono tracking-widest&quot;&gt;Downlink&lt;/p&gt;
+            &lt;p class=&quot;text-sm font-mono text-white&quot;&gt;&lt;span id=&quot;downVal&quot;&gt;0.0&lt;/span&gt; &lt;span class=&quot;text-ethereal-blue&quot;&gt;Mbps&lt;/span&gt;&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;bg-panel/35 border border-white/5 p-3 rounded-md&quot;&gt;
+            &lt;p class=&quot;text-[9px] text-slate-500 uppercase font-mono tracking-widest&quot;&gt;Uplink&lt;/p&gt;
+            &lt;p class=&quot;text-sm font-mono text-white&quot;&gt;&lt;span id=&quot;upVal&quot;&gt;0.0&lt;/span&gt; &lt;span class=&quot;text-cyber-violet&quot;&gt;Mbps&lt;/span&gt;&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+      &lt;/div&gt;
+    &lt;/main&gt;
+
+    &lt;footer class=&quot;relative z-30 shrink-0 p-6 pb-10 sm:px-8 sm:pb-12 flex flex-col gap-6&quot;&gt;
+      
+&lt;div class=&quot;grid grid-cols-3 gap-3&quot;&gt;
+        &lt;button id=&quot;btnStart&quot; class=&quot;cybr-btn cybr-green tap-glow&quot; type=&quot;button&quot; aria-label=&quot;Engage&quot;&gt;
+          &lt;span class=&quot;cybr-btn__glitch&quot; aria-hidden=&quot;true&quot;&gt;ENGAGE&lt;/span&gt;
+          ENGAGE
+        &lt;/button&gt;
+
+        &lt;button id=&quot;btnAbort&quot; class=&quot;cybr-btn cybr-pink tap-glow&quot; type=&quot;button&quot; aria-label=&quot;Abort&quot;&gt;
+          &lt;span class=&quot;cybr-btn__glitch&quot; aria-hidden=&quot;true&quot;&gt;ABORT&lt;/span&gt;
+          ABORT
+        &lt;/button&gt;
+
+        &lt;button id=&quot;btnReset&quot; class=&quot;cybr-btn cybr-violet tap-glow&quot; type=&quot;button&quot; aria-label=&quot;Reset&quot;&gt;
+          &lt;span class=&quot;cybr-btn__glitch&quot; aria-hidden=&quot;true&quot;&gt;RESET&lt;/span&gt;
+          RESET
+        &lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;nav class=&quot;flex justify-between items-center px-4&quot;&gt;
+        &lt;a class=&quot;flex flex-col items-center gap-1 text-ethereal-blue&quot; href=&quot;#&quot;&gt;
+          &lt;span class=&quot;material-symbols-outlined text-2xl&quot;&gt;offline_bolt&lt;/span&gt;
+          &lt;span class=&quot;text-[9px] font-bold tracking-tighter font-mono uppercase&quot;&gt;Engine&lt;/span&gt;
+        &lt;/a&gt;
+        &lt;a class=&quot;flex flex-col items-center gap-1 text-slate-500 hover:text-ethereal-blue transition-colors&quot; href=&quot;#&quot;&gt;
+          &lt;span class=&quot;material-symbols-outlined text-2xl&quot;&gt;history&lt;/span&gt;
+          &lt;span class=&quot;text-[9px] font-bold tracking-tighter font-mono uppercase&quot;&gt;Logs&lt;/span&gt;
+        &lt;/a&gt;
+        &lt;a class=&quot;flex flex-col items-center gap-1 text-slate-500 hover:text-ethereal-blue transition-colors&quot; href=&quot;#&quot;&gt;
+          &lt;span class=&quot;material-symbols-outlined text-2xl&quot;&gt;lan&lt;/span&gt;
+          &lt;span class=&quot;text-[9px] font-bold tracking-tighter font-mono uppercase&quot;&gt;Nodes&lt;/span&gt;
+        &lt;/a&gt;
+        &lt;a class=&quot;flex flex-col items-center gap-1 text-slate-500 hover:text-ethereal-blue transition-colors&quot; href=&quot;#&quot;&gt;
+          &lt;span class=&quot;material-symbols-outlined text-2xl&quot;&gt;settings&lt;/span&gt;
+          &lt;span class=&quot;text-[9px] font-bold tracking-tighter font-mono uppercase&quot;&gt;Config&lt;/span&gt;
+        &lt;/a&gt;
+      &lt;/nav&gt;
+
+      &lt;div class=&quot;absolute bottom-24 left-0 w-full flex justify-center opacity-[0.08] pointer-events-none select-none&quot;&gt;
+        &lt;span class=&quot;text-[96px] sm:text-[120px] font-black tracking-tighter leading-none&quot;&gt;OVERDRIVE&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/footer&gt;
+
+    &lt;div class=&quot;absolute top-1/2 left-4 -translate-y-1/2 flex flex-col gap-1 z-0&quot;&gt;
+      &lt;div class=&quot;h-12 w-0.5 bg-ethereal-blue/30&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;h-2 w-0.5 bg-cyber-violet&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;h-20 w-0.5 bg-ethereal-blue/10&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;absolute top-1/2 right-4 -translate-y-1/2 flex flex-col gap-1 z-0 items-end&quot;&gt;
+      &lt;div class=&quot;h-20 w-0.5 bg-ethereal-blue/10&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;h-2 w-0.5 bg-ethereal-blue&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;h-12 w-0.5 bg-cyber-violet/30&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    (() =&gt; {
+      const $ = (id) =&gt; document.getElementById(id);
+
+      const ui = {
+        btnStart: $(&quot;btnStart&quot;),
+        btnAbort: $(&quot;btnAbort&quot;),
+        btnReset: $(&quot;btnReset&quot;),
+
+        heatLabel: $(&quot;heatLabel&quot;),
+        pressureLabel: $(&quot;pressureLabel&quot;),
+        phaseLabel: $(&quot;phaseLabel&quot;),
+        unitLabel: $(&quot;unitLabel&quot;),
+        statusText: $(&quot;statusText&quot;),
+        timerText: $(&quot;timerText&quot;),
+
+        mainInt: $(&quot;mainInt&quot;),
+        mainFrac: $(&quot;mainFrac&quot;),
+
+        latencyVal: $(&quot;latencyVal&quot;),
+        jitterVal: $(&quot;jitterVal&quot;),
+        lossVal: $(&quot;lossVal&quot;),
+
+        downVal: $(&quot;downVal&quot;),
+        upVal: $(&quot;upVal&quot;),
+
+        needlePivot: $(&quot;needlePivot&quot;),
+        aura: $(&quot;aura&quot;),
+        scanJitter: $(&quot;scanJitter&quot;),
+        wavePath: $(&quot;wavePath&quot;),
+      };
+
+      const State = Object.freeze({
+        IDLE: &quot;IDLE&quot;,
+        PING: &quot;PING&quot;,
+        DOWNLOAD: &quot;DOWNLOAD&quot;,
+        UPLOAD: &quot;UPLOAD&quot;,
+        DONE: &quot;DONE&quot;,
+        ABORTED: &quot;ABORTED&quot;,
+      });
+
+      let state = State.IDLE;
+
+      let cur = {
+        ping: null,
+        jitter: null,
+        loss: null,
+        down: 0,
+        up: 0,
+        display: 0,
+        needleDeg: 140,
+      };
+
+      let raf = 0;
+      let phaseStart = 0;
+      let runStart = 0;
+      let aborted = false;
+
+      const clamp = (v, a, b) =&gt; Math.max(a, Math.min(b, v));
+      const ease = (x) =&gt; {
+        x = clamp(x, 0, 1);
+        return x * x * (3 - 2 * x);
+      };
+      const lerp = (a, b, t) =&gt; a + (b - a) * t;
+
+      const fmt1 = (v) =&gt; (Math.round(v * 10) / 10).toFixed(1);
+      const fmtIntFrac = (v) =&gt; {
+        const fixed = fmt1(v);
+        const [i, f] = fixed.split(&quot;.&quot;);
+        return { i, f };
+      };
+
+      const setMainReadout = (v) =&gt; {
+        const { i, f } = fmtIntFrac(v);
+        ui.mainInt.textContent = i;
+        ui.mainFrac.textContent = &quot;.&quot; + f;
+      };
+
+      const setNeedleAngle = (deg) =&gt; {
+        ui.needlePivot.style.transform = `rotate(${deg}deg)`;
+      };
+
+      const setPhase = (s) =&gt; {
+        state = s;
+        ui.phaseLabel.textContent = s;
+
+        ui.statusText.textContent =
+          s === State.IDLE ? &quot;READY&quot; :
+          s === State.PING ? &quot;PROBING&quot; :
+          s === State.DOWNLOAD ? &quot;DOWNLINK&quot; :
+          s === State.UPLOAD ? &quot;UPLINK&quot; :
+          s === State.DONE ? &quot;COMPLETE&quot; :
+          s === State.ABORTED ? &quot;ABORTED&quot; : &quot;ACTIVE&quot;;
+
+        ui.heatLabel.textContent =
+          s === State.IDLE ? &quot;IDLE&quot; :
+          s === State.PING ? &quot;WARMING&quot; :
+          s === State.DOWNLOAD ? &quot;CRITICAL&quot; :
+          s === State.UPLOAD ? &quot;CRITICAL&quot; :
+          s === State.DONE ? &quot;COOLING&quot; :
+          s === State.ABORTED ? &quot;CUT&quot; : &quot;ACTIVE&quot;;
+
+        ui.pressureLabel.textContent =
+          s === State.IDLE ? &quot;STABLE&quot; :
+          s === State.PING ? &quot;RISING&quot; :
+          s === State.DOWNLOAD ? &quot;OVERLOAD&quot; :
+          s === State.UPLOAD ? &quot;OVERLOAD&quot; :
+          s === State.DONE ? &quot;VENTING&quot; :
+          s === State.ABORTED ? &quot;DUMPED&quot; : &quot;ACTIVE&quot;;
+
+        const scanning = (s === State.PING || s === State.DOWNLOAD || s === State.UPLOAD);
+        ui.scanJitter.style.opacity = scanning ? &quot;1&quot; : &quot;0&quot;;
+        ui.scanJitter.style.animation = scanning ? &quot;jitter 0.5s infinite&quot; : &quot;none&quot;;
+
+        ui.aura.style.opacity = scanning ? &quot;0.55&quot; : &quot;0.35&quot;;
+        ui.aura.style.filter = scanning ? &quot;blur(36px)&quot; : &quot;blur(28px)&quot;;
+      };
+
+      const lockButtons = (locked) =&gt; {
+        ui.btnStart.disabled = locked;
+        ui.btnAbort.disabled = !locked;
+        ui.btnReset.disabled = locked;
+      };
+
+      const mmss = (ms) =&gt; {
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return String(m).padStart(2, &quot;0&quot;) + &quot;:&quot; + String(r).padStart(2, &quot;0&quot;);
+      };
+
+      const resetUI = () =&gt; {
+        aborted = false;
+        setPhase(State.IDLE);
+        lockButtons(false);
+
+        cur.ping = null;
+        cur.jitter = null;
+        cur.loss = null;
+        cur.down = 0;
+        cur.up = 0;
+        cur.display = 0;
+        cur.needleDeg = 140;
+
+        ui.latencyVal.textContent = &quot;--&quot;;
+        ui.jitterVal.textContent = &quot;--&quot;;
+        ui.lossVal.textContent = &quot;--&quot;;
+        ui.downVal.textContent = &quot;0.0&quot;;
+        ui.upVal.textContent = &quot;0.0&quot;;
+
+        ui.unitLabel.textContent = &quot;Mbps&quot;;
+        ui.timerText.textContent = &quot;00:00&quot;;
+
+        setMainReadout(0);
+        setNeedleAngle(cur.needleDeg);
+
+        ui.wavePath.setAttribute(&quot;d&quot;, &quot;M0 100 L20 40 L40 80 L60 20 L80 90 L100 10 L120 70 L140 30 L160 85 L180 45 L200 100 Z&quot;);
+      };
+
+      const rand = (a, b) =&gt; a + Math.random() * (b - a);
+
+      const profile = {
+        pingMs: () =&gt; Math.round(rand(8, 22)),
+        jitterMs: () =&gt; Math.round(rand(1, 6)),
+        lossPct: () =&gt; Math.round(rand(0, 2) * 10) / 10,
+        downPeak: () =&gt; rand(650, 980),
+        upPeak: () =&gt; rand(70, 180),
+      };
+
+      const needleForMbps = (mbps) =&gt; {
+        const max = 1000;
+        const t = clamp(mbps / max, 0, 1);
+        return lerp(50, 320, ease(t));
+      };
+
+      const updateWaveform = (timeMs, intensity01) =&gt; {
+        const wob = (i) =&gt; Math.sin((timeMs / 140) + i) * (12 + 22 * intensity01);
+        const base = [
+          [0,100],[20,40],[40,80],[60,20],[80,90],[100,10],[120,70],[140,30],[160,85],[180,45],[200,100]
+        ];
+        const pts = base.map(([x,y], idx) =&gt; {
+          const dy = wob(idx * 0.9) * (idx % 2 === 0 ? 0.35 : 0.55);
+          const ny = clamp(y + dy, 4, 98);
+          return [x, ny];
+        });
+        const d = &quot;M&quot; + pts.map(([x,y]) =&gt; `${x} ${y.toFixed(1)}`).join(&quot; L &quot;) + &quot; Z&quot;;
+        ui.wavePath.setAttribute(&quot;d&quot;, d);
+      };
+
+      const PING_DUR = 1200;
+      const DOWN_DUR = 5200;
+      const UP_DUR = 3800;
+
+      let downPeak = 0;
+      let upPeak = 0;
+
+      const startRun = () =&gt; {
+        if (state !== State.IDLE &amp;&amp; state !== State.DONE &amp;&amp; state !== State.ABORTED) return;
+
+        aborted = false;
+        lockButtons(true);
+
+        runStart = performance.now();
+        phaseStart = runStart;
+        setPhase(State.PING);
+
+        cur.ping = profile.pingMs();
+        cur.jitter = profile.jitterMs();
+        cur.loss = profile.lossPct();
+
+        ui.latencyVal.textContent = String(cur.ping);
+        ui.jitterVal.textContent = String(cur.jitter);
+        ui.lossVal.textContent = String(cur.loss);
+
+        cur.display = 0;
+        setMainReadout(cur.display);
+        setNeedleAngle(needleForMbps(0));
+
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(tick);
+      };
+
+      const abortRun = () =&gt; {
+        if (state === State.IDLE || state === State.DONE || state === State.ABORTED) return;
+        aborted = true;
+        setPhase(State.ABORTED);
+        lockButtons(false);
+
+        ui.unitLabel.textContent = &quot;Mbps&quot;;
+        ui.statusText.textContent = &quot;ABORTED&quot;;
+
+        cancelAnimationFrame(raf);
+      };
+
+      const finishRun = () =&gt; {
+        setPhase(State.DONE);
+        lockButtons(false);
+      };
+
+      const tick = (now) =&gt; {
+        if (aborted) return;
+
+        const elapsed = now - runStart;
+        ui.timerText.textContent = mmss(elapsed);
+
+        const scanIntensity =
+          (state === State.PING) ? 0.35 :
+          (state === State.DOWNLOAD) ? 0.85 :
+          (state === State.UPLOAD) ? 0.75 :
+          0.25;
+
+        updateWaveform(now, scanIntensity);
+
+        if (state === State.PING) {
+          const t = ease((now - phaseStart) / PING_DUR);
+          ui.unitLabel.textContent = &quot;ms&quot;;
+          const shown = lerp(0, cur.ping ?? 12, t);
+          cur.display = shown;
+          setMainReadout(cur.display);
+
+          const nd = lerp(needleForMbps(0), needleForMbps(120), t);
+          setNeedleAngle(nd);
+
+          if ((now - phaseStart) &gt;= PING_DUR) {
+            phaseStart = now;
+            downPeak = profile.downPeak();
+            ui.unitLabel.textContent = &quot;Mbps&quot;;
+            setPhase(State.DOWNLOAD);
+          }
+        }
+        else if (state === State.DOWNLOAD) {
+          const raw = (now - phaseStart) / DOWN_DUR;
+          const t = ease(raw);
+
+          const ramp = lerp(0, downPeak, t);
+          const noise = Math.sin(now / 180) * (downPeak * 0.015) + Math.sin(now / 70) * (downPeak * 0.006);
+          const val = clamp(ramp + noise, 0, downPeak * 1.02);
+
+          cur.down = val;
+          ui.downVal.textContent = fmt1(cur.down);
+
+          cur.display = val;
+          setMainReadout(cur.display);
+
+          setNeedleAngle(needleForMbps(val));
+
+          if (raw &gt;= 1) {
+            phaseStart = now;
+            upPeak = profile.upPeak();
+            setPhase(State.UPLOAD);
+          }
+        }
+        else if (state === State.UPLOAD) {
+          const raw = (now - phaseStart) / UP_DUR;
+          const t = ease(raw);
+
+          const ramp = lerp(0, upPeak, t);
+          const noise = Math.sin(now / 200) * (upPeak * 0.03) + Math.sin(now / 90) * (upPeak * 0.01);
+          const val = clamp(ramp + noise, 0, upPeak * 1.05);
+
+          cur.up = val;
+          ui.upVal.textContent = fmt1(cur.up);
+
+          cur.display = val;
+          setMainReadout(cur.display);
+
+          setNeedleAngle(needleForMbps(val));
+
+          if (raw &gt;= 1) {
+            ui.unitLabel.textContent = &quot;Mbps&quot;;
+            setMainReadout(cur.down);
+            setNeedleAngle(needleForMbps(cur.down));
+
+            finishRun();
+            cancelAnimationFrame(raf);
+            return;
+          }
+        }
+        else {
+          cancelAnimationFrame(raf);
+          return;
+        }
+
+        raf = requestAnimationFrame(tick);
+      };
+
+      ui.btnStart.addEventListener(&quot;click&quot;, startRun);
+      ui.btnAbort.addEventListener(&quot;click&quot;, abortRun);
+      ui.btnReset.addEventListener(&quot;click&quot;, () =&gt; {
+        cancelAnimationFrame(raf);
+        resetUI();
+      });
+
+      $(&quot;btnSettings&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+        const overlay = document.querySelector(&quot;.vhs-overlay&quot;);
+        const curOp = parseFloat(getComputedStyle(overlay).opacity || &quot;0.30&quot;);
+        overlay.style.opacity = (curOp &lt; 0.35) ? &quot;0.45&quot; : &quot;0.28&quot;;
+      });
+
+      resetUI();
+    })();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</template>
+  <template id="tplList">&lt;!DOCTYPE html&gt;
+
+&lt;html class=&quot;dark&quot; lang=&quot;en&quot;&gt;&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;/&gt;
+&lt;meta content=&quot;width=device-width, initial-scale=1.0&quot; name=&quot;viewport&quot;/&gt;
+&lt;title&gt;WiFi Pulse Sniffer Hub&lt;/title&gt;
+&lt;script src=&quot;https://cdn.tailwindcss.com?plugins=forms,container-queries&quot;&gt;&lt;/script&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;script id=&quot;tailwind-config&quot;&gt;
+        tailwind.config = {
+            darkMode: &quot;class&quot;,
+            theme: {
+                extend: {
+                    colors: {
+                        &quot;primary&quot;: &quot;#06bcf9&quot;,
+                        &quot;background-light&quot;: &quot;#f5f8f8&quot;,
+                        &quot;background-dark&quot;: &quot;#000000&quot;,
+                        &quot;hacker-purple&quot;: &quot;#2d004d&quot;,
+                    },
+                    fontFamily: {
+                        &quot;display&quot;: [&quot;Space Grotesk&quot;, &quot;monospace&quot;]
+                    },
+                    borderRadius: {&quot;DEFAULT&quot;: &quot;0.125rem&quot;, &quot;lg&quot;: &quot;0.25rem&quot;, &quot;xl&quot;: &quot;0.5rem&quot;, &quot;full&quot;: &quot;0.75rem&quot;},
+                },
+            },
+        }
+    &lt;/script&gt;
+&lt;style&gt;
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(6, 188, 249, 0.6);
+        }
+        .flicker {
+            opacity: 0.8;
+        }
+        .glass-panel {
+            background: rgba(6, 188, 249, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(6, 188, 249, 0.2);
+        }
+    &lt;/style&gt;
+&lt;style&gt;
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  &lt;/style&gt;
+  &lt;/head&gt;
+&lt;body class=&quot;bg-background-dark text-slate-100 font-display selection:bg-primary/30&quot;&gt;
+&lt;div class=&quot;relative flex min-h-screen w-full flex-col bg-background-dark overflow-x-hidden max-w-[430px] mx-auto border-x border-primary/10&quot;&gt;
+&lt;!-- Header --&gt;
+&lt;div class=&quot;flex items-center bg-background-dark p-6 pb-2 justify-between border-b border-primary/20&quot;&gt;
+&lt;div class=&quot;text-primary flex size-10 shrink-0 items-center justify-center&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined text-3xl&quot;&gt;terminal&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex flex-col items-center&quot;&gt;
+&lt;h2 class=&quot;text-primary text-xs font-bold tracking-[0.2em] uppercase italic&quot;&gt;System.Infiltrate&lt;/h2&gt;
+&lt;h1 class=&quot;text-slate-100 text-lg font-bold leading-tight tracking-tight&quot;&gt;WIFI PULSE SNIFFER&lt;/h1&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex w-10 items-center justify-end&quot;&gt;
+&lt;button class=&quot;flex items-center justify-center rounded text-primary hover:text-white transition-colors&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined text-2xl&quot;&gt;memory&lt;/span&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h4 class=&quot;text-primary/60 text-[10px] font-bold leading-normal tracking-[0.3em] px-4 py-3 text-center uppercase italic&quot;&gt;
+            Central Hologram Pulse :: Active
+        &lt;/h4&gt;
+&lt;!-- Central Hologram Area --&gt;
+&lt;div class=&quot;flex w-full @container p-4 relative&quot;&gt;
+&lt;div class=&quot;w-full aspect-square rounded-full flex items-center justify-center relative overflow-hidden&quot;&gt;
+&lt;!-- Grid background effect --&gt;
+&lt;div class=&quot;absolute inset-0 opacity-10&quot; style=&quot;background-image: radial-gradient(circle, #06bcf9 1px, transparent 1px); background-size: 20px 20px;&quot;&gt;&lt;/div&gt;
+&lt;!-- The &quot;Hologram&quot; placeholder --&gt;
+&lt;div class=&quot;relative z-10 w-64 h-64 flex items-center justify-center&quot;&gt;
+&lt;div class=&quot;absolute inset-0 bg-primary/5 rounded-full blur-3xl&quot;&gt;&lt;/div&gt;
+&lt;img class=&quot;w-full h-full object-contain opacity-80 mix-blend-screen&quot; data-alt=&quot;Jagged neon cyan lightning bolts forming a WiFi icon&quot; src=&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuBJ2vQutJEXoJX8dBo_STHvhFVuPoHgk4oOvYL72hfcd5zMO1-b2fz-ptzx6wMvXM1Ztqzjf65bqIPrhLAHdZujsRlMJhV097U9sDlbjBN2KinGwiuh0i6xCs3Kw6EaLzyasbI89ripS6JaxGHnw3gR7-i-g_8GaFCDYjbea3clLdAnXe7Bu7fY1_7GKyXlYwemypoVULd6Qz66vNl62l6OjRMKfV7GW1-oQ5sZpcwfysWZgz357poK7WejdyVpIdSPK8A-fm4KjDQ&quot;/&gt;
+&lt;!-- Signal Pulse Rings --&gt;
+&lt;div class=&quot;absolute border border-primary/20 rounded-full w-full h-full&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;absolute border border-primary/10 rounded-full w-[80%] h-[80%]&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- Floating Data Overlay --&gt;
+&lt;div class=&quot;absolute top-8 left-8 glass-panel p-2 rounded text-[10px] text-primary/80 font-mono italic&quot;&gt;
+                LAT: 37.7749&lt;br/&gt;LNG: -122.4194
+            &lt;/div&gt;
+&lt;div class=&quot;absolute bottom-12 right-8 glass-panel p-2 rounded text-[10px] text-primary font-mono flicker&quot;&gt;
+                PACKETS: 1.2k/s&lt;br/&gt;DROPPED: 0.02%
+            &lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- Scan Section --&gt;
+&lt;div class=&quot;px-4 py-2 flex justify-between items-end border-b border-primary/10&quot;&gt;
+&lt;h3 class=&quot;text-primary text-sm font-bold leading-tight tracking-[0.1em] uppercase italic&quot;&gt;Nearby_SSIDs_Scan&lt;/h3&gt;
+&lt;span class=&quot;text-primary/40 text-[10px] font-mono&quot;&gt;0.0034ms offset&lt;/span&gt;
+&lt;/div&gt;
+&lt;!-- SSID List --&gt;
+&lt;div class=&quot;flex flex-col grow bg-background-dark p-4 gap-3 overflow-y-auto max-h-[40vh]&quot;&gt;
+&lt;!-- SSID Card 1 --&gt;
+&lt;div class=&quot;glass-panel p-4 flex items-center justify-between group&quot;&gt;
+&lt;div class=&quot;flex flex-col&quot;&gt;
+&lt;span class=&quot;text-xs text-primary/50 font-mono mb-1&quot;&gt;CH: 06&lt;/span&gt;
+&lt;span class=&quot;text-slate-100 font-bold italic tracking-wider text-sm&quot;&gt;QUANTUM_VOID_5G&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex items-center gap-4&quot;&gt;
+&lt;div class=&quot;flex gap-[2px] items-end h-8&quot;&gt;
+&lt;div class=&quot;w-1 bg-primary h-2 flicker&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary h-4&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary h-6 flicker&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary/20 h-8&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex flex-col items-center gap-1&quot;&gt;
+&lt;div class=&quot;w-8 h-4 bg-black border border-primary/30 rounded-sm relative flex items-center p-[2px]&quot;&gt;
+&lt;div class=&quot;w-3 h-full bg-primary shadow-[0_0_5px_#06bcf9]&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- SSID Card 2 (Encrypted) --&gt;
+&lt;div class=&quot;glass-panel p-4 flex items-center justify-between border-l-2 border-l-hacker-purple bg-hacker-purple/10&quot;&gt;
+&lt;div class=&quot;flex flex-col&quot;&gt;
+&lt;span class=&quot;text-xs text-primary/50 font-mono mb-1&quot;&gt;CH: 11 [ENCRYPTED]&lt;/span&gt;
+&lt;span class=&quot;text-slate-100 font-bold italic tracking-wider text-sm&quot;&gt;BLACK_SITE_ALPHA&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex items-center gap-4&quot;&gt;
+&lt;div class=&quot;flex gap-[2px] items-end h-8&quot;&gt;
+&lt;div class=&quot;w-1 bg-primary h-1&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary h-2&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary h-3&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary h-5 flicker&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex flex-col items-center gap-1&quot;&gt;
+&lt;div class=&quot;w-8 h-4 bg-black border border-primary/30 rounded-sm relative flex items-center justify-end p-[2px]&quot;&gt;
+&lt;div class=&quot;w-3 h-full bg-primary/20&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- SSID Card 3 --&gt;
+&lt;div class=&quot;glass-panel p-4 flex items-center justify-between&quot;&gt;
+&lt;div class=&quot;flex flex-col&quot;&gt;
+&lt;span class=&quot;text-xs text-primary/50 font-mono mb-1&quot;&gt;CH: 01&lt;/span&gt;
+&lt;span class=&quot;text-slate-100 font-bold italic tracking-wider text-sm&quot;&gt;NEURAL_NET_PUBLIC&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex items-center gap-4&quot;&gt;
+&lt;div class=&quot;flex gap-[2px] items-end h-8&quot;&gt;
+&lt;div class=&quot;w-1 bg-primary h-3&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary h-5&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary/20 h-7&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;w-1 bg-primary/20 h-8&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex flex-col items-center gap-1&quot;&gt;
+&lt;div class=&quot;w-8 h-4 bg-black border border-primary/30 rounded-sm relative flex items-center p-[2px]&quot;&gt;
+&lt;div class=&quot;w-3 h-full bg-primary shadow-[0_0_5px_#06bcf9]&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- Bottom Controls --&gt;
+&lt;div class=&quot;mt-auto&quot;&gt;
+&lt;div class=&quot;flex gap-2 border-t border-primary/20 bg-background-dark px-4 pb-8 pt-4&quot;&gt;
+&lt;a class=&quot;flex flex-1 flex-col items-center justify-end gap-1 text-primary/60 hover:text-primary transition-colors&quot; href=&quot;#&quot;&gt;
+&lt;div class=&quot;flex h-8 items-center justify-center&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined&quot;&gt;radar&lt;/span&gt;
+&lt;/div&gt;
+&lt;span class=&quot;text-[8px] uppercase tracking-widest font-bold&quot;&gt;Scan&lt;/span&gt;
+&lt;/a&gt;
+&lt;a class=&quot;flex flex-1 flex-col items-center justify-end gap-1 text-primary/60 hover:text-primary transition-colors&quot; href=&quot;#&quot;&gt;
+&lt;div class=&quot;flex h-8 items-center justify-center&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined&quot;&gt;shield_lock&lt;/span&gt;
+&lt;/div&gt;
+&lt;span class=&quot;text-[8px] uppercase tracking-widest font-bold&quot;&gt;Decrypt&lt;/span&gt;
+&lt;/a&gt;
+&lt;a class=&quot;flex flex-1 flex-col items-center justify-end gap-1 text-primary scale-110&quot; href=&quot;#&quot;&gt;
+&lt;div class=&quot;flex h-8 items-center justify-center&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined&quot; style=&quot;font-variation-settings: &#x27;FILL&#x27; 1&quot;&gt;analytics&lt;/span&gt;
+&lt;/div&gt;
+&lt;span class=&quot;text-[8px] uppercase tracking-widest font-bold&quot;&gt;Sniff&lt;/span&gt;
+&lt;/a&gt;
+&lt;a class=&quot;flex flex-1 flex-col items-center justify-end gap-1 text-primary/60 hover:text-primary transition-colors&quot; href=&quot;#&quot;&gt;
+&lt;div class=&quot;flex h-8 items-center justify-center&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined&quot;&gt;settings_input_component&lt;/span&gt;
+&lt;/div&gt;
+&lt;span class=&quot;text-[8px] uppercase tracking-widest font-bold&quot;&gt;Nodes&lt;/span&gt;
+&lt;/a&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;&lt;/html&gt;</template>
+  <template id="tplMap">&lt;!DOCTYPE html&gt;
+
+&lt;html class=&quot;dark&quot; lang=&quot;en&quot;&gt;&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;/&gt;
+&lt;meta content=&quot;width=device-width, initial-scale=1.0&quot; name=&quot;viewport&quot;/&gt;
+&lt;title&gt;NODE_MAP_V3 // PSYCHO_HACKER_OS&lt;/title&gt;
+&lt;script src=&quot;https://cdn.tailwindcss.com?plugins=forms,container-queries&quot;&gt;&lt;/script&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;script id=&quot;tailwind-config&quot;&gt;
+        tailwind.config = {
+            darkMode: &quot;class&quot;,
+            theme: {
+                extend: {
+                    colors: {
+                        &quot;primary&quot;: &quot;#06bcf9&quot;,
+                        &quot;background-light&quot;: &quot;#f5f8f8&quot;,
+                        &quot;background-dark&quot;: &quot;#050a0c&quot;,
+                        &quot;security-purple&quot;: &quot;#a855f7&quot;,
+                    },
+                    fontFamily: {
+                        &quot;display&quot;: [&quot;Space Grotesk&quot;]
+                    },
+                    borderRadius: {&quot;DEFAULT&quot;: &quot;0.125rem&quot;, &quot;lg&quot;: &quot;0.25rem&quot;, &quot;xl&quot;: &quot;0.5rem&quot;, &quot;full&quot;: &quot;0.75rem&quot;},
+                },
+            },
+        }
+    &lt;/script&gt;
+&lt;style&gt;
+        .glitch-text {
+            text-shadow: 2px 0 #a855f7, -2px 0 #06bcf9;
+        }
+        .wireframe-bg {
+            background-image: 
+                linear-gradient(to right, rgba(6, 188, 249, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(6, 188, 249, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .digital-rain-overlay {
+            background: linear-gradient(180deg, rgba(6, 188, 249, 0) 0%, rgba(6, 188, 249, 0.05) 50%, rgba(6, 188, 249, 0) 100%);
+            background-size: 100% 200%;
+        }
+    &lt;/style&gt;
+&lt;style&gt;
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  &lt;/style&gt;
+  &lt;/head&gt;
+&lt;body class=&quot;bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 selection:bg-primary/30&quot;&gt;
+&lt;div class=&quot;relative flex h-screen w-full flex-col overflow-hidden&quot;&gt;
+&lt;header class=&quot;flex items-center bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-primary/20&quot;&gt;
+&lt;div class=&quot;text-primary flex size-10 shrink-0 items-center justify-center&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined text-3xl&quot;&gt;terminal&lt;/span&gt;
+&lt;/div&gt;
+&lt;h2 class=&quot;text-primary text-sm font-bold leading-tight tracking-widest flex-1 px-3 italic glitch-text&quot;&gt;
+                //NODE_MAP_V3.0.4
+            &lt;/h2&gt;
+&lt;div class=&quot;flex items-center gap-4&quot;&gt;
+&lt;div class=&quot;flex flex-col items-end&quot;&gt;
+&lt;span class=&quot;text-[10px] text-primary/60 uppercase&quot;&gt;System_Load&lt;/span&gt;
+&lt;div class=&quot;h-1 w-16 bg-slate-800 rounded-full overflow-hidden&quot;&gt;
+&lt;div class=&quot;h-full bg-primary w-2/3&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;button class=&quot;text-primary hover:text-white transition-colors&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined&quot;&gt;computer&lt;/span&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/header&gt;
+&lt;main class=&quot;flex-1 flex flex-col relative overflow-hidden&quot;&gt;
+&lt;div class=&quot;absolute inset-0 wireframe-bg opacity-40 pointer-events-none&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;absolute inset-0 digital-rain-overlay pointer-events-none&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;p-4 pt-6 relative z-10&quot;&gt;
+&lt;h1 class=&quot;text-primary italic text-2xl font-bold leading-tight tracking-tighter uppercase glitch-text&quot;&gt;
+                    *LOCAL_NET_CONSTELLATION*
+                &lt;/h1&gt;
+&lt;p class=&quot;text-[10px] text-primary/40 font-mono mt-1 tracking-widest uppercase&quot;&gt;
+                    Protocol: Shadowlink_v9 // Active_Nodes: 42
+                &lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex-1 relative @container&quot;&gt;
+&lt;div class=&quot;absolute inset-0 flex items-center justify-center&quot;&gt;
+&lt;div class=&quot;relative w-full h-full p-4&quot;&gt;
+&lt;div class=&quot;w-full h-full rounded-lg border border-primary/10 bg-black/40 relative overflow-hidden flex items-center justify-center&quot; data-location=&quot;Cyberspace Node Grid&quot; style=&quot;&quot;&gt;
+&lt;div class=&quot;absolute top-4 left-4 z-20&quot;&gt;
+&lt;div class=&quot;bg-background-dark/90 border border-primary/30 p-2 rounded flex flex-col gap-2&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined text-primary text-sm&quot;&gt;filter_center_focus&lt;/span&gt;
+&lt;span class=&quot;material-symbols-outlined text-primary text-sm&quot;&gt;layers&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;relative w-full h-full flex items-center justify-center&quot;&gt;
+&lt;svg class=&quot;absolute inset-0 w-full h-full&quot; viewbox=&quot;0 0 400 400&quot;&gt;
+&lt;path d=&quot;M100 100 L200 150 L300 100 L250 250 L100 100&quot; fill=&quot;none&quot; stroke=&quot;#06bcf9&quot; stroke-dasharray=&quot;4 2&quot; stroke-width=&quot;0.5&quot;&gt;&lt;/path&gt;
+&lt;path d=&quot;M200 150 L150 300 L250 250&quot; fill=&quot;none&quot; stroke=&quot;#06bcf9&quot; stroke-dasharray=&quot;4 2&quot; stroke-width=&quot;0.5&quot;&gt;&lt;/path&gt;
+&lt;/svg&gt;
+&lt;div class=&quot;absolute top-1/4 left-1/4 flex flex-col items-center&quot;&gt;
+&lt;div class=&quot;size-4 rounded-full bg-primary shadow-[0_0_10px_#06bcf9] animate-pulse&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;absolute -inset-2 border border-security-purple rounded-full opacity-60&quot;&gt;&lt;/div&gt;
+&lt;span class=&quot;text-[8px] mt-4 text-primary bg-black/80 px-1&quot;&gt;NODE_01_SEC_L1&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&quot;absolute top-1/3 right-1/4 flex flex-col items-center&quot;&gt;
+&lt;div class=&quot;size-3 rounded-full bg-primary/60 shadow-[0_0_5px_#06bcf9]&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;absolute -inset-3 border-2 border-security-purple/80 rounded-full&quot;&gt;&lt;/div&gt;
+&lt;span class=&quot;text-[8px] mt-4 text-primary bg-black/80 px-1&quot;&gt;NODE_02_SEC_L3&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&quot;absolute bottom-1/4 right-1/3 flex flex-col items-center&quot;&gt;
+&lt;div class=&quot;size-4 rounded-full bg-primary shadow-[0_0_10px_#06bcf9]&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;absolute -inset-1.5 border border-security-purple/40 rounded-full&quot;&gt;&lt;/div&gt;
+&lt;span class=&quot;text-[8px] mt-4 text-primary bg-black/80 px-1&quot;&gt;NODE_03_SEC_L2&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;absolute bottom-4 left-4 right-4 flex flex-col gap-4&quot;&gt;
+&lt;div class=&quot;flex items-center gap-3 bg-black/60 p-3 rounded border border-primary/20&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined text-primary text-sm&quot;&gt;search&lt;/span&gt;
+&lt;input class=&quot;bg-transparent border-none text-primary placeholder:text-primary/30 text-xs focus:ring-0 w-full p-0 uppercase&quot; placeholder=&quot;SEARCH_NODE_ID...&quot;/&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex justify-between items-center px-2&quot;&gt;
+&lt;div class=&quot;flex flex-col gap-1 w-24&quot;&gt;
+&lt;div class=&quot;h-1 bg-primary/20 rounded-full relative&quot;&gt;
+&lt;div class=&quot;absolute left-1/3 size-3 -top-1 bg-primary rounded-full shadow-[0_0_8px_#06bcf9]&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;span class=&quot;text-[8px] text-primary/60 uppercase&quot;&gt;Zoom_Lvl&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class=&quot;flex flex-col gap-1 w-24&quot;&gt;
+&lt;div class=&quot;h-1 bg-primary/20 rounded-full relative&quot;&gt;
+&lt;div class=&quot;absolute left-2/3 size-3 -top-1 bg-primary rounded-full shadow-[0_0_8px_#06bcf9]&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;span class=&quot;text-[8px] text-primary/60 uppercase&quot;&gt;Scan_Freq&lt;/span&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;px-4 py-6 grid grid-cols-2 gap-4 relative z-10&quot;&gt;
+&lt;div class=&quot;relative group&quot;&gt;
+&lt;div class=&quot;bg-slate-900/80 border border-primary/30 rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative&quot;&gt;
+&lt;div class=&quot;absolute inset-0 opacity-10 bg-primary/20&quot; data-alt=&quot;Cyan abstract digital grid pattern&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;flex justify-between items-start&quot;&gt;
+&lt;span class=&quot;text-[10px] font-mono text-primary uppercase&quot;&gt;Node_L1&lt;/span&gt;
+&lt;span class=&quot;material-symbols-outlined text-xs text-security-purple&quot;&gt;shield&lt;/span&gt;
+&lt;/div&gt;
+&lt;p class=&quot;text-primary text-[11px] font-bold leading-none tracking-tight&quot;&gt;NODE_01_SEC_L1&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;relative group&quot;&gt;
+&lt;div class=&quot;bg-slate-900/80 border border-security-purple/50 rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative&quot;&gt;
+&lt;div class=&quot;absolute inset-0 opacity-10 bg-primary/20&quot; data-alt=&quot;Sharp cyan wireframe structure&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;flex justify-between items-start&quot;&gt;
+&lt;span class=&quot;text-[10px] font-mono text-primary uppercase&quot;&gt;Node_L3&lt;/span&gt;
+&lt;span class=&quot;material-symbols-outlined text-xs text-security-purple&quot;&gt;security&lt;/span&gt;
+&lt;/div&gt;
+&lt;p class=&quot;text-primary text-[11px] font-bold leading-none tracking-tight&quot;&gt;NODE_02_SEC_L3&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/main&gt;
+
+&lt;div class=&quot;absolute bottom-24 right-4 z-30 flex flex-col gap-2&quot;&gt;
+&lt;button class=&quot;size-12 rounded-full bg-primary/10 border border-primary/40 backdrop-blur-md flex items-center justify-center text-primary shadow-[0_0_15px_rgba(6,188,249,0.2)]&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined&quot;&gt;add&lt;/span&gt;
+&lt;/button&gt;
+&lt;button class=&quot;size-12 rounded-full bg-primary/10 border border-primary/40 backdrop-blur-md flex items-center justify-center text-primary shadow-[0_0_15px_rgba(6,188,249,0.2)]&quot;&gt;
+&lt;span class=&quot;material-symbols-outlined&quot;&gt;near_me&lt;/span&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;&lt;/html&gt;</template>
+  <template id="tplCfg">&lt;!DOCTYPE html&gt;
+&lt;html class=&quot;dark&quot; lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;/&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;/&gt;
+&lt;title&gt;Config Core&lt;/title&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap&quot; rel=&quot;stylesheet&quot;/&gt;
+&lt;script src=&quot;https://cdn.tailwindcss.com?plugins=forms,container-queries&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+tailwind.config = {
+  darkMode: &quot;class&quot;,
+  theme: {
+    extend: {
+      colors: {
+        &quot;ethereal-blue&quot;:&quot;#00d4ff&quot;,
+        &quot;cyber-violet&quot;:&quot;#9d50bb&quot;,
+        &quot;neon-yellow&quot;:&quot;#faff00&quot;,
+        &quot;neon-pink&quot;:&quot;#ff00ff&quot;,
+        &quot;neon-orange&quot;:&quot;#ffaa00&quot;,
+        &quot;void-black&quot;:&quot;#020408&quot;,
+        &quot;engine-iron&quot;:&quot;#1a1c23&quot;,
+        &quot;panel&quot;:&quot;#111c21&quot;
+      },
+      fontFamily: {
+        &quot;display&quot;:[&quot;Space Grotesk&quot;,&quot;sans-serif&quot;],
+        &quot;mono&quot;:[&quot;JetBrains Mono&quot;,&quot;monospace&quot;]
+      }
+    }
+  }
+}
+&lt;/script&gt;
+&lt;style&gt;
+  body{background:#020408;color:#e5e7eb;font-family:&quot;Space Grotesk&quot;,sans-serif;}
+  .glitch-text{ text-shadow: 2px 0 #9d50bb, -2px 0 #00d4ff; letter-spacing:-0.02em;}
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border: 1px solid rgba(0,212,255,0.18);
+    box-shadow: 0 0 18px rgba(0,212,255,0.12), 0 0 30px rgba(157,80,187,0.10), inset 0 0 14px rgba(0,212,255,0.08);
+    backdrop-filter: blur(18px);
+  }
+  .ring{
+    border: 2px solid rgba(250,255,0,0.26);
+    box-shadow: inset 0 0 20px rgba(250,255,0,0.10), 0 0 18px rgba(255,0,255,0.14);
+  }
+  .spin-slow{ animation: spin 30s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg);} }
+  @keyframes shimmer { 0%,100%{opacity:.22} 50%{opacity:.44}}
+  .gridbg{
+    background-image:
+      radial-gradient(circle at 50% 50%, rgba(0,212,255,0.18) 1px, transparent 1px),
+      radial-gradient(circle at 30% 70%, rgba(157,80,187,0.12) 1px, transparent 1px);
+    background-size: 28px 28px, 34px 34px;
+    opacity:.12;
+  }
+  .toggle-track{ background: rgba(26,28,35,0.75); border: 1px solid rgba(0,212,255,0.18); }
+  .toggle-dot{ box-shadow: 0 0 10px rgba(0,212,255,0.6); }
+  .btn{
+    border:1px solid rgba(0,212,255,0.22);
+    background: rgba(26,28,35,0.65);
+    box-shadow: 0 0 14px rgba(0,212,255,0.12);
+  }
+  .btn:active{ filter: drop-shadow(0 0 12px rgba(0,212,255,0.45)); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;min-h-[100dvh] max-w-[430px] mx-auto border-x border-ethereal-blue/10 relative overflow-hidden&quot;&gt;
+  &lt;div class=&quot;absolute inset-0 gridbg pointer-events-none&quot;&gt;&lt;/div&gt;
+
+  &lt;header class=&quot;flex items-center justify-between p-4 border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-lg relative z-10&quot;&gt;
+    &lt;div class=&quot;flex items-center gap-2&quot;&gt;
+      &lt;span class=&quot;material-symbols-outlined text-ethereal-blue&quot;&gt;settings&lt;/span&gt;
+      &lt;h1 class=&quot;text-ethereal-blue font-black italic uppercase glitch-text&quot;&gt;Config Core&lt;/h1&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;flex items-center gap-2&quot;&gt;
+      &lt;span class=&quot;material-symbols-outlined&quot; style=&quot;color:#faff00;&quot;&gt;bolt&lt;/span&gt;
+      &lt;span class=&quot;text-[10px] font-mono tracking-widest&quot; style=&quot;color:#faff00;&quot;&gt;LIVE&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;main class=&quot;relative z-10 p-4 pb-28 space-y-4&quot;&gt;
+    &lt;section class=&quot;card rounded-xl p-4&quot;&gt;
+      &lt;div class=&quot;flex items-start justify-between gap-3&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;text-[10px] font-mono tracking-[0.25em] uppercase&quot; style=&quot;color:#faff00;opacity:.85;&quot;&gt;Active Profile&lt;/div&gt;
+          &lt;div class=&quot;text-lg font-black italic text-white uppercase tracking-wider&quot;&gt;Stealth Neon&lt;/div&gt;
+          &lt;div class=&quot;text-[10px] font-mono text-slate-400 mt-1&quot;&gt;Black background • Cyan/Violet core • Yellow/Pink accents&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;relative w-16 h-16 flex items-center justify-center&quot;&gt;
+          &lt;div class=&quot;absolute inset-0 ring rounded-xl spin-slow opacity-70&quot;&gt;&lt;/div&gt;
+          &lt;div class=&quot;absolute inset-2 rounded-xl border border-ethereal-blue/20&quot;&gt;&lt;/div&gt;
+          &lt;div class=&quot;text-ethereal-blue font-black italic text-xl glitch-text&quot;&gt;C&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;card rounded-xl p-4&quot;&gt;
+      &lt;div class=&quot;flex items-center justify-between&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;text-[11px] font-black italic uppercase tracking-wider&quot;&gt;Auto Scan&lt;/div&gt;
+          &lt;div class=&quot;text-[10px] font-mono text-slate-400&quot;&gt;Background scan loop between tests.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;label class=&quot;relative inline-flex items-center cursor-pointer select-none&quot;&gt;
+          &lt;input id=&quot;autoScan&quot; type=&quot;checkbox&quot; class=&quot;sr-only peer&quot; checked&gt;
+          &lt;span class=&quot;w-12 h-6 rounded-full toggle-track peer-checked:border-ethereal-blue/40 peer-checked:bg-ethereal-blue/15 transition&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;absolute left-1 top-1 w-4 h-4 rounded-full bg-ethereal-blue toggle-dot peer-checked:translate-x-6 transition-transform&quot;&gt;&lt;/span&gt;
+        &lt;/label&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;mt-4 flex items-center justify-between&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;text-[11px] font-black italic uppercase tracking-wider&quot;&gt;Holo FX&lt;/div&gt;
+          &lt;div class=&quot;text-[10px] font-mono text-slate-400&quot;&gt;Glass shimmer, scan jitter, chroma overlay.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;label class=&quot;relative inline-flex items-center cursor-pointer select-none&quot;&gt;
+          &lt;input id=&quot;holoFx&quot; type=&quot;checkbox&quot; class=&quot;sr-only peer&quot; checked&gt;
+          &lt;span class=&quot;w-12 h-6 rounded-full toggle-track peer-checked:border-cyber-violet/40 peer-checked:bg-cyber-violet/15 transition&quot; style=&quot;border-color:rgba(157,80,187,0.22)&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;absolute left-1 top-1 w-4 h-4 rounded-full toggle-dot peer-checked:translate-x-6 transition-transform&quot; style=&quot;background:#9d50bb; box-shadow:0 0 10px rgba(157,80,187,0.7)&quot;&gt;&lt;/span&gt;
+        &lt;/label&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;mt-4 flex items-center justify-between&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;text-[11px] font-black italic uppercase tracking-wider&quot;&gt;Alerts&lt;/div&gt;
+          &lt;div class=&quot;text-[10px] font-mono text-slate-400&quot;&gt;Anomaly banners + vibrations.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;label class=&quot;relative inline-flex items-center cursor-pointer select-none&quot;&gt;
+          &lt;input id=&quot;alerts&quot; type=&quot;checkbox&quot; class=&quot;sr-only peer&quot; checked&gt;
+          &lt;span class=&quot;w-12 h-6 rounded-full toggle-track peer-checked:bg-[rgba(255,170,0,0.12)] transition&quot; style=&quot;border-color:rgba(255,170,0,0.25)&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;absolute left-1 top-1 w-4 h-4 rounded-full peer-checked:translate-x-6 transition-transform&quot; style=&quot;background:#ffaa00; box-shadow:0 0 10px rgba(255,170,0,0.7)&quot;&gt;&lt;/span&gt;
+        &lt;/label&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;card rounded-xl p-4&quot;&gt;
+      &lt;div class=&quot;flex items-center justify-between&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;text-[11px] font-black italic uppercase tracking-wider&quot;&gt;Neon Intensity&lt;/div&gt;
+          &lt;div class=&quot;text-[10px] font-mono text-slate-400&quot;&gt;Glow strength across UI.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;text-[11px] font-black italic&quot; style=&quot;color:#ff00ff;&quot;&gt;&lt;span id=&quot;neonPct&quot;&gt;80&lt;/span&gt;%&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;input id=&quot;neon&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; value=&quot;80&quot; class=&quot;w-full mt-3 accent-[rgb(255,0,255)]&quot;&gt;
+      &lt;div class=&quot;mt-4 flex items-center justify-between&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;text-[11px] font-black italic uppercase tracking-wider&quot;&gt;Scan Speed&lt;/div&gt;
+          &lt;div class=&quot;text-[10px] font-mono text-slate-400&quot;&gt;Gauge spin + radar oscillation.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;text-[11px] font-black italic text-ethereal-blue&quot;&gt;&lt;span id=&quot;scanPct&quot;&gt;55&lt;/span&gt;%&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;input id=&quot;scan&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; value=&quot;55&quot; class=&quot;w-full mt-3 accent-[rgb(0,212,255)]&quot;&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;card rounded-xl p-4&quot;&gt;
+      &lt;div class=&quot;flex items-center justify-between gap-3&quot;&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;text-[11px] font-black italic uppercase tracking-wider&quot;&gt;Accent Mode&lt;/div&gt;
+          &lt;div class=&quot;text-[10px] font-mono text-slate-400&quot;&gt;Highlight color set.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;select id=&quot;accent&quot; class=&quot;bg-engine-iron/70 border border-ethereal-blue/20 rounded-md text-[11px] px-2 py-2 text-white focus:outline-none focus:ring-2 focus:ring-ethereal-blue/30&quot;&gt;
+          &lt;option value=&quot;cyanViolet&quot; selected&gt;Cyan + Violet&lt;/option&gt;
+          &lt;option value=&quot;yellowPink&quot;&gt;Yellow + Pink&lt;/option&gt;
+          &lt;option value=&quot;orangeCyan&quot;&gt;Orange + Cyan&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;mt-4 grid grid-cols-2 gap-3&quot;&gt;
+        &lt;button id=&quot;save&quot; class=&quot;btn rounded-lg px-4 py-3 font-black italic uppercase text-[11px] flex items-center justify-center gap-2&quot;&gt;
+          &lt;span class=&quot;material-symbols-outlined text-sm&quot; style=&quot;color:#00ff9d;&quot;&gt;task_alt&lt;/span&gt; Save
+        &lt;/button&gt;
+        &lt;button id=&quot;reset&quot; class=&quot;btn rounded-lg px-4 py-3 font-black italic uppercase text-[11px] flex items-center justify-center gap-2&quot;&gt;
+          &lt;span class=&quot;material-symbols-outlined text-sm&quot; style=&quot;color:#faff00;&quot;&gt;restart_alt&lt;/span&gt; Reset
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  const neon = document.getElementById(&#x27;neon&#x27;);
+  const neonPct = document.getElementById(&#x27;neonPct&#x27;);
+  const scan = document.getElementById(&#x27;scan&#x27;);
+  const scanPct = document.getElementById(&#x27;scanPct&#x27;);
+  const save = document.getElementById(&#x27;save&#x27;);
+  const reset = document.getElementById(&#x27;reset&#x27;);
+  const fields = [&#x27;autoScan&#x27;,&#x27;holoFx&#x27;,&#x27;alerts&#x27;,&#x27;neon&#x27;,&#x27;scan&#x27;,&#x27;accent&#x27;];
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(&#x27;nn_cfg&#x27;);
+      if(!raw) return;
+      const c = JSON.parse(raw);
+      document.getElementById(&#x27;autoScan&#x27;).checked = !!c.autoScan;
+      document.getElementById(&#x27;holoFx&#x27;).checked = !!c.holoFx;
+      document.getElementById(&#x27;alerts&#x27;).checked = !!c.alerts;
+      neon.value = String(c.neon ?? 80); neonPct.textContent = neon.value;
+      scan.value = String(c.scan ?? 55); scanPct.textContent = scan.value;
+      document.getElementById(&#x27;accent&#x27;).value = c.accent ?? &#x27;cyanViolet&#x27;;
+    }catch(e){}
+  }
+  function persist(){
+    try{
+      const c = {
+        autoScan: document.getElementById(&#x27;autoScan&#x27;).checked,
+        holoFx: document.getElementById(&#x27;holoFx&#x27;).checked,
+        alerts: document.getElementById(&#x27;alerts&#x27;).checked,
+        neon: parseInt(neon.value,10),
+        scan: parseInt(scan.value,10),
+        accent: document.getElementById(&#x27;accent&#x27;).value
+      };
+      localStorage.setItem(&#x27;nn_cfg&#x27;, JSON.stringify(c));
+    }catch(e){}
+  }
+
+  neon.addEventListener(&#x27;input&#x27;, ()=&gt;{ neonPct.textContent = neon.value; });
+  scan.addEventListener(&#x27;input&#x27;, ()=&gt;{ scanPct.textContent = scan.value; });
+  save.addEventListener(&#x27;click&#x27;, ()=&gt;{ persist(); });
+  reset.addEventListener(&#x27;click&#x27;, ()=&gt;{
+    document.getElementById(&#x27;autoScan&#x27;).checked = true;
+    document.getElementById(&#x27;holoFx&#x27;).checked = true;
+    document.getElementById(&#x27;alerts&#x27;).checked = true;
+    neon.value = &quot;80&quot;; neonPct.textContent = &quot;80&quot;;
+    scan.value = &quot;55&quot;; scanPct.textContent = &quot;55&quot;;
+    document.getElementById(&#x27;accent&#x27;).value = &quot;cyanViolet&quot;;
+    persist();
+  });
+
+  load();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</template>
+</div>
+
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const tpl = {
+    speed: $('tplSpeed'),
+    list: $('tplList'),
+    map: $('tplMap'),
+    cfg: $('tplCfg'),
+  };
+  const ifr = {
+    speed: $('ifSpeed'),
+    list: $('ifList'),
+    map: $('ifMap'),
+    cfg: $('ifCfg'),
+  };
+  function unescapeHtml(s){
+    const t=document.createElement('textarea'); t.innerHTML=s; return t.value;
+  }
+  // Load srcdoc once
+  ifr.speed.srcdoc = unescapeHtml(tpl.speed.innerHTML);
+  ifr.list.srcdoc = unescapeHtml(tpl.list.innerHTML);
+  ifr.map.srcdoc = unescapeHtml(tpl.map.innerHTML);
+  ifr.cfg.srcdoc = unescapeHtml(tpl.cfg.innerHTML);
+
+  const screens = {
+    speed: $('scrSpeed'),
+    list: $('scrList'),
+    map: $('scrMap'),
+    cfg: $('scrCfg'),
+  };
+  const btns = {
+    speed: $('bSpeed'),
+    list: $('bList'),
+    map: $('bMap'),
+    cfg: $('bCfg'),
+  };
+  function setActive(k){
+    Object.keys(screens).forEach(s=>screens[s].style.display = (s===k)?'block':'none');
+    Object.keys(btns).forEach(s=>btns[s].classList.toggle('active', s===k));
+  }
+  btns.speed.addEventListener('click', ()=>setActive('speed'));
+  btns.list.addEventListener('click', ()=>setActive('list'));
+  btns.map.addEventListener('click', ()=>setActive('map'));
+  btns.cfg.addEventListener('click', ()=>setActive('cfg'));
+})();
+</script>
+</body>
+</html>

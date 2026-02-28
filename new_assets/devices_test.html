@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WiFi Pulse Sniffer Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Additional fonts for holographic device cards -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#06bcf9",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#000000",
+                        "hacker-purple": "#2d004d",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(6, 188, 249, 0.6);
+        }
+        .flicker {
+            opacity: 0.8;
+        }
+        .glass-panel {
+            background: rgba(6, 188, 249, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(6, 188, 249, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+
+  <!-- Styles for holographic device cards integrated from holo_devices2.html -->
+  <style>
+    .shard-card {
+        background: rgba(10, 20, 30, 0.6);
+        backdrop-filter: blur(8px);
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        border-right: 1px solid rgba(0, 0, 0, 0.5);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+        transform: perspective(800px) rotateY(-5deg) rotateX(5deg);
+        transform-style: preserve-3d;
+        box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 255, 157, 0.05);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+    }
+    .shard-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 40%, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+        z-index: -1;
+        pointer-events: none;
+    }
+    .shard-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 2px;
+        padding: 2px;
+        background: linear-gradient(45deg, transparent, var(--edge-color, #00ff9d), transparent);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0.8;
+        pointer-events: none;
+    }
+    .shard-card:hover {
+        transform: perspective(800px) rotateY(0deg) rotateX(0deg) scale(1.02);
+        box-shadow: 0 0 20px var(--glow-color, rgba(0, 255, 157, 0.3)), 0 0 40px var(--glow-color, rgba(0, 255, 157, 0.1));
+        z-index: 10;
+    }
+    .liquid-bar-container {
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 4px;
+        box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.8), inset -1px -1px 2px rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .liquid-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--bar-start) 0%, var(--bar-mid) 50%, var(--bar-end) 100%);
+        position: relative;
+        box-shadow: 0 0 10px var(--bar-mid);
+    }
+    .liquid-bar-fill::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+    }
+    .model-cube {
+        width: 40px;
+        height: 40px;
+        position: relative;
+        transform-style: preserve-3d;
+        animation: spin 8s linear infinite;
+    }
+    .cube-face {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--model-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .cube-face.front { transform: rotateY(0deg) translateZ(20px); }
+    .cube-face.back { transform: rotateY(180deg) translateZ(20px); }
+    .cube-face.right { transform: rotateY(90deg) translateZ(20px); }
+    .cube-face.left { transform: rotateY(-90deg) translateZ(20px); }
+    .cube-face.top { transform: rotateX(90deg) translateZ(20px); }
+    .cube-face.bottom { transform: rotateX(-90deg) translateZ(20px); }
+    @keyframes spin {
+        0% { transform: rotateX(-15deg) rotateY(0deg); }
+        100% { transform: rotateX(-15deg) rotateY(360deg); }
+    }
+    .shadow-neon { box-shadow: 0 0 5px #00ff9d, 0 0 15px #00ff9d; }
+    .shadow-neon-cyan { box-shadow: 0 0 5px #00f3ff, 0 0 15px #00f3ff; }
+    .shadow-neon-orange { box-shadow: 0 0 10px #ffaa00, 0 0 25px #ffaa00; }
+    .shadow-purple { box-shadow: 0 0 10px #a855f7, 0 0 20px #a855f7; }
+  </style>
+  </head>
+<body class="bg-background-dark text-slate-100 font-display selection:bg-primary/30">
+<div class="relative flex min-h-screen w-full flex-col bg-background-dark overflow-x-hidden max-w-[430px] mx-auto border-x border-primary/10">
+<!-- Header -->
+<div class="flex items-center bg-background-dark p-6 pb-2 justify-between border-b border-primary/20">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-3xl">terminal</span>
+</div>
+<div class="flex flex-col items-center">
+<h2 class="text-primary text-xs font-bold tracking-[0.2em] uppercase italic">System.Infiltrate</h2>
+<h1 class="text-slate-100 text-lg font-bold leading-tight tracking-tight">WIFI PULSE SNIFFER</h1>
+</div>
+<div class="flex w-10 items-center justify-end">
+<button class="flex items-center justify-center rounded text-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">memory</span>
+</button>
+</div>
+</div>
+<h4 class="text-primary/60 text-[10px] font-bold leading-normal tracking-[0.3em] px-4 py-3 text-center uppercase italic">
+            Central Hologram Pulse :: Active
+        </h4>
+<!-- Central Hologram Area -->
+<div class="flex w-full @container p-4 relative">
+<div class="w-full aspect-square rounded-full flex items-center justify-center relative overflow-hidden">
+<!-- Grid background effect -->
+<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #06bcf9 1px, transparent 1px); background-size: 20px 20px;"></div>
+<!-- The "Hologram" placeholder -->
+<div class="relative z-10 w-64 h-64 flex items-center justify-center">
+<div class="absolute inset-0 bg-primary/5 rounded-full blur-3xl"></div>
+<img class="w-full h-full object-contain opacity-80 mix-blend-screen" data-alt="Jagged neon cyan lightning bolts forming a WiFi icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ2vQutJEXoJX8dBo_STHvhFVuPoHgk4oOvYL72hfcd5zMO1-b2fz-ptzx6wMvXM1Ztqzjf65bqIPrhLAHdZujsRlMJhV097U9sDlbjBN2KinGwiuh0i6xCs3Kw6EaLzyasbI89ripS6JaxGHnw3gR7-i-g_8GaFCDYjbea3clLdAnXe7Bu7fY1_7GKyXlYwemypoVULd6Qz66vNl62l6OjRMKfV7GW1-oQ5sZpcwfysWZgz357poK7WejdyVpIdSPK8A-fm4KjDQ"/>
+<!-- Signal Pulse Rings -->
+<div class="absolute border border-primary/20 rounded-full w-full h-full"></div>
+<div class="absolute border border-primary/10 rounded-full w-[80%] h-[80%]"></div>
+</div>
+</div>
+<!-- Floating Data Overlay -->
+<div class="absolute top-8 left-8 glass-panel p-2 rounded text-[10px] text-primary/80 font-mono italic">
+                LAT: 37.7749<br/>LNG: -122.4194
+            </div>
+<div class="absolute bottom-12 right-8 glass-panel p-2 rounded text-[10px] text-primary font-mono flicker">
+                PACKETS: 1.2k/s<br/>DROPPED: 0.02%
+            </div>
+</div>
+<!-- Scan Section -->
+<div class="px-4 py-2 flex justify-between items-end border-b border-primary/10">
+<h3 class="text-primary text-sm font-bold leading-tight tracking-[0.1em] uppercase italic">Nearby_SSIDs_Scan</h3>
+<span class="text-primary/40 text-[10px] font-mono">0.0034ms offset</span>
+</div>
+<!-- SSID List -->
+<div class="flex flex-col grow bg-background-dark p-4 gap-4 overflow-y-auto max-h-[40vh]">
+    <!-- Holographic device cards integrated from holo_devices2.html -->
+    <div class="shard-card p-5 group" style="--edge-color: #00ff9d; --glow-color: rgba(0, 255, 157, 0.4);">
+        <div class="flex items-center space-x-5">
+            <div class="w-12 h-12 flex items-center justify-center perspective-[500px]">
+                <div class="model-cube" style="--model-color: #00ff9d; --model-rgb: 0, 255, 157;">
+                    <div class="cube-face front"><span class="material-icons" style="color:#00ff9d;">memory</span></div>
+                    <div class="cube-face back"><span class="material-icons" style="color:#00ff9d;">memory</span></div>
+                    <div class="cube-face right"></div>
+                    <div class="cube-face left"></div>
+                    <div class="cube-face top"></div>
+                    <div class="cube-face bottom"></div>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg uppercase tracking-wider" style="font-family: 'Orbitron', sans-serif; color:#ffffff;">Neural Rig Alpha</h3>
+                    <span class="w-2 h-2 rounded-full shadow-neon animate-pulse" style="background-color:#00ff9d;"></span>
+                </div>
+                <div class="mt-3 relative h-4 w-full liquid-bar-container">
+                    <div class="liquid-bar-fill w-[85%]" style="--bar-start:#00ff9d; --bar-mid:#00ccff; --bar-end:#00ff9d;"></div>
+                </div>
+                <div class="flex justify-between items-end mt-2 text-[10px] font-bold tracking-widest">
+                    <span class="text-gray-400">SIGNAL_STRENGTH</span>
+                    <span style="color:#00ff9d; text-shadow:0 0 5px rgba(0,255,157,0.8);">12.4 Gbps // SECURE</span>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 rounded-br-xl" style="border-color:#00ff9d; opacity:0.3;"></div>
+    </div>
+    <div class="shard-card p-5 group" style="--edge-color: #00f3ff; --glow-color: rgba(0, 243, 255, 0.4);">
+        <div class="flex items-center space-x-5">
+            <div class="w-12 h-12 flex items-center justify-center perspective-[500px]">
+                <div class="model-cube" style="--model-color: #00f3ff; --model-rgb: 0, 243, 255; animation-direction: reverse;">
+                    <div class="cube-face front"><span class="material-icons" style="color:#00f3ff;">fingerprint</span></div>
+                    <div class="cube-face back"><span class="material-icons" style="color:#00f3ff;">fingerprint</span></div>
+                    <div class="cube-face right"></div>
+                    <div class="cube-face left"></div>
+                    <div class="cube-face top"></div>
+                    <div class="cube-face bottom"></div>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg uppercase tracking-wider" style="font-family: 'Orbitron', sans-serif; color:#ffffff;">Bio‑Chip Cortex</h3>
+                    <span class="w-2 h-2 rounded-full shadow-neon-cyan animate-pulse" style="background-color:#00f3ff;"></span>
+                </div>
+                <div class="mt-3 relative h-4 w-full liquid-bar-container">
+                    <div class="liquid-bar-fill w-[62%]" style="--bar-start:#00f3ff; --bar-mid:#0088ff; --bar-end:#00f3ff;"></div>
+                </div>
+                <div class="flex justify-between items-end mt-2 text-[10px] font-bold tracking-widest">
+                    <span class="text-gray-400">SIGNAL_STRENGTH</span>
+                    <span style="color:#00f3ff; text-shadow:0 0 5px rgba(0,243,255,0.8);">8.2 Gbps // STABLE</span>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 rounded-br-xl" style="border-color:#00f3ff; opacity:0.3;"></div>
+    </div>
+    <div class="shard-card p-5 group" style="--edge-color: #ffaa00; --glow-color: rgba(255, 170, 0, 0.4);">
+        <div class="flex items-center space-x-5">
+            <div class="w-12 h-12 flex items-center justify-center perspective-[500px]">
+                <div class="model-cube" style="--model-color: #ffaa00; --model-rgb: 255, 170, 0; animation-duration: 12s;">
+                    <div class="cube-face front"><span class="material-icons" style="color:#ffaa00;">storage</span></div>
+                    <div class="cube-face back"><span class="material-icons" style="color:#ffaa00;">storage</span></div>
+                    <div class="cube-face right"></div>
+                    <div class="cube-face left"></div>
+                    <div class="cube-face top"></div>
+                    <div class="cube-face bottom"></div>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg uppercase tracking-wider" style="font-family: 'Orbitron', sans-serif; color:#ffffff;">Ext. Data Core</h3>
+                    <span class="w-2 h-2 rounded-full shadow-neon-orange animate-pulse" style="background-color:#ffaa00;"></span>
+                </div>
+                <div class="mt-3 relative h-4 w-full liquid-bar-container">
+                    <div class="liquid-bar-fill w-[45%]" style="--bar-start:#ffaa00; --bar-mid:#ffdd00; --bar-end:#ffaa00;"></div>
+                </div>
+                <div class="flex justify-between items-end mt-2 text-[10px] font-bold tracking-widest">
+                    <span class="text-gray-400">SIGNAL_STRENGTH</span>
+                    <span style="color:#ffaa00; text-shadow:0 0 5px rgba(255,170,0,0.8);">WARN // LOW FLOW</span>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 rounded-br-xl" style="border-color:#ffaa00; opacity:0.3;"></div>
+    </div>
+    <div class="shard-card p-5 group" style="--edge-color: #a855f7; --glow-color: rgba(168, 85, 247, 0.4);">
+        <div class="flex items-center space-x-5">
+            <div class="w-12 h-12 flex items-center justify-center perspective-[500px]">
+                <div class="model-cube" style="--model-color: #a855f7; --model-rgb: 168, 85, 247; animation-duration: 6s;">
+                    <div class="cube-face front"><span class="material-icons" style="color:#a855f7;">tablet_mac</span></div>
+                    <div class="cube-face back"><span class="material-icons" style="color:#a855f7;">tablet_mac</span></div>
+                    <div class="cube-face right"></div>
+                    <div class="cube-face left"></div>
+                    <div class="cube-face top"></div>
+                    <div class="cube-face bottom"></div>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg uppercase tracking-wider" style="font-family: 'Orbitron', sans-serif; color:#ffffff;">Holopad V9</h3>
+                    <span class="w-2 h-2 rounded-full shadow-purple animate-pulse" style="background-color:#a855f7;"></span>
+                </div>
+                <div class="mt-3 relative h-4 w-full liquid-bar-container">
+                    <div class="liquid-bar-fill w-[95%]" style="--bar-start:#a855f7; --bar-mid:#d8b4fe; --bar-end:#a855f7;"></div>
+                </div>
+                <div class="flex justify-between items-end mt-2 text-[10px] font-bold tracking-widest">
+                    <span class="text-gray-400">SIGNAL_STRENGTH</span>
+                    <span style="color:#a855f7; text-shadow:0 0 5px rgba(168,85,247,0.8);">15.0 Gbps // MAX</span>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 rounded-br-xl" style="border-color:#a855f7; opacity:0.3;"></div>
+    </div>
+</div>
+<!-- Bottom Controls -->
+<div class="mt-auto">
+<div class="flex gap-2 border-t border-primary/20 bg-background-dark px-4 pb-8 pt-4">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary/60 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">radar</span>
+</div>
+<span class="text-[8px] uppercase tracking-widest font-bold">Scan</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary/60 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">shield_lock</span>
+</div>
+<span class="text-[8px] uppercase tracking-widest font-bold">Decrypt</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary scale-110" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">analytics</span>
+</div>
+<span class="text-[8px] uppercase tracking-widest font-bold">Sniff</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary/60 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">settings_input_component</span>
+</div>
+<span class="text-[8px] uppercase tracking-widest font-bold">Nodes</span>
+</a>
+</div>
+</div>
+</div>
+</body></html>

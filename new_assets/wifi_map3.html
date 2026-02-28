@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Local Net Constellation</title>
+  <!-- Import fonts and icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <!-- Tailwind CSS config matching the HUD palette -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "ethereal-blue": "#00d4ff",
+            "cyber-violet": "#9d50bb",
+            "danger": "#ff3c00",
+            "engine-iron": "#1a1c23",
+            "void-black": "#020408",
+            "primary": "#00d4ff",
+          },
+          fontFamily: {
+            "display": ["Space Grotesk", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Wireframe grid used behind the map */
+    .wireframe-bg {
+      background-image:
+        linear-gradient(to right, rgba(0,212,255,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0,212,255,0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    /* Vertical digital rain overlay */
+    .digital-rain-overlay {
+      background: linear-gradient(180deg, rgba(0,212,255,0) 0%, rgba(0,212,255,0.05) 50%, rgba(0,212,255,0) 100%);
+      background-size: 100% 200%;
+    }
+    /* Glitch text effect for headings */
+    .glitch-text {
+      text-shadow: 2px 0 var(--tw-shadow-color, #9d50bb), -2px 0 var(--tw-shadow-color, #00d4ff);
+    }
+    /* Clip paths used on action buttons */
+    .shard-clip {
+      clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+    }
+    .shard-clip-alt {
+      clip-path: polygon(0 15%, 95% 0, 100% 85%, 5% 100%);
+    }
+    /* Tap glow on button press */
+    .tap-glow:active {
+      filter: drop-shadow(0 0 12px rgba(0,212,255,0.45));
+    }
+  </style>
+</head>
+<body class="bg-void-black text-slate-100 font-display flex flex-col min-h-screen overflow-hidden">
+  <!-- Header section -->
+  <header class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-ethereal-blue text-xl sm:text-2xl">public</span>
+      <h2 class="text-ethereal-blue text-sm sm:text-lg font-bold leading-tight tracking-tight italic glitch-text">LOCAL_NET_CONSTELLATION</h2>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="flex flex-col items-end">
+        <span class="text-[9px] text-ethereal-blue/50 uppercase">Sys_Load</span>
+        <div class="h-1 w-16 bg-engine-iron rounded-full overflow-hidden">
+          <div class="h-full bg-ethereal-blue w-2/3"></div>
+        </div>
+      </div>
+      <button class="tap-glow size-9 rounded-full bg-ethereal-blue/10 border border-ethereal-blue/30 flex items-center justify-center text-ethereal-blue" type="button">
+        <span class="material-symbols-outlined">computer</span>
+      </button>
+    </div>
+  </header>
+  <!-- Title and protocol information -->
+  <div class="p-4 pt-6 z-10">
+    <p class="text-ethereal-blue italic text-xl sm:text-2xl font-bold leading-tight tracking-tighter uppercase glitch-text">
+      *LOCAL_NET_CONSTELLATION*
+    </p>
+    <p class="text-[9px] text-ethereal-blue/40 font-mono mt-1 tracking-widest uppercase">
+      Protocol: Shadowlink_v9 // Active_Nodes: 42
+    </p>
+  </div>
+  <!-- Main interactive map area -->
+  <div class="flex-1 relative">
+    <div class="absolute inset-0 wireframe-bg opacity-40 pointer-events-none"></div>
+    <div class="absolute inset-0 digital-rain-overlay pointer-events-none"></div>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="relative w-full h-full p-4">
+        <div class="w-full h-full rounded-lg border border-ethereal-blue/10 bg-black/40 relative overflow-hidden flex items-center justify-center">
+          <!-- Top-left control icons -->
+          <div class="absolute top-4 left-4 z-20 flex flex-col gap-2 bg-engine-iron/90 border border-ethereal-blue/30 p-2 rounded">
+            <span class="material-symbols-outlined text-ethereal-blue text-sm">filter_center_focus</span>
+            <span class="material-symbols-outlined text-ethereal-blue text-sm">layers</span>
+          </div>
+          <!-- Central radar with node markers -->
+          <div class="relative w-full h-full flex items-center justify-center">
+            <svg class="absolute inset-0 w-full h-full" viewBox="0 0 400 400">
+              <path d="M100 100 L200 150 L300 100 L250 250 L100 100" fill="none" stroke="#00d4ff" stroke-dasharray="4 2" stroke-width="0.5"></path>
+              <path d="M200 150 L150 300 L250 250" fill="none" stroke="#00d4ff" stroke-dasharray="4 2" stroke-width="0.5"></path>
+            </svg>
+            <div class="absolute top-1/4 left-1/4 flex flex-col items-center">
+              <div class="size-4 rounded-full bg-ethereal-blue shadow-[0_0_10px_#00d4ff] animate-pulse"></div>
+              <div class="absolute -inset-2 border border-cyber-violet rounded-full opacity-60"></div>
+              <span class="text-[8px] mt-4 text-ethereal-blue bg-black/80 px-1 uppercase">NODE_01_SEC_L1</span>
+            </div>
+            <div class="absolute top-1/3 right-1/4 flex flex-col items-center">
+              <div class="size-3 rounded-full bg-ethereal-blue/60 shadow-[0_0_5px_#00d4ff]"></div>
+              <div class="absolute -inset-3 border-2 border-cyber-violet/80 rounded-full"></div>
+              <span class="text-[8px] mt-4 text-ethereal-blue bg-black/80 px-1 uppercase">NODE_02_SEC_L3</span>
+            </div>
+            <div class="absolute bottom-1/4 right-1/3 flex flex-col items-center">
+              <div class="size-4 rounded-full bg-ethereal-blue shadow-[0_0_10px_#00d4ff]"></div>
+              <div class="absolute -inset-1.5 border border-cyber-violet/40 rounded-full"></div>
+              <span class="text-[8px] mt-4 text-ethereal-blue bg-black/80 px-1 uppercase">NODE_03_SEC_L2</span>
+            </div>
+            <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-ethereal-blue shadow-[0_0_30px_rgba(0,212,255,0.5)] overflow-hidden bg-black/80 flex items-center justify-center">
+              <div class="absolute inset-0 bg-gradient-to-tr from-cyber-violet/30 via-transparent to-ethereal-blue/20"></div>
+              <div id="mapValue" class="text-ethereal-blue text-5xl sm:text-6xl font-black italic opacity-80 glitch-text">0</div>
+              <div class="absolute inset-0 border-[6px] sm:border-[8px] border-ethereal-blue/20 border-dotted rounded-full"></div>
+            </div>
+          </div>
+          <!-- Search bar and sliders -->
+          <div class="absolute bottom-4 left-4 right-4 flex flex-col gap-4">
+            <div class="flex items-center gap-3 bg-engine-iron/80 border border-ethereal-blue/30 p-3 rounded">
+              <span class="material-symbols-outlined text-ethereal-blue text-sm">search</span>
+              <input class="bg-transparent border-none text-ethereal-blue placeholder:text-ethereal-blue/40 text-xs focus:ring-0 w-full uppercase" placeholder="SEARCH_NODE_ID..." />
+            </div>
+            <div class="flex justify-between items-center px-2">
+              <div class="flex flex-col gap-1 w-24">
+                <div class="h-1 bg-ethereal-blue/20 rounded-full relative">
+                  <div class="absolute left-1/3 size-3 -top-1 bg-ethereal-blue rounded-full shadow-[0_0_8px_#00d4ff]"></div>
+                </div>
+                <span class="text-[8px] text-ethereal-blue/60 uppercase">Zoom_Lvl</span>
+              </div>
+              <div class="flex flex-col gap-1 w-24">
+                <div class="h-1 bg-ethereal-blue/20 rounded-full relative">
+                  <div class="absolute left-2/3 size-3 -top-1 bg-ethereal-blue rounded-full shadow-[0_0_8px_#00d4ff]"></div>
+                </div>
+                <span class="text-[8px] text-ethereal-blue/60 uppercase">Scan_Freq</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Node summary cards -->
+  <div class="px-4 py-6 grid grid-cols-2 gap-4">
+    <div class="relative group">
+      <div class="bg-engine-iron/80 border border-ethereal-blue/30 rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative">
+        <div class="absolute inset-0 opacity-10 bg-ethereal-blue/20"></div>
+        <div class="flex justify-between items-start">
+          <span class="text-[10px] font-mono text-ethereal-blue uppercase">Node_L1</span>
+          <span class="material-symbols-outlined text-xs text-cyber-violet">shield</span>
+        </div>
+        <p class="text-ethereal-blue text-[11px] font-bold leading-none tracking-tight">NODE_01_SEC_L1</p>
+      </div>
+    </div>
+    <div class="relative group">
+      <div class="bg-engine-iron/80 border border-cyber-violet/50 rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative">
+        <div class="absolute inset-0 opacity-10 bg-ethereal-blue/20"></div>
+        <div class="flex justify-between items-start">
+          <span class="text-[10px] font-mono text-ethereal-blue uppercase">Node_L3</span>
+          <span class="material-symbols-outlined text-xs text-cyber-violet">security</span>
+        </div>
+        <p class="text-ethereal-blue text-[11px] font-bold leading-none tracking-tight">NODE_02_SEC_L3</p>
+      </div>
+    </div>
+  </div>
+  <!-- Action buttons -->
+  <div class="absolute bottom-32 left-4 flex flex-col gap-3 z-30">
+    <button class="shard-clip-alt bg-cyber-violet/20 border border-ethereal-blue/30 text-ethereal-blue font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
+      <span class="material-symbols-outlined text-sm">bolt</span>
+      Overdrive
+    </button>
+    <button class="shard-clip bg-engine-iron/80 border border-cyber-violet/40 text-ethereal-blue font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
+      <span class="material-symbols-outlined text-sm">shield_with_heart</span>
+      Cloak
+    </button>
+  </div>
+  <!-- Anomaly detection card -->
+  <div class="absolute bottom-32 right-4 bg-engine-iron/80 border border-danger/50 p-3 w-44 z-30">
+    <div class="flex items-center gap-2 mb-1">
+      <div class="size-2 bg-danger rounded-full shadow-[0_0_8px_#ff3c00]"></div>
+      <div class="text-[10px] text-danger uppercase font-black">Anomaly Detected</div>
+    </div>
+    <div class="text-slate-400 font-mono text-[9px] leading-tight">
+      FRAC_CORE: UNSTABLE<br/>
+      UID: ABYSS_092<br/>
+      SIG: MALICIOUS
+    </div>
+  </div>
+  <!-- Decorative pulses -->
+  <div class="absolute inset-x-0 bottom-20 h-12 flex justify-center pointer-events-none">
+    <div class="w-full max-w-xs h-full flex items-center justify-around">
+      <div class="size-1 bg-ethereal-blue/40 rounded-full"></div>
+      <div class="size-1.5 bg-ethereal-blue rounded-full shadow-[0_0_5px_#00d4ff]"></div>
+      <div class="size-1 bg-ethereal-blue/40 rounded-full"></div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const mapValueEl = document.getElementById('mapValue');
+      function animate(now) {
+        const value = (Math.sin(now / 500) * 0.5 + 0.5) * 100;
+        if (mapValueEl) mapValueEl.textContent = Math.round(value);
+        requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>
