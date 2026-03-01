@@ -136,6 +136,60 @@
       65% { text-shadow: 0 0 10px rgba(250,255,0,0.58), 0 0 24px rgba(0,212,255,0.2); }
     }
 
+    @keyframes holoSweep {
+      0% { transform: translateX(-120%) skewX(-20deg); opacity: 0; }
+      22% { opacity: .55; }
+      100% { transform: translateX(140%) skewX(-20deg); opacity: 0; }
+    }
+
+    @keyframes digitalShimmer {
+      0%, 100% { opacity: .9; filter: brightness(1); }
+      20% { opacity: .76; filter: brightness(1.08); }
+      22% { opacity: .93; }
+      56% { opacity: .84; filter: brightness(1.06); }
+      82% { opacity: .95; }
+    }
+
+    .holo-gauge-shell {
+      background: #000000;
+      isolation: isolate;
+      border-radius: 9999px;
+      box-shadow: inset 0 0 40px rgba(0, 212, 255, 0.08), 0 0 30px rgba(0, 212, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .holo-gauge-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .holo-scan-sweep {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .holo-scan-sweep::after {
+      content: "";
+      position: absolute;
+      inset: -25%;
+      background: linear-gradient(90deg, transparent 0%, rgba(0, 240, 255, 0.2) 40%, rgba(255, 255, 255, 0.38) 50%, rgba(0, 240, 255, 0.18) 60%, transparent 100%);
+      animation: holoSweep 3.2s linear infinite;
+    }
+
+    .digital-shimmer {
+      animation: digitalShimmer 1.35s steps(18, end) infinite;
+    }
+
+    .micro-metric {
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.24);
+    }
+
     .gauge-spectrum {
       animation: gaugeSpectrum 3.8s ease-in-out infinite;
       transform-origin: center;
@@ -1012,9 +1066,9 @@
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#020408_70%)] z-10"></div>
         <div class="w-full h-full bg-center bg-cover scale-110"
              style="background-image:
-               radial-gradient(circle at 50% 35%, rgba(0, 212, 255, 0.20), transparent 32%),
-               radial-gradient(circle at 50% 55%, rgba(157, 80, 187, 0.18), transparent 38%),
-               linear-gradient(135deg, rgba(3, 8, 18, 0.96) 0%, rgba(7, 20, 34, 0.88) 42%, rgba(2, 4, 8, 0.98) 100%);">
+               radial-gradient(circle at 50% 35%, rgba(0, 212, 255, 0.16), transparent 34%),
+               radial-gradient(circle at 50% 58%, rgba(157, 80, 187, 0.14), transparent 40%),
+               linear-gradient(135deg, #000000 0%, #000000 100%);">
         </div>
       </div>
 
@@ -1037,68 +1091,45 @@
           <div class="absolute -inset-6 sm:-inset-8 rounded-3xl rotate-45 opacity-55 border-2 animate-[spin_60s_linear_infinite]" style="border-color:rgba(255,0,255,0.55);"></div>
           <div class="absolute -inset-10 sm:-inset-12 rounded-3xl rotate-45 opacity-50 border-2 border-dashed animate-[spin_72s_linear_infinite_reverse]" style="border-color:rgba(223,255,17,0.72);"></div>
 
-          <div class="relative size-64 sm:size-80 flex items-center justify-center transform-gpu">
-            <!-- Outer glow rings spinning at different speeds -->
-            <div class="absolute inset-0 rounded-full glass-ring animate-[spin_10s_linear_infinite] opacity-80 gauge-spectrum"></div>
-            <div class="absolute inset-4 rounded-full glass-ring opacity-55 animate-[spin_15s_linear_infinite_reverse] border-cyber-violet/20 gauge-spectrum"></div>
-            <div class="absolute inset-2 rounded-full border border-ethereal-blue/10 opacity-60 scale-110"></div>
+          <div class="relative size-64 sm:size-80 flex items-center justify-center transform-gpu holo-gauge-shell">
+            <canvas id="gaugeParticlesCanvas" class="holo-gauge-canvas opacity-45"></canvas>
+            <canvas id="gaugeCompositeCanvas" class="holo-gauge-canvas opacity-95"></canvas>
 
-            <!-- Conic gradient arc overlay (restores missing gauge colors) -->
-            <!-- Increase opacity to make the blue and red arcs more visible -->
-            <div class="absolute inset-0 gauge-conic opacity-60 blur-[2px] gauge-spectrum"></div>
-            <!-- Slow spinning dashed ring overlay -->
-            <div class="absolute inset-[-5px] rounded-full border-[2px] border-dashed border-ethereal-blue/30 animate-[spin_30s_linear_infinite] opacity-55"></div>
+            <div class="absolute inset-2 rounded-full border border-ethereal-blue/15"></div>
+            <div class="absolute inset-0 gauge-conic opacity-35"></div>
 
-            <!-- Outer dashed ring -->
-            <div class="absolute inset-2 flex items-center justify-center">
-              <div class="w-full h-full rounded-full border-[1px] border-dashed border-white/10 opacity-45"></div>
-            </div>
-
-            <!-- Tick markers around the gauge for extra detail -->
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div class="relative w-full h-full">
-                <div class="absolute inset-0 flex items-center justify-center rotate-[225deg]"><div class="w-1 h-6 bg-ethereal-blue shadow-[0_0_15px_#00d4ff] -translate-y-[115px] sm:-translate-y-[145px]"></div></div>
-                <div class="absolute inset-0 flex items-center justify-center rotate-[270deg]"><div class="w-1 h-4 bg-ethereal-blue/60 -translate-y-[115px] sm:-translate-y-[145px]"></div></div>
-                <div class="absolute inset-0 flex items-center justify-center rotate-[315deg]"><div class="w-1.5 h-6 bg-ethereal-blue shadow-[0_0_15px_#00d4ff] -translate-y-[115px] sm:-translate-y-[145px]"></div></div>
-                <div class="absolute inset-0 flex items-center justify-center rotate-[0deg]"><div class="w-1 h-4 bg-ethereal-blue/60 -translate-y-[115px] sm:-translate-y-[145px]"></div></div>
-                <div class="absolute inset-0 flex items-center justify-center rotate-[45deg]"><div class="w-1.5 h-6 bg-ethereal-blue shadow-[0_0_15px_#00d4ff] -translate-y-[115px] sm:-translate-y-[145px]"></div></div>
-                <div class="absolute inset-0 flex items-center justify-center rotate-[90deg]"><div class="w-1.5 h-6 bg-danger shadow-[0_0_20px_#ff3c00] -translate-y-[115px] sm:-translate-y-[145px]"></div></div>
-                <div class="absolute inset-0 flex items-center justify-center rotate-[135deg]"><div class="w-2 h-8 bg-danger shadow-[0_0_25px_#ff3c00] -translate-y-[115px] sm:-translate-y-[145px]"></div></div>
-              </div>
-            </div>
-
-            <!-- Vertical danger bar inside gauge (spins slowly to represent critical range) -->
-            <div class="absolute inset-0 flex items-center justify-center rotate-[105deg] z-20 animate-[spin_60s_linear_infinite]">
-              <div class="relative h-[320px] w-[3px]">
-                <div class="absolute bottom-1/2 left-0 w-full h-[140px] bg-gradient-to-t from-danger to-transparent shadow-[0_0_25px_#ff3c00]"></div>
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white shadow-[0_0_30px_8px_#ff3c00]"></div>
-              </div>
-            </div>
-
-            <!-- Needle and center pivot -->
             <div class="absolute inset-0 flex items-center justify-center">
-              <div id="needlePivot" class="absolute w-full h-full flex items-center justify-center" style="transform: rotate(140deg);">
+              <div id="needlePivot" class="absolute w-full h-full flex items-center justify-center" style="transform: rotate(140deg); will-change: transform;">
                 <div class="relative w-44 sm:w-52 flex items-center justify-end origin-left">
-                  <div class="w-28 sm:w-32 h-[3px] bg-gradient-to-r from-transparent via-ethereal-blue to-white rounded-full shadow-[0_0_20px_#00d4ff]"></div>
-                  <div class="absolute -right-1 w-2 h-2 bg-white rounded-full blur-[2px]"></div>
+                  <div class="w-28 sm:w-32 h-[2px] bg-gradient-to-r from-transparent via-[#7ef5ff] to-white rounded-full shadow-[0_0_18px_rgba(0,212,255,0.78)]"></div>
+                  <div class="absolute -right-1 w-2.5 h-2.5 bg-white rounded-full blur-[1px] shadow-[0_0_12px_rgba(255,255,255,0.95)]"></div>
                 </div>
-                <div class="absolute w-36 h-20 bg-ethereal-blue/5 blur-xl rounded-full -left-12 origin-right"></div>
+                <div class="absolute w-40 h-14 bg-ethereal-blue/10 blur-xl rounded-full -left-16 origin-right"></div>
               </div>
-              <div class="absolute w-3.5 h-3.5 rounded-full bg-white/80 blur-[0.5px] shadow-[0_0_18px_rgba(0,212,255,0.35)]"></div>
+              <div class="absolute w-5 h-5 rounded-full bg-[#9bf7ff] shadow-[0_0_18px_rgba(0,212,255,0.8),0_0_30px_rgba(255,255,255,0.5)]"></div>
             </div>
 
             <div class="relative z-20 size-48 sm:size-56 bg-panel/70 soft-frost rounded-2xl border-2 border-ethereal-blue/35 glitch-border p-4 flex flex-col items-center justify-center overflow-hidden">
               <div class="absolute inset-0 opacity-15 scanline-mask"></div>
+              <div class="holo-scan-sweep opacity-30"></div>
+              <div class="absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.26)_0%,rgba(255,255,255,0.03)_33%,transparent_48%)] mix-blend-screen opacity-35 pointer-events-none"></div>
 
               <div class="relative z-10 flex flex-col items-center select-none">
                 <span id="phaseLabel" class="text-[10px] tracking-[0.5em] text-[#faff00]/90 font-mono font-bold mb-1 uppercase italic neon-yellow-readout">IDLE</span>
 
                 <div class="flex items-baseline gap-1 chromatic-aberration">
-                  <span id="mainInt" class="text-6xl sm:text-7xl font-black italic text-[#faff00] tracking-tighter leading-none neon-yellow-readout" style="font-family:'Orbitron', sans-serif; letter-spacing:-0.03em;">0</span>
-                  <span id="mainFrac" class="text-xl font-black italic text-[#faff00] neon-yellow-readout" style="font-family:'Orbitron', sans-serif;">.0</span>
+                  <span id="mainInt" class="text-6xl sm:text-7xl font-black italic text-[#faff00] tracking-tighter leading-none neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif; letter-spacing:-0.03em;">0</span>
+                  <span id="mainFrac" class="text-xl font-black italic text-[#faff00] neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif;">.0</span>
                 </div>
 
                 <span id="unitLabel" class="text-lg font-bold text-[#faff00] tracking-widest mt-2 neon-yellow-readout">Mbps</span>
+
+                <div class="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] font-mono uppercase tracking-wider text-white/75 digital-shimmer">
+                  <span class="micro-metric">Up <span id="microUpVal" class="text-cyber-violet">0.0</span></span>
+                  <span class="micro-metric">Ping <span id="microPingVal" class="text-ethereal-blue">--</span></span>
+                  <span class="micro-metric">Jit <span id="microJitterVal" class="text-ethereal-blue">--</span></span>
+                  <span class="micro-metric">Loss <span id="microLossVal" class="text-danger">--</span></span>
+                </div>
 
                 <div class="mt-3 flex items-center gap-2 font-mono text-[10px] text-white/60">
                   <span class="inline-flex items-center gap-1">
@@ -1249,8 +1280,14 @@
 
         downVal: $("downVal"),
         upVal: $("upVal"),
+        microUpVal: $("microUpVal"),
+        microPingVal: $("microPingVal"),
+        microJitterVal: $("microJitterVal"),
+        microLossVal: $("microLossVal"),
 
         needlePivot: $("needlePivot"),
+        gaugeParticlesCanvas: $("gaugeParticlesCanvas"),
+        gaugeCompositeCanvas: $("gaugeCompositeCanvas"),
         aura: $("aura"),
         scanJitter: $("scanJitter"),
         wavePath: $("wavePath"),
@@ -1301,6 +1338,9 @@
         up: 0,
         display: 0,
         needleDeg: 140,
+        needleTarget: 140,
+        needleVel: 0,
+        sweepStart: 0,
       };
 
       let raf = 0;
@@ -1316,6 +1356,123 @@
       };
       const lerp = motion.lerp;
 
+      class HoloGaugeRenderer {
+        constructor(particlesCanvas, compositeCanvas) {
+          this.particlesCanvas = particlesCanvas;
+          this.compositeCanvas = compositeCanvas;
+          this.pCtx = particlesCanvas?.getContext("2d", { alpha: true });
+          this.cCtx = compositeCanvas?.getContext("2d", { alpha: true });
+          this.particles = Array.from({ length: 42 }, () => ({
+            x: Math.random(),
+            y: Math.random(),
+            s: 0.4 + Math.random() * 1.6,
+            v: 0.0002 + Math.random() * 0.0007,
+          }));
+          this.radius = 0;
+          this.cx = 0;
+          this.cy = 0;
+          this.pixelRatio = 1;
+          this.resize = this.resize.bind(this);
+          this.resize();
+          window.addEventListener("resize", this.resize, { passive: true });
+        }
+
+        resize() {
+          const fit = (canvas) => {
+            if (!canvas) return;
+            const rect = canvas.getBoundingClientRect();
+            const ratio = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.max(1, Math.floor(rect.width * ratio));
+            canvas.height = Math.max(1, Math.floor(rect.height * ratio));
+            const ctx = canvas.getContext("2d", { alpha: true });
+            if (ctx) ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            this.pixelRatio = ratio;
+            this.cx = rect.width * 0.5;
+            this.cy = rect.height * 0.5;
+            this.radius = Math.min(rect.width, rect.height) * 0.47;
+          };
+          fit(this.particlesCanvas);
+          fit(this.compositeCanvas);
+        }
+
+        render(now, needleDeg, valueMbps) {
+          if (!this.pCtx || !this.cCtx) return;
+          const p = this.pCtx;
+          const c = this.cCtx;
+          const w = this.particlesCanvas.getBoundingClientRect().width;
+          const h = this.particlesCanvas.getBoundingClientRect().height;
+          const t = now * 0.001;
+          const intensity = clamp(valueMbps / 1000, 0, 1);
+
+          p.clearRect(0, 0, w, h);
+          p.fillStyle = "#000";
+          p.fillRect(0, 0, w, h);
+          for (const dot of this.particles) {
+            dot.y += dot.v;
+            if (dot.y > 1.05) {
+              dot.y = -0.05;
+              dot.x = Math.random();
+            }
+            const x = dot.x * w;
+            const y = dot.y * h;
+            p.fillStyle = `rgba(0, 220, 255, ${0.08 + dot.s * 0.06})`;
+            p.beginPath();
+            p.arc(x, y, dot.s, 0, Math.PI * 2);
+            p.fill();
+          }
+
+          c.clearRect(0, 0, w, h);
+          c.save();
+          c.translate(this.cx, this.cy);
+
+          c.strokeStyle = "rgba(0,220,255,0.35)";
+          c.lineWidth = 1.4;
+          c.beginPath();
+          c.arc(0, 0, this.radius, 0, Math.PI * 2);
+          c.stroke();
+
+          for (let i = 0; i <= 80; i++) {
+            const a = (-225 + i * 3.4) * (Math.PI / 180);
+            const isMajor = i % 5 === 0;
+            const r1 = this.radius - (isMajor ? 16 : 10);
+            const highWarn = i >= 66;
+            c.strokeStyle = highWarn ? `rgba(255,80,20,${0.2 + intensity * 0.65})` : "rgba(120,250,255,0.28)";
+            c.lineWidth = isMajor ? 2.1 : 1;
+            c.beginPath();
+            c.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
+            c.lineTo(Math.cos(a) * this.radius, Math.sin(a) * this.radius);
+            c.stroke();
+          }
+
+          c.globalCompositeOperation = "lighter";
+          c.strokeStyle = "rgba(0,220,255,0.25)";
+          c.lineWidth = 2;
+          c.beginPath();
+          c.arc(0, 0, this.radius * 0.72, t * 0.8, t * 0.8 + Math.PI * 1.35);
+          c.stroke();
+          c.strokeStyle = "rgba(160,90,255,0.3)";
+          c.beginPath();
+          c.arc(0, 0, this.radius * 0.58, -t * 1.2, -t * 1.2 + Math.PI * 1.18);
+          c.stroke();
+
+          c.rotate((needleDeg - 90) * (Math.PI / 180));
+          const beamGrad = c.createLinearGradient(0, 0, this.radius * 0.86, 0);
+          beamGrad.addColorStop(0, "rgba(255,255,255,0)");
+          beamGrad.addColorStop(0.45, "rgba(120,250,255,0.5)");
+          beamGrad.addColorStop(1, "rgba(255,255,255,0.95)");
+          c.strokeStyle = beamGrad;
+          c.lineWidth = 2.6;
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.lineTo(this.radius * 0.85, 0);
+          c.stroke();
+
+          c.restore();
+        }
+      }
+
+      const gaugeRenderer = new HoloGaugeRenderer(ui.gaugeParticlesCanvas, ui.gaugeCompositeCanvas);
+
       const fmt1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
       const fmtIntFrac = (v) => {
         const fixed = fmt1(v);
@@ -1329,18 +1486,44 @@
         ui.mainFrac.textContent = "." + f;
       };
 
+      const setThroughputReadout = (mbps) => {
+        if (mbps >= 1000) {
+          ui.unitLabel.textContent = "Gbps";
+          setMainReadout(mbps / 1000);
+          return;
+        }
+        ui.unitLabel.textContent = "Mbps";
+        setMainReadout(mbps);
+      };
+
       const setNeedleAngle = (deg) => {
-        ui.needlePivot.style.transform = `rotate(${deg}deg)`;
+        cur.needleDeg = clamp(deg, 50, 320);
+        ui.needlePivot.style.transform = `rotate(${cur.needleDeg.toFixed(2)}deg)`;
+      };
+
+      const setNeedleTarget = (deg) => {
+        cur.needleTarget = clamp(deg, 50, 320);
+      };
+
+      const advanceNeedle = (dtMs) => {
+        const dt = Math.min(0.05, dtMs / 1000);
+        const stiffness = 32;
+        const damping = 11;
+        const accel = (cur.needleTarget - cur.needleDeg) * stiffness - cur.needleVel * damping;
+        cur.needleVel += accel * dt;
+        setNeedleAngle(cur.needleDeg + cur.needleVel * dt * 95);
       };
 
       const updateGaugeColorProfile = (speedValue) => {
         const value = Number(speedValue || 0);
         const intensity = clamp(value / 1000, 0, 1);
+        const danger = clamp((value - 780) / 220, 0, 1);
         const yellowGlow = 0.35 + intensity * 0.45;
         const magentaGlow = 0.12 + intensity * 0.25;
-        ui.aura.style.background = `radial-gradient(circle, rgba(250,255,0,${yellowGlow.toFixed(3)}) 0%, rgba(0,212,255,${(0.18 + intensity * 0.25).toFixed(3)}) 36%, rgba(255,0,255,${magentaGlow.toFixed(3)}) 58%, rgba(2,4,8,0) 78%)`;
-        ui.wavePath.style.color = value > 350 ? '#ff00ff' : value > 120 ? '#00d4ff' : '#faff00';
+        ui.aura.style.background = `radial-gradient(circle, rgba(250,255,0,${yellowGlow.toFixed(3)}) 0%, rgba(0,212,255,${(0.18 + intensity * 0.25).toFixed(3)}) 36%, rgba(255,0,255,${magentaGlow.toFixed(3)}) 58%, rgba(255,80,25,${(danger * 0.45).toFixed(3)}) 72%, rgba(0,0,0,0) 84%)`;
+        ui.wavePath.style.color = value > 780 ? '#ff4a1a' : value > 350 ? '#ff00ff' : value > 120 ? '#00d4ff' : '#faff00';
         ui.scanJitter.style.background = `radial-gradient(circle at 50% 50%, rgba(250,255,0,${(0.10 + intensity * 0.24).toFixed(3)}) 0%, rgba(255,0,255,${(0.06 + intensity * 0.18).toFixed(3)}) 45%, rgba(0,0,0,0) 80%)`;
+        ui.gaugeCompositeCanvas.style.opacity = (0.75 + intensity * 0.25 + danger * 0.1).toFixed(2);
       };
 
       const setPhase = (s) => {
@@ -1415,13 +1598,19 @@
         ui.lossVal.textContent = "--";
         ui.downVal.textContent = "0.0";
         ui.upVal.textContent = "0.0";
+        ui.microUpVal.textContent = "0.0";
+        ui.microPingVal.textContent = "--";
+        ui.microJitterVal.textContent = "--";
+        ui.microLossVal.textContent = "--";
 
         ui.unitLabel.textContent = "Mbps";
         ui.timerText.textContent = "00:00";
 
         setMainReadout(0);
         setNeedleAngle(cur.needleDeg);
+        setNeedleTarget(cur.needleDeg);
         updateGaugeColorProfile(cur.display);
+        gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
 
         ui.wavePath.setAttribute("d", "M0 100 L20 40 L40 80 L60 20 L80 90 L100 10 L120 70 L140 30 L160 85 L180 45 L200 100 Z");
       };
@@ -1480,10 +1669,17 @@
         ui.latencyVal.textContent = String(cur.ping);
         ui.jitterVal.textContent = String(cur.jitter);
         ui.lossVal.textContent = String(cur.loss);
+        ui.microPingVal.textContent = String(cur.ping);
+        ui.microJitterVal.textContent = String(cur.jitter);
+        ui.microLossVal.textContent = String(cur.loss);
 
         cur.display = 0;
+        cur.sweepStart = runStart;
+        cur.needleVel = 0;
+        lastTick = 0;
         setMainReadout(cur.display);
         setNeedleAngle(needleForMbps(0));
+        setNeedleTarget(needleForMbps(0));
 
         cancelAnimationFrame(raf);
         raf = requestAnimationFrame(tick);
@@ -1497,6 +1693,8 @@
 
         ui.unitLabel.textContent = "Mbps";
         ui.statusText.textContent = "ABORTED";
+        setNeedleTarget(needleForMbps(0));
+        gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
 
         cancelAnimationFrame(raf);
       };
@@ -1506,11 +1704,14 @@
         lockButtons(false);
       };
 
+      let lastTick = 0;
       const tick = (now) => {
         if (aborted) return;
 
         const elapsed = now - runStart;
         ui.timerText.textContent = mmss(elapsed);
+        const dt = lastTick ? (now - lastTick) : 16.7;
+        lastTick = now;
 
         const scanIntensity =
           (state === State.PING) ? 0.35 :
@@ -1527,8 +1728,9 @@
           cur.display = shown;
           setMainReadout(cur.display);
 
-          const nd = lerp(needleForMbps(0), needleForMbps(120), t);
-          setNeedleAngle(nd);
+          const sweepRaw = clamp((now - cur.sweepStart) / 850, 0, 1);
+          const sweep = sweepRaw < 1 ? (Math.sin(sweepRaw * Math.PI) * 0.9 + sweepRaw) : 1;
+          setNeedleTarget(lerp(needleForMbps(0), needleForMbps(120), clamp(sweep, 0, 1)));
 
           if ((now - phaseStart) >= PING_DUR) {
             phaseStart = now;
@@ -1549,9 +1751,8 @@
           ui.downVal.textContent = fmt1(cur.down);
 
           cur.display = val;
-          setMainReadout(cur.display);
-
-          setNeedleAngle(needleForMbps(val));
+          setThroughputReadout(cur.display);
+          setNeedleTarget(needleForMbps(val));
 
           if (raw >= 1) {
             phaseStart = now;
@@ -1569,17 +1770,17 @@
 
           cur.up = val;
           ui.upVal.textContent = fmt1(cur.up);
+          ui.microUpVal.textContent = fmt1(cur.up);
 
           cur.display = val;
-          setMainReadout(cur.display);
-
-          setNeedleAngle(needleForMbps(val));
+          setThroughputReadout(cur.display);
+          setNeedleTarget(needleForMbps(val));
 
           if (raw >= 1) {
-            ui.unitLabel.textContent = "Mbps";
-            setMainReadout(cur.down);
-            setNeedleAngle(needleForMbps(cur.down));
-
+            setThroughputReadout(cur.down);
+            setNeedleTarget(needleForMbps(cur.down));
+            advanceNeedle(dt);
+            gaugeRenderer.render(now, cur.needleDeg, cur.display);
             finishRun();
             cancelAnimationFrame(raf);
             return;
@@ -1590,6 +1791,9 @@
           return;
         }
 
+        advanceNeedle(dt);
+        gaugeRenderer.render(now, cur.needleDeg, cur.display);
+        updateGaugeColorProfile(state === State.PING ? cur.display * 25 : cur.display);
         raf = requestAnimationFrame(tick);
       };
 
