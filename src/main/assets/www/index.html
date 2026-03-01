@@ -1230,6 +1230,10 @@
           <p class="text-xs font-bold text-cyber-violet font-mono tracking-widest">ENCRYPTED</p>
         </div>
 
+        <button id="btnTheme" class="tap-glow size-10 rounded-full bg-ethereal-blue/10 border border-ethereal-blue/30 flex items-center justify-center text-ethereal-blue" type="button" aria-label="Speedtest theme picker" aria-haspopup="dialog" aria-controls="speedtestThemeModal" aria-expanded="false">
+          <span class="material-symbols-outlined">palette</span>
+        </button>
+
         <button id="btnSettings" class="tap-glow size-10 rounded-full bg-ethereal-blue/10 border border-ethereal-blue/30 flex items-center justify-center text-ethereal-blue" type="button">
           <span class="material-symbols-outlined">settings_input_component</span>
         </button>
@@ -1429,6 +1433,20 @@
     </div>
   </nav>
 
+  <div id="speedtestThemeModal" class="theme-modal hidden" role="dialog" aria-modal="true" aria-labelledby="speedtestThemeTitle" tabindex="-1">
+    <div id="speedtestThemeBackdrop" class="theme-modal__backdrop"></div>
+    <div class="theme-modal__sheet" role="document">
+      <div class="theme-modal__header">
+        <h3 id="speedtestThemeTitle" class="theme-modal__title">Speedtest Theme</h3>
+        <button id="themeModalClose" class="theme-modal__close" type="button" aria-label="Close theme picker">✕</button>
+      </div>
+      <p class="theme-modal__subtitle">Theme applies to Speedtest screen only.</p>
+      <div id="themeList" class="theme-modal__list" role="listbox" aria-label="Speedtest themes"></div>
+      <button id="themeResetBtn" class="theme-modal__reset" type="button">Reset to Default</button>
+    </div>
+  </div>
+
+  <script src="holo-renderers.js"></script>
   <script src="holo-motion.js"></script>
   <script>
     (() => {
@@ -1438,6 +1456,7 @@
         btnStart: $("btnStart"),
         btnAbort: $("btnAbort"),
         btnReset: $("btnReset"),
+        btnTheme: $("btnTheme"),
 
         heatLabel: $("heatLabel"),
         pressureLabel: $("pressureLabel"),
@@ -1499,6 +1518,11 @@
         cfgDeviceSummary: $("cfgDeviceSummary"),
         cfgRefreshDeviceBtn: $("cfgRefreshDeviceBtn"),
         cfgExportDiagBtn: $("cfgExportDiagBtn"),
+        speedtestThemeModal: $("speedtestThemeModal"),
+        speedtestThemeBackdrop: $("speedtestThemeBackdrop"),
+        themeModalClose: $("themeModalClose"),
+        themeList: $("themeList"),
+        themeResetBtn: $("themeResetBtn"),
       };
 
       const State = Object.freeze({
@@ -1537,6 +1561,40 @@
         return x * x * (3 - 2 * x);
       };
       const lerp = motion.lerp;
+      const rendererRegistry = window.HoloRenderers?.createRegistry?.() || null;
+
+      const getThemeColor = (varName, fallback = "") => {
+        try {
+          const value = getComputedStyle(document.documentElement).getPropertyValue(varName);
+          const clean = String(value || "").trim();
+          return clean || fallback;
+        } catch {
+          return fallback;
+        }
+      };
+
+      const hexToRgb = (hexValue) => {
+        const hex = String(hexValue || "").trim();
+        const normalized = hex.startsWith("#") ? hex.slice(1) : hex;
+        if (!/^[0-9a-fA-F]{3,8}$/.test(normalized)) return null;
+        const full = normalized.length === 3
+          ? normalized.split("").map((c) => c + c).join("")
+          : normalized.slice(0, 6);
+        const int = Number.parseInt(full, 16);
+        if (Number.isNaN(int)) return null;
+        return {
+          r: (int >> 16) & 255,
+          g: (int >> 8) & 255,
+          b: int & 255,
+        };
+      };
+
+      const themeRgba = (varName, alpha, fallbackHex) => {
+        const source = getThemeColor(varName, fallbackHex);
+        const rgb = hexToRgb(source) || hexToRgb(fallbackHex);
+        if (!rgb) return `rgba(255,255,255,${alpha})`;
+        return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
+      };
 
       const getThemeColor = (varName, fallback = "") => {
         try {
@@ -1867,6 +1925,40 @@
 
       let downPeak = 0;
       let upPeak = 0;
+      let speedtestRendererActive = false;
+
+      const isSpeedtestRunning = () => (
+        state === State.PING || state === State.DOWNLOAD || state === State.UPLOAD
+      ) && !aborted;
+
+      const stopSpeedtestLoop = () => {
+        if (raf) {
+          stopSpeedtestLoop();
+          raf = 0;
+        }
+      };
+
+      const ensureSpeedtestLoop = () => {
+        if (!speedtestRendererActive || !isSpeedtestRunning() || raf) return;
+        raf = speedtestRendererActive && isSpeedtestRunning() ? requestAnimationFrame(tick) : 0;
+      };
+
+      const speedtestRendererController = {
+        start() {
+          speedtestRendererActive = true;
+          gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
+          ensureSpeedtestLoop();
+        },
+        stop() {
+          speedtestRendererActive = false;
+          stopSpeedtestLoop();
+          lastTick = 0;
+        },
+        resize() {
+          gaugeRenderer.resize();
+          gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
+        },
+      };
 
       const startRun = () => {
         if (state !== State.IDLE && state !== State.DONE && state !== State.ABORTED) return;
@@ -1897,8 +1989,8 @@
         setNeedleAngle(needleForMbps(0));
         setNeedleTarget(needleForMbps(0));
 
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(tick);
+        stopSpeedtestLoop();
+        ensureSpeedtestLoop();
       };
 
       const abortRun = () => {
@@ -1912,7 +2004,7 @@
         setNeedleTarget(needleForMbps(0));
         gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
 
-        cancelAnimationFrame(raf);
+        stopSpeedtestLoop();
       };
 
       const finishRun = () => {
@@ -1998,25 +2090,25 @@
             advanceNeedle(dt);
             gaugeRenderer.render(now, cur.needleDeg, cur.display);
             finishRun();
-            cancelAnimationFrame(raf);
+            stopSpeedtestLoop();
             return;
           }
         }
         else {
-          cancelAnimationFrame(raf);
+          stopSpeedtestLoop();
           return;
         }
 
         advanceNeedle(dt);
         gaugeRenderer.render(now, cur.needleDeg, cur.display);
         updateGaugeColorProfile(state === State.PING ? cur.display * 25 : cur.display);
-        raf = requestAnimationFrame(tick);
+        raf = speedtestRendererActive && isSpeedtestRunning() ? requestAnimationFrame(tick) : 0;
       };
 
       ui.btnStart.addEventListener("click", startRun);
       ui.btnAbort.addEventListener("click", abortRun);
       ui.btnReset.addEventListener("click", () => {
-        cancelAnimationFrame(raf);
+        stopSpeedtestLoop();
         resetUI();
       });
 
@@ -2049,6 +2141,79 @@
         left: document.getElementById("barsLeft"),
         right: document.getElementById("barsRight"),
       };
+
+      let themeModalRestoreFocus = null;
+
+      function currentThemeIdForSpeedtest() {
+        if (!window.HoloThemeManager) return "holo_cyan";
+        return window.HoloThemeManager.getThemeIdForScreen("speedtest");
+      }
+
+      function buildThemeOption(theme, activeThemeId) {
+        const option = document.createElement("button");
+        option.type = "button";
+        option.className = "theme-option";
+        option.dataset.themeId = theme.id;
+        option.setAttribute("role", "option");
+        option.setAttribute("aria-selected", String(theme.id === activeThemeId));
+        if (theme.id === activeThemeId) option.classList.add("is-active");
+
+        const swatchPrimary = theme.vars?.["--accent-0"] || "#00d4ff";
+        const swatchSecondary = theme.vars?.["--accent-1"] || "#a855f7";
+        const swatchGood = theme.vars?.["--good-0"] || "#b7ff2a";
+
+        option.innerHTML = `
+          <span class="theme-option__label">${theme.label}</span>
+          <span class="theme-option__swatches" aria-hidden="true">
+            <span class="theme-option__swatch" style="background:${swatchPrimary};"></span>
+            <span class="theme-option__swatch" style="background:${swatchSecondary};"></span>
+            <span class="theme-option__swatch" style="background:${swatchGood};"></span>
+          </span>
+        `;
+
+        option.addEventListener("click", () => {
+          if (!window.HoloThemeManager) return;
+          const selected = window.HoloThemeManager.setThemeIdForScreen("speedtest", theme.id);
+          window.HoloThemeManager.applyTheme(selected);
+          renderThemeList();
+          closeThemeModal();
+        });
+        return option;
+      }
+
+      function renderThemeList() {
+        if (!nativeUi.themeList) return;
+        const registry = window.HoloThemeRegistry;
+        if (!registry || typeof registry.getAllThemes !== "function") {
+          nativeUi.themeList.innerHTML = "";
+          return;
+        }
+        const activeThemeId = currentThemeIdForSpeedtest();
+        nativeUi.themeList.innerHTML = "";
+        registry.getAllThemes().forEach((theme) => {
+          nativeUi.themeList.appendChild(buildThemeOption(theme, activeThemeId));
+        });
+      }
+
+      function openThemeModal() {
+        if (!nativeUi.speedtestThemeModal) return;
+        themeModalRestoreFocus = document.activeElement;
+        renderThemeList();
+        nativeUi.speedtestThemeModal.classList.remove("hidden");
+        nativeUi.speedtestThemeModal.classList.add("is-open");
+        ui.btnTheme?.setAttribute("aria-expanded", "true");
+        nativeUi.speedtestThemeModal.focus();
+      }
+
+      function closeThemeModal() {
+        if (!nativeUi.speedtestThemeModal) return;
+        nativeUi.speedtestThemeModal.classList.remove("is-open");
+        nativeUi.speedtestThemeModal.classList.add("hidden");
+        ui.btnTheme?.setAttribute("aria-expanded", "false");
+        if (themeModalRestoreFocus && typeof themeModalRestoreFocus.focus === "function") {
+          themeModalRestoreFocus.focus();
+        }
+      }
       function setActive(tab) {
         // Hide all screens
         Object.values(screens).forEach((s) => {
@@ -2068,9 +2233,20 @@
         if (nav[tab]) {
           nav[tab].classList.add("is-active");
         }
+<<<<<<< ours
         const screenThemeId = tab === "engine" ? "speedtest" : tab;
         if (window.HoloThemeManager) window.HoloThemeManager.applyThemeForScreen(screenThemeId);
+=======
+        const nextScreenId = tab === "engine" ? "speedtest" : tab;
+        const prevScreenId = rendererRegistry?.getActiveScreenId?.();
+        if (prevScreenId && prevScreenId !== nextScreenId) {
+          rendererRegistry.stop(prevScreenId);
+        }
+        if (window.HoloThemeManager) window.HoloThemeManager.applyThemeForScreen(nextScreenId);
+        if (tab !== "engine") closeThemeModal();
+>>>>>>> theirs
         if (tab === "map") renderMapFromScan();
+        rendererRegistry?.start?.(nextScreenId);
       }
       // initial state: engine screen
       setActive("engine");
@@ -2405,6 +2581,9 @@
         const canvas = nativeUi.holoMapCanvas;
         if (!viewport || !canvas) {
           return {
+            start() {},
+            stop() {},
+            resize() {},
             sync() {},
             setScanState() {},
             setCloakState() {},
@@ -2414,6 +2593,9 @@
         const ctx = canvas.getContext("2d", { alpha: true });
         if (!ctx) {
           return {
+            start() {},
+            stop() {},
+            resize() {},
             sync() {},
             setScanState() {},
             setCloakState() {},
@@ -2443,12 +2625,60 @@
           scanWavePulse: 0,
           discoverAt: new Map(),
           nodes: [],
+          drawNodes: [],
+          links: [],
+          running: false,
+          listenersAttached: false,
           lastWidth: 0,
           lastHeight: 0,
+          dpr: 1,
+          maxPackets: 24,
+          maxBgParticles: 28,
+          heavyMode: false,
         };
+
+        const MAX_PACKET_POOL = 160;
+        const packetPool = Array.from({ length: MAX_PACKET_POOL }, () => ({
+          active: false,
+          from: 0,
+          to: 0,
+          t: 0,
+          speed: 0,
+          hueBias: 0,
+        }));
+        const bgParticles = Array.from({ length: 64 }, (_, index) => ({
+          ox: ((index * 37) % 100) / 100,
+          oy: ((index * 53) % 100) / 100,
+          drift: 0.00018 + ((index % 7) * 0.00003),
+          size: 0.8 + ((index % 5) * 0.45),
+        }));
 
         let rafId = 0;
         let lastTs = performance.now();
+
+        const attachListeners = () => {
+          if (mapState.listenersAttached) return;
+          viewport.addEventListener("pointerdown", onPointerDown);
+          viewport.addEventListener("pointermove", onPointerMove);
+          viewport.addEventListener("pointerup", onPointerUp);
+          viewport.addEventListener("pointercancel", onPointerUp);
+          viewport.addEventListener("pointerleave", onPointerLeave);
+          viewport.addEventListener("wheel", onWheel, { passive: false });
+          window.addEventListener("deviceorientation", onTilt);
+          mapState.listenersAttached = true;
+        };
+
+        const detachListeners = () => {
+          if (!mapState.listenersAttached) return;
+          viewport.removeEventListener("pointerdown", onPointerDown);
+          viewport.removeEventListener("pointermove", onPointerMove);
+          viewport.removeEventListener("pointerup", onPointerUp);
+          viewport.removeEventListener("pointercancel", onPointerUp);
+          viewport.removeEventListener("pointerleave", onPointerLeave);
+          viewport.removeEventListener("wheel", onWheel);
+          window.removeEventListener("deviceorientation", onTilt);
+          mapState.listenersAttached = false;
+        };
 
         const resize = () => {
           const rect = viewport.getBoundingClientRect();
@@ -2460,6 +2690,16 @@
           ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
           mapState.lastWidth = rect.width;
           mapState.lastHeight = rect.height;
+          mapState.dpr = ratio;
+          recomputePerfCaps();
+        };
+
+        const recomputePerfCaps = () => {
+          const nodeCount = mapState.nodes.length;
+          const scale = mapState.dpr > 1.4 ? 0.75 : 1;
+          mapState.heavyMode = nodeCount > 80;
+          mapState.maxPackets = Math.max(8, Math.floor((nodeCount > 80 ? 16 : nodeCount > 40 ? 28 : 40) * scale));
+          mapState.maxBgParticles = Math.max(10, Math.floor((mapState.heavyMode ? 24 : 44) * scale));
         };
 
         const toScreenPoint = (node, timeMs) => {
@@ -2472,9 +2712,9 @@
           const x = cX + Math.cos(orbitAngle) * node.ring * mapState.zoom;
           const y = cY + Math.sin(orbitAngle) * node.ring * 0.62 * mapState.zoom + bob;
           const zRaw = Math.sin(orbitAngle * 0.85 + node.depthSeed * Math.PI * 2);
-          const z = zRaw * 0.85;
-          const scale = 0.72 + ((z + 1) * 0.42);
-          return { x, y, z, scale };
+          const z = (zRaw + 1) * 0.5;
+          const scale = 0.62 + (z * 0.8);
+          return { x, y, z, scale, orbitAngle };
         };
 
         const pickNodeAt = (x, y, timeMs) => {
@@ -2506,14 +2746,49 @@
           nativeUi.holoMapTooltip?.classList.remove("is-visible");
         };
 
+        const findNodeByIndex = (index) => mapState.nodes.find((item) => item.index === index);
+
+        const updatePacketPool = (ts, linkCount) => {
+          let activeCount = 0;
+          for (let i = 0; i < packetPool.length; i += 1) {
+            const packet = packetPool[i];
+            if (!packet.active) continue;
+            packet.t += packet.speed;
+            if (packet.t >= 1) {
+              packet.active = false;
+              continue;
+            }
+            activeCount += 1;
+          }
+          if (!runtime.mapScanInProgress && runtime.lastScanSource === "none") return;
+          if (linkCount < 2) return;
+          const desired = Math.min(mapState.maxPackets, Math.max(6, Math.floor(linkCount * (runtime.mapScanInProgress ? 0.5 : 0.2))));
+          if (activeCount >= desired) return;
+          for (let i = 0; i < packetPool.length && activeCount < desired; i += 1) {
+            const packet = packetPool[i];
+            if (packet.active) continue;
+            const from = Math.floor((ts * 0.001 + i * 1.7) % linkCount);
+            packet.active = true;
+            packet.from = from;
+            packet.to = (from + 1 + (i % 3)) % linkCount;
+            packet.t = (i % 7) / 7;
+            packet.speed = runtime.mapScanInProgress ? 0.022 + ((i % 5) * 0.003) : 0.009 + ((i % 4) * 0.002);
+            packet.hueBias = i % 2;
+            activeCount += 1;
+          }
+        };
+
         const animate = (ts) => {
+          if (!mapState.running) return;
           const dt = Math.min(48, ts - lastTs);
           lastTs = ts;
+
           mapState.panX += (mapState.targetPanX - mapState.panX) * 0.14;
           mapState.panY += (mapState.targetPanY - mapState.panY) * 0.14;
           mapState.zoom += (mapState.targetZoom - mapState.zoom) * 0.15;
           mapState.cameraX += (mapState.targetCameraX - mapState.cameraX) * 0.07;
           mapState.cameraY += (mapState.targetCameraY - mapState.cameraY) * 0.07;
+
           if (runtime.mapScanInProgress) {
             mapState.scanWaveRadius += dt * 0.22;
             if (mapState.scanWaveRadius > Math.max(mapState.lastWidth, mapState.lastHeight) * 0.7) {
@@ -2522,29 +2797,55 @@
             mapState.scanWavePulse += dt * 0.005;
           }
 
-          ctx.clearRect(0, 0, mapState.lastWidth, mapState.lastHeight);
           const centerX = (mapState.lastWidth * 0.5) + mapState.panX + mapState.cameraX;
           const centerY = (mapState.lastHeight * 0.5) + mapState.panY + mapState.cameraY;
 
+          ctx.clearRect(0, 0, mapState.lastWidth, mapState.lastHeight);
           const radial = ctx.createRadialGradient(centerX, centerY, 18, centerX, centerY, Math.max(mapState.lastWidth, mapState.lastHeight) * 0.75);
           radial.addColorStop(0, themeRgba("--ring-0", 0.12, "#00d4ff"));
           radial.addColorStop(0.5, themeRgba("--panel-1", 0.22, "#111c25"));
+<<<<<<< ours
           radial.addColorStop(1, themeRgba("--bg-0", 0.92, "#000000"));
+=======
+          radial.addColorStop(1, themeRgba("--bg-0", 0.94, "#000000"));
+>>>>>>> theirs
           ctx.fillStyle = radial;
           ctx.fillRect(0, 0, mapState.lastWidth, mapState.lastHeight);
 
+          // background pass: drifting particles + faint arc grid
+          const driftT = ts * 0.001;
+          const bgCount = Math.min(mapState.maxBgParticles, bgParticles.length);
+          for (let i = 0; i < bgCount; i += 1) {
+            const p = bgParticles[i];
+            const x = ((p.ox + driftT * p.drift) % 1) * mapState.lastWidth;
+            const y = ((p.oy + driftT * p.drift * 0.62) % 1) * mapState.lastHeight;
+            ctx.fillStyle = themeRgba("--particle-0", 0.08 + (i % 4) * 0.02, "#7df4ff");
+            ctx.beginPath();
+            ctx.arc(x, y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
           ctx.save();
           ctx.translate(centerX, centerY);
+<<<<<<< ours
           for (let ring = 1; ring <= 4; ring += 1) {
             ctx.strokeStyle = themeRgba("--ring-0", 0.06 + ring * 0.04, "#00d4ff");
+=======
+          for (let ring = 1; ring <= 5; ring += 1) {
+            ctx.strokeStyle = themeRgba("--ring-0", 0.04 + ring * 0.025, "#00d4ff");
+>>>>>>> theirs
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.ellipse(0, 0, ring * 68 * mapState.zoom, ring * 42 * mapState.zoom, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, ring * 66 * mapState.zoom, ring * 40 * mapState.zoom, Math.sin(ts * 0.00022 + ring) * 0.06, 0, Math.PI * 2);
             ctx.stroke();
           }
           if (runtime.mapScanInProgress) {
             const wave = mapState.scanWaveRadius;
+<<<<<<< ours
             ctx.strokeStyle = themeRgba("--good-0", 0.14 + Math.sin(mapState.scanWavePulse) * 0.08, "#b7ff2a");
+=======
+            ctx.strokeStyle = themeRgba("--good-0", 0.16 + Math.sin(mapState.scanWavePulse) * 0.08, "#b7ff2a");
+>>>>>>> theirs
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.ellipse(0, 0, wave, wave * 0.58, 0, 0, Math.PI * 2);
@@ -2552,6 +2853,7 @@
           }
           ctx.restore();
 
+<<<<<<< ours
           const screenNodes = mapState.nodes.map((node) => ({ node, screen: toScreenPoint(node, ts) }));
           screenNodes.sort((a, b) => a.screen.z - b.screen.z);
 
@@ -2564,31 +2866,107 @@
             ctx.strokeStyle = glow;
             ctx.lineWidth = isHot ? 2.2 : 1.1;
             ctx.globalAlpha = 0.2 + ((curr.screen.scale + next.screen.scale) * 0.18);
+=======
+          // build draw node cache (reused array, no per-frame object allocations)
+          const nodeCount = mapState.nodes.length;
+          if (mapState.drawNodes.length < nodeCount) {
+            for (let i = mapState.drawNodes.length; i < nodeCount; i += 1) {
+              mapState.drawNodes.push({ node: null, screen: { x: 0, y: 0, z: 0, scale: 1, orbitAngle: 0 }, depthScore: 0 });
+            }
+          }
+          for (let i = 0; i < nodeCount; i += 1) {
+            const cached = mapState.drawNodes[i];
+            cached.node = mapState.nodes[i];
+            const point = toScreenPoint(mapState.nodes[i], ts);
+            cached.screen.x = point.x;
+            cached.screen.y = point.y;
+            cached.screen.z = point.z;
+            cached.screen.scale = point.scale;
+            cached.screen.orbitAngle = point.orbitAngle;
+            cached.depthScore = point.z;
+          }
+          mapState.drawNodes.length = nodeCount;
+          mapState.drawNodes.sort((a, b) => a.depthScore - b.depthScore);
+
+          const linkCount = mapState.drawNodes.length;
+          updatePacketPool(ts, linkCount);
+
+          // links + animated beams pass
+          for (let i = 0; i < linkCount; i += 1) {
+            const curr = mapState.drawNodes[i];
+            const next = mapState.drawNodes[(i + 1) % linkCount];
+            if (!next || linkCount < 2) break;
+
+            const currX = curr.screen.x + mapState.cameraX * curr.screen.scale * 0.2;
+            const currY = curr.screen.y + mapState.cameraY * curr.screen.scale * 0.2;
+            const nextX = next.screen.x + mapState.cameraX * next.screen.scale * 0.2;
+            const nextY = next.screen.y + mapState.cameraY * next.screen.scale * 0.2;
+            const hot = curr.node.index === mapState.hoveredIndex || next.node.index === mapState.hoveredIndex;
+            const activity = runtime.mapScanInProgress ? 1 : (runtime.lastScanSource === "none" ? 0.2 : 0.55);
+
+            const beamGradient = ctx.createLinearGradient(currX, currY, nextX, nextY);
+            beamGradient.addColorStop(0, themeRgba("--ring-0", 0.12 + activity * 0.14, "#00d4ff"));
+            beamGradient.addColorStop(0.5, themeRgba("--accent-1", 0.2 + activity * 0.16, "#a855f7"));
+            beamGradient.addColorStop(1, themeRgba("--ring-0", 0.10 + activity * 0.12, "#00d4ff"));
+
+            ctx.strokeStyle = beamGradient;
+            ctx.globalAlpha = hot ? 0.9 : 0.42;
+            ctx.lineWidth = hot ? 2.4 : 1.2;
+>>>>>>> theirs
             ctx.beginPath();
-            ctx.moveTo(curr.screen.x + mapState.cameraX * curr.screen.scale * 0.2, curr.screen.y + mapState.cameraY * curr.screen.scale * 0.2);
-            ctx.lineTo(next.screen.x + mapState.cameraX * next.screen.scale * 0.2, next.screen.y + mapState.cameraY * next.screen.scale * 0.2);
+            ctx.moveTo(currX, currY);
+            ctx.lineTo(nextX, nextY);
             ctx.stroke();
 
+<<<<<<< ours
             if (runtime.mapScanInProgress || runtime.lastScanSource !== "none") {
               const p = ((ts * 0.0004) + (i * 0.13)) % 1;
               const px = curr.screen.x + ((next.screen.x - curr.screen.x) * p);
               const py = curr.screen.y + ((next.screen.y - curr.screen.y) * p);
               ctx.fillStyle = isHot ? themeRgba("--good-0", 0.95, "#b7ff2a") : themeRgba("--ring-0", 0.8, "#00d4ff");
+=======
+            if (!mapState.heavyMode) {
+              const beamPulse = ((ts * 0.0012) + (i * 0.18)) % 1;
+              const px = currX + (nextX - currX) * beamPulse;
+              const py = currY + (nextY - currY) * beamPulse;
+              ctx.fillStyle = hot ? themeRgba("--good-0", 0.92, "#b7ff2a") : themeRgba("--ring-0", 0.75, "#00d4ff");
+>>>>>>> theirs
               ctx.shadowColor = ctx.fillStyle;
-              ctx.shadowBlur = 12;
+              ctx.shadowBlur = 10;
               ctx.beginPath();
-              ctx.arc(px, py, 1.7 + (isHot ? 1.2 : 0), 0, Math.PI * 2);
+              ctx.arc(px, py, 1.9, 0, Math.PI * 2);
               ctx.fill();
               ctx.shadowBlur = 0;
             }
+            ctx.globalAlpha = 1;
           }
 
+          // packet travel pass
+          for (let i = 0; i < packetPool.length; i += 1) {
+            const packet = packetPool[i];
+            if (!packet.active || linkCount < 2) continue;
+            const fromNode = mapState.drawNodes[packet.from % linkCount];
+            const toNode = mapState.drawNodes[packet.to % linkCount];
+            if (!fromNode || !toNode) continue;
+            const sx = fromNode.screen.x + (toNode.screen.x - fromNode.screen.x) * packet.t;
+            const sy = fromNode.screen.y + (toNode.screen.y - fromNode.screen.y) * packet.t;
+            ctx.fillStyle = packet.hueBias ? themeRgba("--good-0", 0.9, "#b7ff2a") : themeRgba("--ring-0", 0.85, "#00d4ff");
+            ctx.beginPath();
+            ctx.arc(sx, sy, mapState.heavyMode ? 1.1 : 1.6, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // core + node pass
           const coreGlow = 20 + (Math.sin(ts * 0.004) * 3);
           ctx.fillStyle = themeRgba("--panel-1", 0.9, "#111c25");
           ctx.beginPath();
           ctx.arc(centerX, centerY, 22, 0, Math.PI * 2);
           ctx.fill();
+<<<<<<< ours
           ctx.strokeStyle = themeRgba("--ring-0", 0.7, "#00d4ff");
+=======
+          ctx.strokeStyle = themeRgba("--ring-0", 0.72, "#00d4ff");
+>>>>>>> theirs
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.arc(centerX, centerY, coreGlow, 0, Math.PI * 2);
@@ -2598,37 +2976,57 @@
           ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
           ctx.fill();
 
-          for (const entry of screenNodes) {
-            const { node, screen } = entry;
+          const wave = mapState.scanWaveRadius;
+          for (let i = 0; i < mapState.drawNodes.length; i += 1) {
+            const entry = mapState.drawNodes[i];
+            const node = entry.node;
+            const screen = entry.screen;
             const accent = node.accent;
             const isHover = node.index === mapState.hoveredIndex;
             const isSelected = node.index === mapState.selectedIndex;
             const discoveredAt = mapState.discoverAt.get(node.key) || ts;
-            const discoverPhase = Math.min(1, (ts - discoveredAt) / 520);
-            const materializeScale = runtime.mapScanInProgress ? discoverPhase : 1;
-            const opacity = (0.24 + ((screen.z + 1) * 0.34)) * (runtime.mapCloakEnabled ? 0.45 : 1);
-            const radius = (3.8 + screen.scale * 4.4) * materializeScale * (isSelected ? 1.2 : 1);
-            const drawX = screen.x + mapState.cameraX * screen.scale * 0.35;
-            const drawY = screen.y + mapState.cameraY * screen.scale * 0.35;
+            const discoverPhase = Math.min(1, (ts - discoveredAt) / 560);
+            const settleJitter = (1 - discoverPhase) * Math.sin(ts * 0.024 + node.index) * 2.4;
+            const materializeScale = (0.6 + discoverPhase * 0.4) * (runtime.mapScanInProgress ? Math.min(1, discoverPhase * 1.08) : 1);
+            const baseOpacity = (0.22 + (screen.z * 0.5)) * (runtime.mapCloakEnabled ? 0.45 : 1);
+            const drawX = screen.x + mapState.cameraX * screen.scale * 0.35 + settleJitter;
+            const drawY = screen.y + mapState.cameraY * screen.scale * 0.35 - settleJitter * 0.5;
+            const radius = (3.8 + screen.scale * 4.5) * materializeScale * (isSelected ? 1.24 : 1);
 
-            ctx.globalAlpha = opacity;
-            ctx.filter = `blur(${Math.max(0, (1 - screen.scale) * 2.2).toFixed(2)}px)`;
+            const dx = drawX - centerX;
+            const dy = (drawY - centerY) / 0.58;
+            const waveDist = Math.hypot(dx, dy);
+            const waveBoost = runtime.mapScanInProgress && Math.abs(waveDist - wave) < 18 ? 0.28 : 0;
+
+            ctx.globalAlpha = Math.min(1, baseOpacity + waveBoost);
+            if (!mapState.heavyMode) {
+              ctx.filter = `blur(${Math.max(0, (1 - screen.scale) * 2.1).toFixed(2)}px)`;
+            }
             ctx.fillStyle = accent.color;
             ctx.beginPath();
             ctx.arc(drawX, drawY, radius, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.filter = "none";
+<<<<<<< ours
             ctx.globalAlpha = isHover || isSelected ? 1 : Math.min(1, opacity + 0.26);
             ctx.strokeStyle = isHover ? getThemeColor("--good-0", "#b7ff2a") : accent.color;
             ctx.lineWidth = isHover ? 2.4 : 1.1;
+=======
+            ctx.globalAlpha = isHover || isSelected ? 1 : Math.min(1, baseOpacity + 0.26 + waveBoost * 0.5);
+            ctx.strokeStyle = isHover ? getThemeColor("--good-0", "#b7ff2a") : accent.color;
+            ctx.lineWidth = isHover ? 2.6 : 1.2;
+>>>>>>> theirs
             ctx.beginPath();
-            ctx.arc(drawX, drawY, radius + (isHover ? 4 : 2), 0, Math.PI * 2);
+            ctx.arc(drawX, drawY, radius + (isHover ? 4.4 : 2.2), 0, Math.PI * 2);
             ctx.stroke();
 
-            if (isHover || isSelected || screen.scale > 1.12) {
-              ctx.globalAlpha = Math.min(0.9, opacity + 0.2);
-              ctx.fillStyle = "rgba(206,248,255,0.88)";
+            const shouldDrawLabel = mapState.heavyMode
+              ? (isHover || isSelected)
+              : (isHover || isSelected || screen.scale > 1.12);
+            if (shouldDrawLabel) {
+              ctx.globalAlpha = Math.min(0.9, baseOpacity + 0.2 + waveBoost);
+              ctx.fillStyle = themeRgba("--text-0", 0.88, "#cef8ff");
               ctx.font = "10px Orbitron, sans-serif";
               ctx.textAlign = "center";
               ctx.fillText(node.label, drawX, drawY - 12 - (radius * 0.6));
@@ -2657,7 +3055,7 @@
           const hover = pickNodeAt(localX, localY, performance.now());
           mapState.hoveredIndex = hover;
           if (hover >= 0) {
-            const node = mapState.nodes.find((item) => item.index === hover);
+            const node = findNodeByIndex(hover);
             setTooltip(event.clientX, event.clientY, node);
           } else {
             hideTooltip();
@@ -2680,7 +3078,7 @@
             const hit = pickNodeAt(event.clientX - rect.left, event.clientY - rect.top, performance.now());
             if (hit >= 0) {
               mapState.selectedIndex = hit;
-              const selected = mapState.nodes.find((node) => node.index === hit);
+              const selected = findNodeByIndex(hit);
               if (selected) {
                 showCfgStatus(`Node selected: ${selected.network.ssid || selected.network.bssid || `Node ${hit + 1}`}`);
                 nativeUi.mapAlertText.innerHTML = `Selected: ${escapeHtml(selected.network.ssid || `Hidden-${hit + 1}`)}<br/>BSSID: ${escapeHtml(selected.network.bssid || "N/A")}<br/>Signal: ${escapeHtml(`${selected.network.signalLevel ?? "--"} dBm`)}`;
@@ -2714,19 +3112,25 @@
           mapState.targetCameraY = clamp(beta * 0.12, -18, 18);
         };
 
-        viewport.addEventListener("pointerdown", onPointerDown);
-        viewport.addEventListener("pointermove", onPointerMove);
-        viewport.addEventListener("pointerup", onPointerUp);
-        viewport.addEventListener("pointercancel", onPointerUp);
-        viewport.addEventListener("pointerleave", onPointerLeave);
-        viewport.addEventListener("wheel", onWheel, { passive: false });
-        window.addEventListener("resize", resize);
-        window.addEventListener("deviceorientation", onTilt);
-
-        resize();
-        rafId = requestAnimationFrame(animate);
-
         return {
+          start() {
+            if (mapState.running) return;
+            attachListeners();
+            resize();
+            mapState.running = true;
+            lastTs = performance.now();
+            rafId = requestAnimationFrame(animate);
+          },
+          stop() {
+            mapState.running = false;
+            if (rafId) {
+              cancelAnimationFrame(rafId);
+              rafId = 0;
+            }
+            detachListeners();
+            hideTooltip();
+          },
+          resize,
           sync(networks) {
             const now = performance.now();
             const nextKeys = new Set();
@@ -2756,6 +3160,7 @@
             if (mapState.selectedIndex >= mapState.nodes.length) {
               mapState.selectedIndex = -1;
             }
+            recomputePerfCaps();
           },
           setScanState(scanning) {
             if (scanning) {
@@ -2767,20 +3172,19 @@
             canvas.style.opacity = enabled ? "0.58" : "1";
           },
           destroy() {
-            cancelAnimationFrame(rafId);
-            viewport.removeEventListener("pointerdown", onPointerDown);
-            viewport.removeEventListener("pointermove", onPointerMove);
-            viewport.removeEventListener("pointerup", onPointerUp);
-            viewport.removeEventListener("pointercancel", onPointerUp);
-            viewport.removeEventListener("pointerleave", onPointerLeave);
-            viewport.removeEventListener("wheel", onWheel);
-            window.removeEventListener("resize", resize);
-            window.removeEventListener("deviceorientation", onTilt);
+            this.stop();
           },
         };
       }
 
       const holoMapRenderer = createHoloMapRenderer();
+      rendererRegistry?.register?.("speedtest", speedtestRendererController);
+      rendererRegistry?.register?.("map", holoMapRenderer);
+      if (!screens.engine?.classList.contains("hidden")) {
+        rendererRegistry?.start?.("speedtest");
+      } else if (!screens.map?.classList.contains("hidden")) {
+        rendererRegistry?.start?.("map");
+      }
 
       function renderMapFromScan() {
         const networks = filteredMapNetworks();
@@ -3040,7 +3444,24 @@
         showCfgStatus(runtime.mapCloakEnabled ? "Map Cloak enabled." : "Map Cloak disabled.");
       });
 
+      window.addEventListener("resize", () => rendererRegistry?.resizeActive?.(), { passive: true });
+      window.addEventListener("orientationchange", () => rendererRegistry?.resizeActive?.(), { passive: true });
       window.addEventListener(NATIVE_EVENT, handleNativeEvent);
+      ui.btnTheme?.addEventListener("click", openThemeModal);
+      nativeUi.themeModalClose?.addEventListener("click", closeThemeModal);
+      nativeUi.speedtestThemeBackdrop?.addEventListener("click", closeThemeModal);
+      nativeUi.themeResetBtn?.addEventListener("click", () => {
+        if (!window.HoloThemeManager) return;
+        const defaultTheme = window.HoloThemeManager.resetThemeForScreen("speedtest");
+        window.HoloThemeManager.applyTheme(defaultTheme);
+        renderThemeList();
+        closeThemeModal();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && nativeUi.speedtestThemeModal && !nativeUi.speedtestThemeModal.classList.contains("hidden")) {
+          closeThemeModal();
+        }
+      });
       cfgSaveBtn?.addEventListener("click", saveConfig);
       cfgResetBtn?.addEventListener("click", resetConfig);
       nativeUi.wifiScanBtn?.addEventListener("click", () => requestNativeWifiScan(true));
@@ -3055,6 +3476,7 @@
         else showCfgStatus("Device snapshot unavailable.");
       });
       nativeUi.cfgExportDiagBtn?.addEventListener("click", exportDiagnostics);
+      window.addEventListener("beforeunload", () => rendererRegistry?.stopAll?.(), { once: true });
       loadConfig();
       syncBridgeState(true);
       updateDeviceUi();
