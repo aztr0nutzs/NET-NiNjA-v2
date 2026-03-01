@@ -5,6 +5,16 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>Psycho-Engine Speedtest (HOLO Merge)</title>
 
+  <script src="holo-themes.js"></script>
+  <script src="holo-theme-manager.js"></script>
+  <script>
+    (function bootstrapTheme() {
+      if (!window.HoloThemeManager) return;
+      window.HoloThemeManager.applyTheme(window.HoloThemeManager.DEFAULT_THEME_ID);
+      window.HoloThemeManager.applyThemeForScreen("speedtest");
+    })();
+  </script>
+
   <link href="vendor/fonts/google-fonts.css" rel="stylesheet"/>
   <link href="holo-theme.css" rel="stylesheet"/>
   <script src="vendor/tailwind/tailwind.min.js"></script>
@@ -103,7 +113,7 @@
   </style>
 
   <style>
-    body { min-height: max(884px, 100dvh); }
+    body { min-height: max(884px, 100dvh); background: var(--bg-0); color: var(--text-0); }
 
     @keyframes holoPulse {
       0%, 100% { transform: scale(1); filter: blur(28px); opacity: .28; }
@@ -1528,6 +1538,39 @@
       };
       const lerp = motion.lerp;
 
+      const getThemeColor = (varName, fallback = "") => {
+        try {
+          const value = getComputedStyle(document.documentElement).getPropertyValue(varName);
+          const clean = String(value || "").trim();
+          return clean || fallback;
+        } catch {
+          return fallback;
+        }
+      };
+
+      const hexToRgb = (hexValue) => {
+        const hex = String(hexValue || "").trim();
+        const normalized = hex.startsWith("#") ? hex.slice(1) : hex;
+        if (!/^[0-9a-fA-F]{3,8}$/.test(normalized)) return null;
+        const full = normalized.length === 3
+          ? normalized.split("").map((c) => c + c).join("")
+          : normalized.slice(0, 6);
+        const int = Number.parseInt(full, 16);
+        if (Number.isNaN(int)) return null;
+        return {
+          r: (int >> 16) & 255,
+          g: (int >> 8) & 255,
+          b: int & 255,
+        };
+      };
+
+      const themeRgba = (varName, alpha, fallbackHex) => {
+        const source = getThemeColor(varName, fallbackHex);
+        const rgb = hexToRgb(source) || hexToRgb(fallbackHex);
+        if (!rgb) return `rgba(255,255,255,${alpha})`;
+        return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
+      };
+
       class HoloGaugeRenderer {
         constructor(particlesCanvas, compositeCanvas) {
           this.particlesCanvas = particlesCanvas;
@@ -1587,7 +1630,7 @@
             }
             const x = dot.x * w;
             const y = dot.y * h;
-            p.fillStyle = `rgba(0, 220, 255, ${0.08 + dot.s * 0.06})`;
+            p.fillStyle = themeRgba("--particle-0", 0.08 + dot.s * 0.06, "#7df4ff");
             p.beginPath();
             p.arc(x, y, dot.s, 0, Math.PI * 2);
             p.fill();
@@ -1597,7 +1640,7 @@
           c.save();
           c.translate(this.cx, this.cy);
 
-          c.strokeStyle = "rgba(0,220,255,0.35)";
+          c.strokeStyle = themeRgba("--ring-0", 0.35, "#00d4ff");
           c.lineWidth = 1.4;
           c.beginPath();
           c.arc(0, 0, this.radius, 0, Math.PI * 2);
@@ -1608,7 +1651,7 @@
             const isMajor = i % 5 === 0;
             const r1 = this.radius - (isMajor ? 16 : 10);
             const highWarn = i >= 66;
-            c.strokeStyle = highWarn ? `rgba(255,80,20,${0.2 + intensity * 0.65})` : "rgba(120,250,255,0.28)";
+            c.strokeStyle = highWarn ? themeRgba("--warn-0", 0.2 + intensity * 0.65, "#ff5a1f") : themeRgba("--ring-0", 0.28, "#00d4ff");
             c.lineWidth = isMajor ? 2.1 : 1;
             c.beginPath();
             c.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
@@ -1617,12 +1660,12 @@
           }
 
           c.globalCompositeOperation = "lighter";
-          c.strokeStyle = "rgba(0,220,255,0.25)";
+          c.strokeStyle = themeRgba("--ring-0", 0.25, "#00d4ff");
           c.lineWidth = 2;
           c.beginPath();
           c.arc(0, 0, this.radius * 0.72, t * 0.8, t * 0.8 + Math.PI * 1.35);
           c.stroke();
-          c.strokeStyle = "rgba(160,90,255,0.3)";
+          c.strokeStyle = themeRgba("--ring-1", 0.3, "#a855f7");
           c.beginPath();
           c.arc(0, 0, this.radius * 0.58, -t * 1.2, -t * 1.2 + Math.PI * 1.18);
           c.stroke();
@@ -1630,8 +1673,8 @@
           c.rotate((needleDeg - 90) * (Math.PI / 180));
           const beamGrad = c.createLinearGradient(0, 0, this.radius * 0.86, 0);
           beamGrad.addColorStop(0, "rgba(255,255,255,0)");
-          beamGrad.addColorStop(0.45, "rgba(120,250,255,0.5)");
-          beamGrad.addColorStop(1, "rgba(255,255,255,0.95)");
+          beamGrad.addColorStop(0.45, themeRgba("--beam-0", 0.5, "#00f2ff"));
+          beamGrad.addColorStop(1, themeRgba("--beam-1", 0.95, "#ffffff"));
           c.strokeStyle = beamGrad;
           c.lineWidth = 2.6;
           c.beginPath();
@@ -1692,9 +1735,9 @@
         const danger = clamp((value - 780) / 220, 0, 1);
         const yellowGlow = 0.35 + intensity * 0.45;
         const magentaGlow = 0.12 + intensity * 0.25;
-        ui.aura.style.background = `radial-gradient(circle, rgba(250,255,0,${yellowGlow.toFixed(3)}) 0%, rgba(0,212,255,${(0.18 + intensity * 0.25).toFixed(3)}) 36%, rgba(255,0,255,${magentaGlow.toFixed(3)}) 58%, rgba(255,80,25,${(danger * 0.45).toFixed(3)}) 72%, rgba(0,0,0,0) 84%)`;
-        ui.wavePath.style.color = value > 780 ? '#ff4a1a' : value > 350 ? '#ff00ff' : value > 120 ? '#00d4ff' : '#b7ff00';
-        ui.scanJitter.style.background = `radial-gradient(circle at 50% 50%, rgba(250,255,0,${(0.10 + intensity * 0.24).toFixed(3)}) 0%, rgba(255,0,255,${(0.06 + intensity * 0.18).toFixed(3)}) 45%, rgba(0,0,0,0) 80%)`;
+        ui.aura.style.background = `radial-gradient(circle, ${themeRgba("--good-0", Number(yellowGlow.toFixed(3)), "#b7ff2a")} 0%, ${themeRgba("--accent-0", Number((0.18 + intensity * 0.25).toFixed(3)), "#00d4ff")} 36%, ${themeRgba("--accent-1", Number(magentaGlow.toFixed(3)), "#a855f7")} 58%, ${themeRgba("--warn-0", Number((danger * 0.45).toFixed(3)), "#ff5a1f")} 72%, rgba(0,0,0,0) 84%)`;
+        ui.wavePath.style.color = value > 780 ? getThemeColor("--warn-0", "#ff5a1f") : value > 350 ? getThemeColor("--accent-1", "#a855f7") : value > 120 ? getThemeColor("--accent-0", "#00d4ff") : getThemeColor("--good-0", "#b7ff2a");
+        ui.scanJitter.style.background = `radial-gradient(circle at 50% 50%, ${themeRgba("--good-0", Number((0.10 + intensity * 0.24).toFixed(3)), "#b7ff2a")} 0%, ${themeRgba("--accent-1", Number((0.06 + intensity * 0.18).toFixed(3)), "#a855f7")} 45%, rgba(0,0,0,0) 80%)`;
         ui.gaugeCompositeCanvas.style.opacity = (0.75 + intensity * 0.25 + danger * 0.1).toFixed(2);
       };
 
@@ -1733,10 +1776,11 @@
         ui.aura.style.opacity = scanning ? "0.72" : "0.42";
         ui.aura.style.filter = scanning ? "blur(40px) saturate(1.25)" : "blur(30px)";
         ui.needlePivot.parentElement.style.mixBlendMode = scanning ? "screen" : "normal";
-        ui.phaseLabel.style.color = "#b7ff00";
-        ui.unitLabel.style.color = "#b7ff00";
-        ui.mainInt.style.color = scanning ? "#b7ff00" : "#b7ff00";
-        ui.mainFrac.style.color = scanning ? "#b7ff00" : "#b7ff00";
+        const themeSignal = getThemeColor("--good-0", "#b7ff00");
+        ui.phaseLabel.style.color = themeSignal;
+        ui.unitLabel.style.color = themeSignal;
+        ui.mainInt.style.color = themeSignal;
+        ui.mainFrac.style.color = themeSignal;
       };
 
       const lockButtons = (locked) => {
@@ -2024,6 +2068,8 @@
         if (nav[tab]) {
           nav[tab].classList.add("is-active");
         }
+        const screenThemeId = tab === "engine" ? "speedtest" : tab;
+        if (window.HoloThemeManager) window.HoloThemeManager.applyThemeForScreen(screenThemeId);
         if (tab === "map") renderMapFromScan();
       }
       // initial state: engine screen
@@ -2481,16 +2527,16 @@
           const centerY = (mapState.lastHeight * 0.5) + mapState.panY + mapState.cameraY;
 
           const radial = ctx.createRadialGradient(centerX, centerY, 18, centerX, centerY, Math.max(mapState.lastWidth, mapState.lastHeight) * 0.75);
-          radial.addColorStop(0, "rgba(0,220,255,0.12)");
-          radial.addColorStop(0.5, "rgba(5,23,43,0.22)");
-          radial.addColorStop(1, "rgba(0,0,0,0.92)");
+          radial.addColorStop(0, themeRgba("--ring-0", 0.12, "#00d4ff"));
+          radial.addColorStop(0.5, themeRgba("--panel-1", 0.22, "#111c25"));
+          radial.addColorStop(1, themeRgba("--bg-0", 0.92, "#000000"));
           ctx.fillStyle = radial;
           ctx.fillRect(0, 0, mapState.lastWidth, mapState.lastHeight);
 
           ctx.save();
           ctx.translate(centerX, centerY);
           for (let ring = 1; ring <= 4; ring += 1) {
-            ctx.strokeStyle = `rgba(0,212,255,${0.06 + ring * 0.04})`;
+            ctx.strokeStyle = themeRgba("--ring-0", 0.06 + ring * 0.04, "#00d4ff");
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.ellipse(0, 0, ring * 68 * mapState.zoom, ring * 42 * mapState.zoom, 0, 0, Math.PI * 2);
@@ -2498,7 +2544,7 @@
           }
           if (runtime.mapScanInProgress) {
             const wave = mapState.scanWaveRadius;
-            ctx.strokeStyle = `rgba(250,255,0,${0.14 + Math.sin(mapState.scanWavePulse) * 0.08})`;
+            ctx.strokeStyle = themeRgba("--good-0", 0.14 + Math.sin(mapState.scanWavePulse) * 0.08, "#b7ff2a");
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.ellipse(0, 0, wave, wave * 0.58, 0, 0, Math.PI * 2);
@@ -2514,7 +2560,7 @@
             const next = screenNodes[(i + 1) % screenNodes.length];
             if (!next || screenNodes.length < 2) break;
             const isHot = curr.node.index === mapState.hoveredIndex || next.node.index === mapState.hoveredIndex;
-            const glow = isHot ? "rgba(250,255,0,0.52)" : "rgba(0,212,255,0.24)";
+            const glow = isHot ? themeRgba("--good-0", 0.52, "#b7ff2a") : themeRgba("--ring-0", 0.24, "#00d4ff");
             ctx.strokeStyle = glow;
             ctx.lineWidth = isHot ? 2.2 : 1.1;
             ctx.globalAlpha = 0.2 + ((curr.screen.scale + next.screen.scale) * 0.18);
@@ -2527,7 +2573,7 @@
               const p = ((ts * 0.0004) + (i * 0.13)) % 1;
               const px = curr.screen.x + ((next.screen.x - curr.screen.x) * p);
               const py = curr.screen.y + ((next.screen.y - curr.screen.y) * p);
-              ctx.fillStyle = isHot ? "rgba(250,255,0,0.95)" : "rgba(0,243,255,0.8)";
+              ctx.fillStyle = isHot ? themeRgba("--good-0", 0.95, "#b7ff2a") : themeRgba("--ring-0", 0.8, "#00d4ff");
               ctx.shadowColor = ctx.fillStyle;
               ctx.shadowBlur = 12;
               ctx.beginPath();
@@ -2538,16 +2584,16 @@
           }
 
           const coreGlow = 20 + (Math.sin(ts * 0.004) * 3);
-          ctx.fillStyle = "rgba(12,28,42,0.9)";
+          ctx.fillStyle = themeRgba("--panel-1", 0.9, "#111c25");
           ctx.beginPath();
           ctx.arc(centerX, centerY, 22, 0, Math.PI * 2);
           ctx.fill();
-          ctx.strokeStyle = "rgba(0,243,255,0.7)";
+          ctx.strokeStyle = themeRgba("--ring-0", 0.7, "#00d4ff");
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.arc(centerX, centerY, coreGlow, 0, Math.PI * 2);
           ctx.stroke();
-          ctx.fillStyle = "rgba(250,255,0,0.95)";
+          ctx.fillStyle = themeRgba("--good-0", 0.95, "#b7ff2a");
           ctx.beginPath();
           ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
           ctx.fill();
@@ -2574,7 +2620,7 @@
 
             ctx.filter = "none";
             ctx.globalAlpha = isHover || isSelected ? 1 : Math.min(1, opacity + 0.26);
-            ctx.strokeStyle = isHover ? "#b7ff00" : accent.color;
+            ctx.strokeStyle = isHover ? getThemeColor("--good-0", "#b7ff2a") : accent.color;
             ctx.lineWidth = isHover ? 2.4 : 1.1;
             ctx.beginPath();
             ctx.arc(drawX, drawY, radius + (isHover ? 4 : 2), 0, Math.PI * 2);
