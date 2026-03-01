@@ -1,0 +1,95 @@
+:root {
+  --holo-bg: #000000;
+  --holo-cyan: #00d4ff;
+  --holo-blue: #2e6bff;
+  --holo-magenta: #ff00ff;
+  --holo-purple: #a855f7;
+  --holo-warning: #ff5a1f;
+  --holo-danger: #ff3c00;
+  --holo-signal: #b7ff2a;
+}
+
+body,
+#wifiListScreen,
+#wifiMapScreen,
+#engineScreen,
+#configScreen {
+  background: var(--holo-bg) !important;
+}
+
+.holo-layer {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.holo-depth-bg,
+.holo-depth-mid,
+.holo-depth-fg {
+  transition: transform 180ms ease-out;
+}
+
+.holo-depth-bg { transform: translate3d(0, 0, -18px); }
+.holo-depth-mid { transform: translate3d(0, 0, 0); }
+.holo-depth-fg { transform: translate3d(0, 0, 20px); }
+
+.holo-scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0 2px, rgba(0, 212, 255, 0.09) 2px 3px);
+  mix-blend-mode: screen;
+  opacity: 0.28;
+}
+
+.holo-bloom {
+  box-shadow:
+    inset 0 0 24px rgba(0, 212, 255, 0.08),
+    0 0 18px rgba(0, 212, 255, 0.12),
+    0 0 38px rgba(168, 85, 247, 0.09);
+}
+
+.holo-interactive {
+  transition: transform 140ms ease-out, box-shadow 220ms ease-out, border-color 220ms ease-out;
+}
+
+.holo-interactive:hover,
+.holo-interactive:focus-visible {
+  transform: translateY(-1px) scale(1.015);
+  border-color: rgba(0, 212, 255, 0.8) !important;
+  box-shadow: 0 0 22px rgba(0, 212, 255, 0.2), 0 0 44px rgba(168, 85, 247, 0.15);
+}
+
+.holo-interactive:active {
+  transform: translateY(0) scale(0.995);
+}
+
+.map-link {
+  position: absolute;
+  transform-origin: 0 50%;
+  height: 1px;
+  opacity: 0.55;
+  background: linear-gradient(90deg, rgba(0, 212, 255, 0.95), rgba(168, 85, 247, 0.4));
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+}
+
+.node-pulse {
+  animation: nodePulse 1.9s ease-in-out infinite;
+}
+
+@keyframes nodePulse {
+  0%, 100% { transform: scale(1); opacity: 0.72; }
+  50% { transform: scale(1.4); opacity: 0.24; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo-depth-bg,
+  .holo-depth-mid,
+  .holo-depth-fg,
+  .holo-interactive,
+  .node-pulse {
+    transition: none !important;
+    animation: none !important;
+  }
+}

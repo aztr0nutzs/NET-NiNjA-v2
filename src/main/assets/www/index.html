@@ -6,6 +6,7 @@
   <title>Psycho-Engine Speedtest (HOLO Merge)</title>
 
   <link href="vendor/fonts/google-fonts.css" rel="stylesheet"/>
+  <link href="holo-theme.css" rel="stylesheet"/>
   <script src="vendor/tailwind/tailwind.min.js"></script>
 
   <script id="tailwind-config">
@@ -121,6 +122,28 @@
       60% { transform: translate3d(-0.4px,-0.5px,0); }
       75% { transform: translate3d(0.5px,0.6px,0); }
       100% { transform: translate3d(0,0,0); }
+    }
+
+    @keyframes gaugeSpectrum {
+      0% { filter: hue-rotate(0deg) saturate(1.05); }
+      50% { filter: hue-rotate(-18deg) saturate(1.4); }
+      100% { filter: hue-rotate(0deg) saturate(1.05); }
+    }
+
+    @keyframes readoutFlicker {
+      0%, 100% { text-shadow: 0 0 8px rgba(250,255,0,0.45), 0 0 20px rgba(250,255,0,0.2); }
+      40% { text-shadow: 0 0 12px rgba(250,255,0,0.75), 0 0 28px rgba(255,0,255,0.24); }
+      65% { text-shadow: 0 0 10px rgba(250,255,0,0.58), 0 0 24px rgba(0,212,255,0.2); }
+    }
+
+    .gauge-spectrum {
+      animation: gaugeSpectrum 3.8s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .neon-yellow-readout {
+      color: #faff00;
+      animation: readoutFlicker 1.8s ease-in-out infinite;
     }
 
     /* Cyber button set (replaced with clipped cyber buttons) */
@@ -645,10 +668,10 @@
   </style>
 </head>
 
-<body class="bg-void-black font-display text-slate-100 overflow-y-auto antialiased">
+<body class="bg-black font-display text-slate-100 overflow-y-auto antialiased">
   <div class="fixed inset-0 vhs-overlay z-50 mix-blend-overlay opacity-30 pointer-events-none"></div>
 
-  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none holo-layer" id="holoParticleField">
     <div class="absolute top-[15%] left-[20%] w-1.5 h-1.5 neural-node rounded-full blur-[2px] opacity-40" style="animation: drift 7s ease-in-out infinite;"></div>
     <div class="absolute top-[40%] right-[10%] w-1 h-1 neural-node rounded-full blur-[1px] opacity-60" style="animation: drift 9s ease-in-out infinite;"></div>
     <div class="absolute bottom-[30%] left-[15%] w-2 h-2 neural-node rounded-full blur-[3px] opacity-30" style="animation: drift 11s ease-in-out infinite;"></div>
@@ -662,7 +685,7 @@
   </div>
 
   <!-- WiFi List screen -->
-  <section id="wifiListScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col items-center bg-void-black text-slate-100 overflow-y-auto">
+  <section id="wifiListScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col items-center bg-black text-slate-100 overflow-y-auto holo-layer holo-scanlines">
     <!-- Header -->
     <div class="w-full border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-md p-4 sm:p-6 flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -735,7 +758,7 @@
   </section>
 
   <!-- Configuration Screen -->
-  <section id="configScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col bg-void-black text-slate-100 overflow-y-auto">
+  <section id="configScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col bg-black text-slate-100 overflow-y-auto holo-layer holo-scanlines">
     <!-- Config header -->
     <div class="w-full border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-md p-4 sm:p-6 flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -821,7 +844,7 @@
 
 
   <!-- WiFi Map Screen -->
-  <section id="wifiMapScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col bg-void-black text-slate-100 overflow-hidden">
+  <section id="wifiMapScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col bg-black text-slate-100 overflow-hidden holo-layer holo-scanlines">
     <!-- Map header -->
     <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-md">
       <div class="flex items-center gap-2">
@@ -872,7 +895,8 @@
                   <path d="M100 100 L200 150 L300 100 L250 250 L100 100" fill="none" stroke="#00d4ff" stroke-dasharray="4 2" stroke-width="0.5"></path>
                   <path d="M200 150 L150 300 L250 250" fill="none" stroke="#00d4ff" stroke-dasharray="4 2" stroke-width="0.5"></path>
                 </svg>
-                <div id="mapNodesLayer" class="absolute inset-0"></div>
+                <div id="mapLinksLayer" class="absolute inset-0" data-depth="0.6"></div>
+                <div id="mapNodesLayer" class="absolute inset-0" data-depth="1.2"></div>
                 <!-- Central numeric indicator -->
                 <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-ethereal-blue shadow-[0_0_30px_rgba(0,212,255,0.5)] overflow-hidden bg-black/80 flex items-center justify-center">
                   <div class="absolute inset-0 bg-gradient-to-tr from-cyber-violet/30 via-transparent to-ethereal-blue/20"></div>
@@ -943,7 +967,7 @@
     </div>
   </section>
 
-  <div id="engineScreen" class="relative flex min-h-[100dvh] w-full flex-col justify-between">
+  <div id="engineScreen" class="relative flex min-h-[100dvh] w-full flex-col justify-between bg-black holo-layer holo-scanlines">
 
     <!-- Header video (speed.mp4) -->
     <div class="relative z-30 w-full header-video-frame">
@@ -1015,13 +1039,13 @@
 
           <div class="relative size-64 sm:size-80 flex items-center justify-center transform-gpu">
             <!-- Outer glow rings spinning at different speeds -->
-            <div class="absolute inset-0 rounded-full glass-ring animate-[spin_10s_linear_infinite] opacity-80"></div>
-            <div class="absolute inset-4 rounded-full glass-ring opacity-55 animate-[spin_15s_linear_infinite_reverse] border-cyber-violet/20"></div>
+            <div class="absolute inset-0 rounded-full glass-ring animate-[spin_10s_linear_infinite] opacity-80 gauge-spectrum"></div>
+            <div class="absolute inset-4 rounded-full glass-ring opacity-55 animate-[spin_15s_linear_infinite_reverse] border-cyber-violet/20 gauge-spectrum"></div>
             <div class="absolute inset-2 rounded-full border border-ethereal-blue/10 opacity-60 scale-110"></div>
 
             <!-- Conic gradient arc overlay (restores missing gauge colors) -->
             <!-- Increase opacity to make the blue and red arcs more visible -->
-            <div class="absolute inset-0 gauge-conic opacity-60 blur-[2px]"></div>
+            <div class="absolute inset-0 gauge-conic opacity-60 blur-[2px] gauge-spectrum"></div>
             <!-- Slow spinning dashed ring overlay -->
             <div class="absolute inset-[-5px] rounded-full border-[2px] border-dashed border-ethereal-blue/30 animate-[spin_30s_linear_infinite] opacity-55"></div>
 
@@ -1067,14 +1091,14 @@
               <div class="absolute inset-0 opacity-15 scanline-mask"></div>
 
               <div class="relative z-10 flex flex-col items-center select-none">
-                <span id="phaseLabel" class="text-[10px] tracking-[0.5em] text-ethereal-blue/70 font-mono font-bold mb-1 uppercase italic">IDLE</span>
+                <span id="phaseLabel" class="text-[10px] tracking-[0.5em] text-[#faff00]/90 font-mono font-bold mb-1 uppercase italic neon-yellow-readout">IDLE</span>
 
                 <div class="flex items-baseline gap-1 chromatic-aberration">
-                  <span id="mainInt" class="text-6xl sm:text-7xl font-black text-white tracking-tighter leading-none">0</span>
-                  <span id="mainFrac" class="text-xl font-black text-ethereal-blue">.0</span>
+                  <span id="mainInt" class="text-6xl sm:text-7xl font-black italic text-[#faff00] tracking-tighter leading-none neon-yellow-readout" style="font-family:'Orbitron', sans-serif; letter-spacing:-0.03em;">0</span>
+                  <span id="mainFrac" class="text-xl font-black italic text-[#faff00] neon-yellow-readout" style="font-family:'Orbitron', sans-serif;">.0</span>
                 </div>
 
-                <span id="unitLabel" class="text-lg font-bold text-ethereal-blue/80 tracking-widest mt-2">Mbps</span>
+                <span id="unitLabel" class="text-lg font-bold text-[#faff00] tracking-widest mt-2 neon-yellow-readout">Mbps</span>
 
                 <div class="mt-3 flex items-center gap-2 font-mono text-[10px] text-white/60">
                   <span class="inline-flex items-center gap-1">
@@ -1199,6 +1223,7 @@
     </div>
   </nav>
 
+  <script src="holo-motion.js"></script>
   <script>
     (() => {
       const $ = (id) => document.getElementById(id);
@@ -1240,6 +1265,7 @@
         wifiScanState: $("wifiScanState"),
         wifiScanBtn: $("wifiScanBtn"),
         wifiExportBtn: $("wifiExportBtn"),
+        mapLinksLayer: $("mapLinksLayer"),
         mapNodesLayer: $("mapNodesLayer"),
         mapNodesList: $("mapNodesList"),
         mapSearchInput: $("mapSearchInput"),
@@ -1282,12 +1308,13 @@
       let runStart = 0;
       let aborted = false;
 
-      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const motion = window.HoloMotion || { clamp: (v,a,b) => Math.max(a, Math.min(b, v)), lerp: (a,b,t)=>a+(b-a)*t, spring: (c,t,s)=>c+((t-c)*s), attachParallax:()=>()=>{}, animate:(f)=>{let id=requestAnimationFrame(function loop(ts){f(ts);id=requestAnimationFrame(loop);}); return ()=>cancelAnimationFrame(id);}, reducedMotion:false };
+      const clamp = motion.clamp;
       const ease = (x) => {
         x = clamp(x, 0, 1);
         return x * x * (3 - 2 * x);
       };
-      const lerp = (a, b, t) => a + (b - a) * t;
+      const lerp = motion.lerp;
 
       const fmt1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
       const fmtIntFrac = (v) => {
@@ -1304,6 +1331,16 @@
 
       const setNeedleAngle = (deg) => {
         ui.needlePivot.style.transform = `rotate(${deg}deg)`;
+      };
+
+      const updateGaugeColorProfile = (speedValue) => {
+        const value = Number(speedValue || 0);
+        const intensity = clamp(value / 1000, 0, 1);
+        const yellowGlow = 0.35 + intensity * 0.45;
+        const magentaGlow = 0.12 + intensity * 0.25;
+        ui.aura.style.background = `radial-gradient(circle, rgba(250,255,0,${yellowGlow.toFixed(3)}) 0%, rgba(0,212,255,${(0.18 + intensity * 0.25).toFixed(3)}) 36%, rgba(255,0,255,${magentaGlow.toFixed(3)}) 58%, rgba(2,4,8,0) 78%)`;
+        ui.wavePath.style.color = value > 350 ? '#ff00ff' : value > 120 ? '#00d4ff' : '#faff00';
+        ui.scanJitter.style.background = `radial-gradient(circle at 50% 50%, rgba(250,255,0,${(0.10 + intensity * 0.24).toFixed(3)}) 0%, rgba(255,0,255,${(0.06 + intensity * 0.18).toFixed(3)}) 45%, rgba(0,0,0,0) 80%)`;
       };
 
       const setPhase = (s) => {
@@ -1338,8 +1375,13 @@
         ui.scanJitter.style.opacity = scanning ? "1" : "0";
         ui.scanJitter.style.animation = scanning ? "jitter 0.5s infinite" : "none";
 
-        ui.aura.style.opacity = scanning ? "0.55" : "0.35";
-        ui.aura.style.filter = scanning ? "blur(36px)" : "blur(28px)";
+        ui.aura.style.opacity = scanning ? "0.72" : "0.42";
+        ui.aura.style.filter = scanning ? "blur(40px) saturate(1.25)" : "blur(30px)";
+        ui.needlePivot.parentElement.style.mixBlendMode = scanning ? "screen" : "normal";
+        ui.phaseLabel.style.color = "#faff00";
+        ui.unitLabel.style.color = "#faff00";
+        ui.mainInt.style.color = scanning ? "#faff00" : "#faff00";
+        ui.mainFrac.style.color = scanning ? "#faff00" : "#faff00";
       };
 
       const lockButtons = (locked) => {
@@ -1379,6 +1421,7 @@
 
         setMainReadout(0);
         setNeedleAngle(cur.needleDeg);
+        updateGaugeColorProfile(cur.display);
 
         ui.wavePath.setAttribute("d", "M0 100 L20 40 L40 80 L60 20 L80 90 L100 10 L120 70 L140 30 L160 85 L180 45 L200 100 Z");
       };
@@ -1576,6 +1619,11 @@
         map: document.getElementById("wifiMapScreen"),
         config: document.getElementById("configScreen"),
       };
+      const detachParallax = [
+        motion.attachParallax(document.getElementById("engineScreen")),
+        motion.attachParallax(document.getElementById("wifiMapScreen")),
+        motion.attachParallax(document.getElementById("wifiListScreen")),
+      ];
       // Grab the decorative vertical bars so they can be hidden when switching screens
       const bars = {
         left: document.getElementById("barsLeft"),
@@ -1791,9 +1839,9 @@
           const security = escapeHtml(formatSecurity(network.capabilities));
           const badge = source === "cached" ? "CACHED" : "LIVE";
           return `
-            <div class="shard-card p-5 group" style="--edge-color:${accent.color}; --glow-color:${accent.glow};">
+            <div class="shard-card p-5 group holo-interactive" style="--edge-color:${accent.color}; --glow-color:${accent.glow};">
               <div class="flex items-center gap-4">
-                <div class="w-12 h-12 flex items-center justify-center rounded-xl border border-white/10" style="box-shadow:0 0 18px ${accent.glow};">
+                <div class="w-12 h-12 flex items-center justify-center rounded-xl border border-white/10 holo-bloom" data-depth="0.7" style="box-shadow:0 0 18px ${accent.glow};">
                   <span class="material-symbols-outlined" style="color:${accent.color};">wifi</span>
                 </div>
                 <div class="flex-1 min-w-0">
@@ -1864,16 +1912,32 @@
         const networks = filteredMapNetworks();
         updateMapStatus(networks);
 
-        nativeUi.mapNodesLayer.innerHTML = networks.map((network, index) => {
-          const accent = signalAccent(Number(network.signalLevel ?? -90));
-          const pos = mapPositionFor(index, networks.length);
+        const positioned = networks.map((network, index) => ({
+          network,
+          index,
+          accent: signalAccent(Number(network.signalLevel ?? -90)),
+          pos: mapPositionFor(index, networks.length),
+        }));
+
+        nativeUi.mapNodesLayer.innerHTML = positioned.map(({ network, index, accent, pos }) => {
           const ssid = escapeHtml(network.ssid || `Hidden-${index + 1}`);
           return `
-            <div class="absolute flex flex-col items-center" style="left:${pos.x}%; top:${pos.y}%; transform:translate(-50%,-50%);">
-              <div class="size-3 rounded-full map-node-dot animate-pulse" style="background:${accent.color}; box-shadow:0 0 12px ${accent.glow};"></div>
+            <div class="absolute flex flex-col items-center holo-depth-fg" data-depth="1.4" style="left:${pos.x}%; top:${pos.y}%; transform:translate(-50%,-50%);">
+              <div class="absolute size-5 rounded-full node-pulse" style="background:${accent.glow}; filter:blur(2px);"></div>
+              <div class="size-3 rounded-full map-node-dot" style="background:${accent.color}; box-shadow:0 0 12px ${accent.glow};"></div>
               <span class="text-[8px] mt-2 text-ethereal-blue bg-black/80 px-1 uppercase max-w-[110px] truncate">${ssid}</span>
             </div>
           `;
+        }).join("");
+
+        nativeUi.mapLinksLayer.innerHTML = positioned.map(({ pos }, index) => {
+          if (!positioned[index + 1]) return "";
+          const next = positioned[index + 1].pos;
+          const dx = next.x - pos.x;
+          const dy = next.y - pos.y;
+          const len = Math.hypot(dx, dy);
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+          return `<div class="map-link holo-depth-mid" data-depth="0.8" style="left:${pos.x}%; top:${pos.y}%; width:${len}%; transform:translate3d(0,0,0) rotate(${angle}deg);"></div>`;
         }).join("");
 
         nativeUi.mapNodesList.innerHTML = networks.slice(0, 6).map((network, index) => {
@@ -1882,8 +1946,8 @@
           const sec = escapeHtml(formatSecurity(network.capabilities));
           const freq = escapeHtml(network.frequency ? `${network.frequency} MHz` : "Unknown band");
           return `
-            <div class="relative group">
-              <div class="bg-engine-iron/80 border rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative" style="border-color:${accent.color}66; box-shadow:0 0 12px ${accent.glow};">
+            <div class="relative group holo-interactive">
+              <div class="bg-engine-iron/80 border rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative holo-bloom" style="border-color:${accent.color}66; box-shadow:0 0 12px ${accent.glow};">
                 <div class="absolute inset-0 opacity-10" style="background:${accent.color};"></div>
                 <div class="flex justify-between items-start">
                   <span class="text-[10px] font-mono uppercase" style="color:${accent.color};">Node_${index + 1}</span>
@@ -2147,4 +2211,3 @@
   </script>
 </body>
 </html>
-
