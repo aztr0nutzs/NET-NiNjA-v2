@@ -173,6 +173,16 @@ class MainActivity : AppCompatActivity() {
     emitBridgeState()
   }
 
+  fun getPreferenceValue(key: String): String? = prefs.getString(key, null)
+
+  fun setPreferenceValue(key: String, value: String) {
+    prefs.edit().putString(key, value).apply()
+  }
+
+  fun removePreferenceValue(key: String) {
+    prefs.edit().remove(key).apply()
+  }
+
   fun getBridgeStateJson(): String = bridgeStateObject().toString()
 
   fun getDeviceInfoJson(requireEnabled: Boolean): String {
@@ -473,7 +483,7 @@ class MainActivity : AppCompatActivity() {
 
   companion object {
     private const val BRIDGE_NAME = "NetNinjaBridge"
-    private const val PREFS_NAME = "net_ninja_prefs"
+    private const val PREFS_NAME = "netninja_prefs"
     private const val KEY_BRIDGE_ENABLED = "bridge_enabled"
     private const val MAX_BRIDGE_PAYLOAD_CHARS = 32_000
     private const val SCAN_TIMEOUT_MS = 2_000L

@@ -6,6 +6,19 @@ class NativeBridge(
   private val activity: MainActivity,
 ) {
   @JavascriptInterface
+  fun getPreference(key: String): String? = activity.getPreferenceValue(key)
+
+  @JavascriptInterface
+  fun setPreference(key: String, value: String) {
+    activity.setPreferenceValue(key, value)
+  }
+
+  @JavascriptInterface
+  fun removePreference(key: String) {
+    activity.removePreferenceValue(key)
+  }
+
+  @JavascriptInterface
   fun getBridgeState(): String = activity.getBridgeStateJson()
 
   @JavascriptInterface
