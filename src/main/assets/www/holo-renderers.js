@@ -16,13 +16,24 @@
         if (typeof renderer.start !== "function" || typeof renderer.stop !== "function" || typeof renderer.resize !== "function") {
           throw new Error("Renderer must implement start(), stop(), resize()");
         }
-        list(screenId).push(renderer);
+        const items = list(screenId);
+        if (!items.includes(renderer)) {
+          items.push(renderer);
+        }
       },
       start(screenId) {
+        if (!screenId) return;
+        if (activeScreenId && activeScreenId !== screenId) {
+          this.stop(activeScreenId);
+        }
+        if (activeScreenId === screenId) {
+          return;
+        }
         activeScreenId = screenId;
         list(screenId).forEach((renderer) => renderer.start());
       },
       stop(screenId) {
+        if (!screenId) return;
         list(screenId).forEach((renderer) => renderer.stop());
         if (activeScreenId === screenId) {
           activeScreenId = null;

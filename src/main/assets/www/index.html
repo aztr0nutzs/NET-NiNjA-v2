@@ -1614,7 +1614,6 @@
           this.pixelRatio = 1;
           this.resize = this.resize.bind(this);
           this.resize();
-          window.addEventListener("resize", this.resize, { passive: true });
         }
 
         resize() {
@@ -1900,7 +1899,7 @@
 
       const stopSpeedtestLoop = () => {
         if (raf) {
-          stopSpeedtestLoop();
+          cancelAnimationFrame(raf);
           raf = 0;
         }
       };
@@ -1981,7 +1980,10 @@
 
       let lastTick = 0;
       const tick = (now) => {
-        if (aborted) return;
+        if (aborted || !speedtestRendererActive) {
+          stopSpeedtestLoop();
+          return;
+        }
 
         const elapsed = now - runStart;
         ui.timerText.textContent = mmss(elapsed);
@@ -3053,6 +3055,8 @@
             }
             detachListeners();
             hideTooltip();
+            mapState.pointerId = null;
+            viewport.classList.remove("is-panning");
           },
           resize,
           sync(networks) {

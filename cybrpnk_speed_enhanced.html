@@ -1,0 +1,2478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>NET_NiNjA • Speedtest HUD (Enhanced)</title>
+
+  <!-- Futuristic, aggressive fonts (external). If you want fully offline, tell me and I’ll embed a WOFF2. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#000000;
+      --panel: rgba(8, 12, 14, 0.62);
+      --panel2: rgba(10, 14, 16, 0.38);
+      --line: rgba(0, 255, 255, 0.16);
+      --line2: rgba(255, 0, 229, 0.14);
+
+      --cyan:#00eaff;
+      --cyan2:#00bfff;
+      --pink:#ff00e5;
+      --green:#b6ff00;   /* yellowish-green */
+      --yellow:#fff200;
+
+      --text:#e7fbff;
+
+      --shadowC: 0 0 18px rgba(0, 234, 255, 0.55), 0 0 42px rgba(0, 234, 255, 0.25);
+      --shadowP: 0 0 18px rgba(255, 0, 229, 0.55), 0 0 42px rgba(255, 0, 229, 0.25);
+      --shadowG: 0 0 18px rgba(182, 255, 0, 0.40), 0 0 38px rgba(182, 255, 0, 0.22);
+      --shadowY: 0 0 18px rgba(255, 242, 0, 0.45), 0 0 38px rgba(255, 242, 0, 0.22);
+
+      --radius: 20px;
+      --radius2: 14px;
+      --mono: "Rajdhani", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --display: "Orbitron", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      overflow: hidden;
+    }
+
+    /* Subtle CRT-ish overlays without turning the page into a disco tragedy */
+    .fx{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background:
+        radial-gradient(1100px 900px at 50% 40%, rgba(0, 234, 255, 0.06), transparent 62%),
+        radial-gradient(900px 700px at 30% 80%, rgba(255, 0, 229, 0.05), transparent 58%),
+        radial-gradient(900px 700px at 80% 70%, rgba(182, 255, 0, 0.04), transparent 62%),
+        radial-gradient(700px 600px at 80% 25%, rgba(255, 242, 0, 0.03), transparent 60%);
+    }
+    .fx::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.28) 50%),
+        linear-gradient(90deg, rgba(255,0,229,0.05), rgba(0,234,255,0.03), rgba(182,255,0,0.03), rgba(255,242,0,0.02));
+      background-size: 100% 4px, 4px 100%;
+      opacity: 0.8;
+      mix-blend-mode: screen;
+      animation: scan 6.2s linear infinite;
+    }
+    @keyframes scan{
+      0% { transform: translateY(-3%); }
+      100% { transform: translateY(3%); }
+    }
+    .fx::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at 50% 45%, transparent 44%, rgba(0,0,0,0.86) 100%);
+      opacity: 1;
+    }
+
+    .app{
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header{
+      padding: 18px 18px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      line-height: 1.05;
+      min-width: 0;
+    }
+    .brand .meta{
+      font-family: var(--display);
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      font-size: 10px;
+      color: rgba(0,234,255,0.78);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand .title{
+      font-family: var(--display);
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: .06em;
+      font-size: 18px;
+      color: var(--yellow);
+      text-shadow: var(--shadowY);
+      display:flex;
+      gap: 10px;
+      align-items:baseline;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand .title .v{
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 0, 229, 0.92);
+      text-shadow: var(--shadowP);
+      letter-spacing: .18em;
+    }
+
+    .hdrRight{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+    }
+
+    .pill{
+      border: 1px solid rgba(0,234,255,0.22);
+      background: rgba(8, 12, 14, 0.55);
+      border-radius: 999px;
+      padding: 8px 10px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.08);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      user-select: none;
+    }
+    .pill .dot{
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: var(--shadowC);
+      animation: pulse 1.3s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100% { transform: scale(0.88); opacity: 0.55; }
+      50% { transform: scale(1.12); opacity: 1; }
+    }
+    .pill .txt{
+      font-family: var(--display);
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(231, 251, 255, 0.88);
+      white-space: nowrap;
+    }
+
+    .btnRow{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+    }
+    button{
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--display);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      font-weight: 900;
+      border-radius: 14px;
+      padding: 12px 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .btn{
+      position: relative;
+      border: 1px solid rgba(0,234,255,0.26);
+      background: linear-gradient(180deg, rgba(0,234,255,0.12), rgba(0,0,0,0.4));
+      box-shadow: inset 0 0 0 1px rgba(255, 0, 229, 0.10), 0 10px 30px rgba(0,0,0,0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+    .btn::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        linear-gradient(90deg,
+          rgba(0,234,255,0.0),
+          rgba(0,234,255,0.18),
+          rgba(255,0,229,0.10),
+          rgba(182,255,0,0.08),
+          rgba(255,242,0,0.10),
+          rgba(0,234,255,0.0));
+      transform: translateX(-65%);
+      filter: blur(0.0px);
+      opacity: 0.9;
+      pointer-events: none;
+      animation: sheen 2.2s linear infinite;
+    }
+    @keyframes sheen{
+      0% { transform: translateX(-65%); }
+      100% { transform: translateX(65%); }
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(255,242,0,0.26);
+      background: linear-gradient(180deg, rgba(255,242,0,0.14), rgba(0,0,0,0.46));
+      box-shadow: inset 0 0 0 1px rgba(182,255,0,0.10), 0 10px 30px rgba(0,0,0,0.65);
+    }
+    .btn.danger{
+      border-color: rgba(255,0,229,0.32);
+      background: linear-gradient(180deg, rgba(255,0,229,0.12), rgba(0,0,0,0.46));
+      box-shadow: inset 0 0 0 1px rgba(0,234,255,0.08), 0 10px 30px rgba(0,0,0,0.65);
+    }
+    .btn.small{
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+    .btn .sub{
+      font-family: var(--mono);
+      letter-spacing: .10em;
+      text-transform: none;
+      font-weight: 700;
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    main{
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.05fr 1.45fr 1.05fr;
+      gap: 12px;
+      padding: 10px 16px 12px;
+      min-height: 0;
+    }
+
+    .card{
+      position: relative;
+      border-radius: var(--radius);
+      border: 1px solid rgba(0,234,255,0.18);
+      background: linear-gradient(180deg, rgba(8, 12, 14, 0.58), rgba(0,0,0,0.50));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,0,229,0.08),
+        0 18px 55px rgba(0,0,0,0.75);
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      min-height: 0;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(800px 500px at 15% 15%, rgba(0,234,255,0.09), transparent 60%),
+        radial-gradient(650px 420px at 85% 10%, rgba(255,0,229,0.07), transparent 55%),
+        radial-gradient(700px 450px at 80% 85%, rgba(182,255,0,0.06), transparent 58%);
+      pointer-events:none;
+      opacity: 0.95;
+    }
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,242,0,0.10);
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .cardInner{
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display:flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .secHead{
+      padding: 14px 14px 10px;
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(0,234,255,0.12);
+    }
+    .secHead .h{
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: .30em;
+      color: rgba(0,234,255,0.88);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .secHead .tag{
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 10px;
+      letter-spacing: .26em;
+      text-transform: uppercase;
+      color: rgba(255,242,0,0.82);
+      text-shadow: var(--shadowY);
+      white-space: nowrap;
+    }
+
+    .statList{
+      padding: 12px 14px 14px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow:auto;
+      min-height: 0;
+    }
+
+    .stat{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:space-between;
+      border: 1px solid rgba(255,0,229,0.12);
+      background: rgba(0,0,0,0.18);
+      border-radius: var(--radius2);
+      padding: 10px 10px 10px 12px;
+    }
+    .stat .k{
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(231,251,255,0.85);
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      min-width: 0;
+    }
+    .stat .k .chip{
+      font-family: var(--display);
+      font-size: 9px;
+      letter-spacing: .24em;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,234,255,0.18);
+      background: rgba(0,234,255,0.08);
+      color: rgba(0,234,255,0.92);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+    }
+    .stat .v{
+      font-family: var(--display);
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .c{ color: var(--cyan); text-shadow: var(--shadowC); }
+    .p{ color: var(--pink); text-shadow: var(--shadowP); }
+    .g{ color: var(--green); text-shadow: var(--shadowG); }
+    .y{ color: var(--yellow); text-shadow: var(--shadowY); }
+
+    /* Center HUD */
+    .hud{
+      display:flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .gaugeWrap{
+      position: relative;
+      border-radius: var(--radius);
+      border: 1px solid rgba(0,234,255,0.20);
+      background: linear-gradient(180deg, rgba(8, 12, 14, 0.58), rgba(0,0,0,0.55));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,0,229,0.08),
+        0 20px 70px rgba(0,0,0,0.80);
+      overflow: hidden;
+      min-height: 0;
+      flex: 1.2;
+      display:flex;
+      flex-direction: column;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .gaugeTop{
+      padding: 14px 14px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(0,234,255,0.12);
+    }
+    .phase{
+      display:flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .phase .label{
+      font-family: var(--display);
+      letter-spacing: .30em;
+      text-transform: uppercase;
+      font-weight: 900;
+      font-size: 10px;
+      color: rgba(231,251,255,0.86);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .phase .desc{
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .08em;
+      font-size: 12px;
+      color: rgba(0,234,255,0.88);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .miniIndicators{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+
+    .microBar{
+      width: 140px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,242,0,0.18);
+      background: rgba(0,0,0,0.22);
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(0,234,255,0.10);
+    }
+    .microBar > i{
+      display:block;
+      height: 100%;
+      width: 0%;
+      background:
+        linear-gradient(90deg, rgba(0,234,255,0.0), rgba(0,234,255,0.75), rgba(255,0,229,0.55), rgba(182,255,0,0.55), rgba(255,242,0,0.85));
+      box-shadow: 0 0 24px rgba(0,234,255,0.35);
+      filter: blur(0.1px);
+      transition: width 160ms linear;
+    }
+    .microBar::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.0), rgba(255,255,255,0.08), rgba(255,255,255,0.0));
+      transform: translateX(-55%);
+      animation: sheen 1.7s linear infinite;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .tog{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      user-select:none;
+    }
+    .switch{
+      width: 56px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,234,255,0.22);
+      background: rgba(0,0,0,0.22);
+      position: relative;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.10);
+    }
+    .switch::before{
+      content:"";
+      position:absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: var(--shadowC);
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+    .switch.on{
+      border-color: rgba(182,255,0,0.26);
+    }
+    .switch.on::before{
+      transform: translateX(28px);
+      background: var(--green);
+      box-shadow: var(--shadowG);
+    }
+    .tog .tlabel{
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(231,251,255,0.85);
+      white-space: nowrap;
+    }
+
+    .canvasArea{
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 8px 12px 0;
+    }
+
+    canvas{
+      width: min(520px, 100%);
+      height: auto;
+      aspect-ratio: 1.2 / 1;
+      max-height: 460px;
+      display:block;
+    }
+
+    .centerReadout{
+      position:absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      text-align:center;
+      width: min(520px, 96%);
+      pointer-events:none;
+    }
+    .centerReadout .mode{
+      font-family: var(--display);
+      text-transform: uppercase;
+      letter-spacing: .40em;
+      font-weight: 800;
+      font-size: 10px;
+      color: rgba(255,0,229,0.78);
+      text-shadow: var(--shadowP);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .centerReadout .big{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      letter-spacing: .04em;
+      font-size: clamp(44px, 6.2vw, 72px);
+      line-height: 1;
+      color: var(--yellow);
+      text-shadow: 2px 0 rgba(255,0,229,0.9), -2px 0 rgba(0,234,255,0.9), var(--shadowY);
+    }
+    .centerReadout .unit{
+      font-family: var(--display);
+      font-weight: 900;
+      letter-spacing: .32em;
+      text-transform: uppercase;
+      font-size: 16px;
+      color: rgba(0,234,255,0.86);
+      text-shadow: var(--shadowC);
+      margin-top: 2px;
+    }
+    .centerReadout .sub{
+      margin-top: 8px;
+      display:flex;
+      gap: 10px;
+      justify-content:center;
+      flex-wrap: wrap;
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(231,251,255,0.82);
+    }
+    .centerReadout .sub span{
+      padding: 6px 10px;
+      border: 1px solid rgba(0,234,255,0.16);
+      border-radius: 999px;
+      background: rgba(0,0,0,0.18);
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.06);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      white-space: nowrap;
+    }
+
+    .progressGrid{
+      padding: 10px 14px 14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      border-top: 1px solid rgba(0,234,255,0.12);
+      background: rgba(0,0,0,0.10);
+    }
+
+    .prog{
+      border: 1px solid rgba(255,0,229,0.12);
+      border-radius: var(--radius2);
+      padding: 10px 10px 12px;
+      background: rgba(0,0,0,0.14);
+      overflow: hidden;
+      position: relative;
+    }
+    .prog::before{
+      content:"";
+      position:absolute;
+      inset:-20px;
+      background: radial-gradient(circle at 20% 20%, rgba(0,234,255,0.10), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .prog .row{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .prog .name{
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: .30em;
+      text-transform: uppercase;
+      color: rgba(231,251,255,0.85);
+      white-space: nowrap;
+    }
+    .prog .pct{
+      font-family: var(--display);
+      font-weight: 900;
+      letter-spacing: .14em;
+      font-size: 11px;
+      color: rgba(182,255,0,0.88);
+      text-shadow: var(--shadowG);
+      white-space: nowrap;
+    }
+    .bar{
+      margin-top: 10px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,234,255,0.18);
+      background: rgba(0,0,0,0.22);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .bar i{
+      display:block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(0,234,255,0.85), rgba(255,0,229,0.65), rgba(182,255,0,0.65), rgba(255,242,0,0.85));
+      box-shadow: 0 0 24px rgba(0,234,255,0.30);
+      transition: width 160ms linear;
+    }
+    .bar::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.0), rgba(255,255,255,0.10), rgba(255,255,255,0.0));
+      transform: translateX(-55%);
+      animation: sheen 1.5s linear infinite;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    /* Footer strip */
+    footer{
+      padding: 10px 16px 14px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:space-between;
+      border-top: 1px solid rgba(0,234,255,0.14);
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .footLeft{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      min-width: 0;
+    }
+    .badge{
+      border: 1px solid rgba(255,242,0,0.18);
+      border-radius: 999px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.18);
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(255,242,0,0.86);
+      text-shadow: var(--shadowY);
+      white-space: nowrap;
+    }
+    .footNote{
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(231,251,255,0.78);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 52vw;
+    }
+
+    /* Modal */
+    .modalBack{
+      position: fixed;
+      inset:0;
+      background: rgba(0,0,0,0.72);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 10;
+      padding: 18px;
+    }
+    .modalBack.show{ display:flex; }
+    .modal{
+      width: min(720px, 100%);
+      border-radius: var(--radius);
+      border: 1px solid rgba(0,234,255,0.22);
+      background: linear-gradient(180deg, rgba(8, 12, 14, 0.78), rgba(0,0,0,0.72));
+      box-shadow: 0 25px 90px rgba(0,0,0,0.85);
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .modalHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(0,234,255,0.14);
+    }
+    .modalHead .mTitle{
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .30em;
+      font-size: 12px;
+      color: rgba(0,234,255,0.90);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+    }
+    .modalBody{
+      padding: 14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .field{
+      border: 1px solid rgba(255,0,229,0.12);
+      border-radius: var(--radius2);
+      padding: 10px;
+      background: rgba(0,0,0,0.18);
+    }
+    .field label{
+      display:block;
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: .26em;
+      text-transform: uppercase;
+      color: rgba(255,242,0,0.78);
+      text-shadow: var(--shadowY);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    input, select{
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(0,234,255,0.18);
+      background: rgba(0,0,0,0.35);
+      color: rgba(231,251,255,0.92);
+      padding: 10px 10px;
+      outline: none;
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .06em;
+    }
+    input:focus, select:focus{
+      border-color: rgba(182,255,0,0.34);
+      box-shadow: 0 0 0 2px rgba(182,255,0,0.10);
+    }
+    .modalFoot{
+      padding: 12px 14px 14px;
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      border-top: 1px solid rgba(0,234,255,0.14);
+      background: rgba(0,0,0,0.22);
+    }
+    .hint{
+      font-family: var(--mono);
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(231,251,255,0.76);
+      align-self:center;
+      max-width: 52%;
+    }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      body{ overflow:auto; }
+      .app{ height: auto; min-height: 100%; }
+      main{
+        grid-template-columns: 1fr;
+        padding-bottom: 8px;
+      }
+      .gaugeWrap{ min-height: 520px; }
+      footer{
+        position: sticky;
+        bottom: 0;
+      }
+      .footNote{ max-width: 54vw; }
+      .modalBody{ grid-template-columns: 1fr; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .fx::before, .btn::before, .bar::after, .microBar::after{ animation: none !important; }
+      .pill .dot{ animation: none !important; }
+      *{ scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="fx"></div>
+
+  <div class="app" id="app">
+    <header>
+      <div class="brand">
+        <div class="meta" id="sysMeta">SYSTEM PROTOCOL • LINK_PROBE</div>
+        <div class="title">
+          NET_SPEEDTEST_HUD <span class="v" id="buildTag">v2.1</span>
+        </div>
+      </div>
+
+      <div class="hdrRight">
+        <div class="pill" title="Status">
+          <span class="dot" id="statusDot"></span>
+          <span class="txt" id="statusText">IDLE</span>
+        </div>
+
+        <div class="btnRow">
+          <button class="btn primary small" id="btnStart">START</button>
+          <button class="btn danger small" id="btnStop" disabled>ABORT</button>
+          <button class="btn small" id="btnReset">RESET</button>
+          <button class="btn small" id="btnSettings">SETTINGS</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- LEFT: latency & quality -->
+      <section class="card" aria-label="Latency and quality">
+        <div class="cardInner">
+          <div class="secHead">
+            <div class="h">Latency + Quality</div>
+            <div class="tag" id="leftTag">REALTIME</div>
+          </div>
+
+          <div class="statList" id="leftStats">
+            <div class="stat">
+              <div class="k"><span class="chip">PING</span>Base latency</div>
+              <div class="v p" id="vPing">-- ms</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">JITTER</span>Variance</div>
+              <div class="v p" id="vJitter">-- ms</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">LOSS</span>Packet loss</div>
+              <div class="v p" id="vLoss">-- %</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">BBLOAT</span>Bufferbloat (Δ)</div>
+              <div class="v y" id="vBloat">-- ms</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">DNS</span>Resolve time</div>
+              <div class="v c" id="vDns">-- ms</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">TLS</span>Handshake</div>
+              <div class="v c" id="vTls">-- ms</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">TCP</span>Connect</div>
+              <div class="v c" id="vTcp">-- ms</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">QOS</span>Stability score</div>
+              <div class="v g" id="vQuality">-- / 100</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CENTER: gauge & progress -->
+      <section class="hud">
+        <div class="gaugeWrap" aria-label="Speed gauge">
+          <div class="gaugeTop">
+            <div class="phase">
+              <div class="label" id="phaseLabel">PHASE</div>
+              <div class="desc" id="phaseDesc">Waiting for operator input…</div>
+            </div>
+
+            <div class="miniIndicators">
+              <div class="microBar" title="Overall progress">
+                <i id="microFill"></i>
+              </div>
+
+              <div class="tog" title="Demo mode simulates results (no external endpoints needed). Live mode attempts real throughput tests if endpoints allow CORS.">
+                <div class="switch on" id="demoSwitch" role="switch" aria-checked="true" tabindex="0"></div>
+                <div class="tlabel" id="demoLabel">DEMO</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvasArea">
+            <canvas id="gauge" width="900" height="720" aria-label="Speedometer canvas"></canvas>
+
+            <div class="centerReadout">
+              <div class="mode" id="readoutMode">NEUTRAL_SCAN</div>
+              <div class="big" id="readoutVal">0.0</div>
+              <div class="unit" id="readoutUnit">MBPS</div>
+              <div class="sub">
+                <span id="subDown" class="c">DL: --</span>
+                <span id="subUp" class="p">UL: --</span>
+                <span id="subPing" class="y">PING: --</span>
+                <span id="subLoss" class="g">LOSS: --</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="progressGrid" aria-label="Progress indicators">
+            <div class="prog">
+              <div class="row">
+                <div class="name">Latency sweep</div>
+                <div class="pct" id="pLat">0%</div>
+              </div>
+              <div class="bar"><i id="bLat"></i></div>
+            </div>
+
+            <div class="prog">
+              <div class="row">
+                <div class="name">Download probe</div>
+                <div class="pct" id="pDown">0%</div>
+              </div>
+              <div class="bar"><i id="bDown"></i></div>
+            </div>
+
+            <div class="prog">
+              <div class="row">
+                <div class="name">Upload probe</div>
+                <div class="pct" id="pUp">0%</div>
+              </div>
+              <div class="bar"><i id="bUp"></i></div>
+            </div>
+
+            <div class="prog">
+              <div class="row">
+                <div class="name">Stability + report</div>
+                <div class="pct" id="pRpt">0%</div>
+              </div>
+              <div class="bar"><i id="bRpt"></i></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: environment -->
+      <section class="card" aria-label="Environment and diagnostics">
+        <div class="cardInner">
+          <div class="secHead">
+            <div class="h">Env + Diagnostics</div>
+            <div class="tag" id="rightTag">LOCAL</div>
+          </div>
+
+          <div class="statList" id="rightStats">
+            <div class="stat">
+              <div class="k"><span class="chip">DEVICE</span>Platform</div>
+              <div class="v c" id="vPlatform">--</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">BROWSER</span>UA core</div>
+              <div class="v c" id="vBrowser">--</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">TIME</span>Local clock</div>
+              <div class="v y" id="vTime">--</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">CONN</span>Net info</div>
+              <div class="v g" id="vConn">--</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">DOWN</span>Downlink hint</div>
+              <div class="v g" id="vHintDown">--</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">RTT</span>RTT hint</div>
+              <div class="v p" id="vHintRtt">--</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">SAVE</span>Data saver</div>
+              <div class="v y" id="vSaveData">--</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">SEC</span>Context</div>
+              <div class="v y" id="vSec">--</div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">REPORT</span>Export</div>
+              <div class="v">
+                <span class="y" id="vExportHint">JSON/CSV</span>
+              </div>
+            </div>
+            <div class="stat">
+              <div class="k"><span class="chip">NOTE</span>Reality check</div>
+              <div class="v" style="max-width: 170px; text-align:right;">
+                <span class="p">Live test needs CORS-ready endpoints.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footLeft">
+        <div class="badge" id="badge">OPERATOR_READY</div>
+        <div class="footNote" id="footNote">Tip: DEMO is on. Switch to LIVE if your endpoints allow it.</div>
+      </div>
+
+      <div class="btnRow">
+        <button class="btn small" id="btnCopy">COPY JSON</button>
+        <button class="btn small" id="btnCsv">EXPORT CSV</button>
+        <button class="btn small" id="btnShare">SHARE</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modalBack" id="modalBack" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
+      <div class="modalHead">
+        <div class="mTitle">Test Settings</div>
+        <button class="btn small" id="btnClose">CLOSE</button>
+      </div>
+      <div class="modalBody">
+        <div class="field">
+          <label for="setMode">Live mode</label>
+          <select id="setMode">
+            <option value="demo">DEMO (simulated)</option>
+            <option value="live">LIVE (requires endpoints)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="setDuration">Probe duration (sec)</label>
+          <input id="setDuration" type="number" min="3" max="30" step="1" value="10" />
+        </div>
+
+        <div class="field">
+          <label for="setConcurrency">Streams</label>
+          <input id="setConcurrency" type="number" min="1" max="12" step="1" value="6" />
+        </div>
+
+        <div class="field">
+          <label for="setChunkMB">Chunk size (MB)</label>
+          <input id="setChunkMB" type="number" min="1" max="64" step="1" value="8" />
+        </div>
+
+        <div class="field">
+          <label for="setDownloadUrl">Download URL (CORS)</label>
+          <input id="setDownloadUrl" type="text" placeholder="https://your-host.example/test.bin" />
+        </div>
+
+        <div class="field">
+          <label for="setUploadUrl">Upload URL (CORS)</label>
+          <input id="setUploadUrl" type="text" placeholder="https://your-host.example/upload" />
+        </div>
+
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="setServerName">Server label</label>
+          <input id="setServerName" type="text" placeholder="edge-01 / lab / router / whatever" />
+        </div>
+      </div>
+      <div class="modalFoot">
+        <div class="hint" id="modalHint">If LIVE tests fail, your server probably blocks CORS. Shocking, I know.</div>
+        <div class="btnRow">
+          <button class="btn small" id="btnDefaults">DEFAULTS</button>
+          <button class="btn primary small" id="btnSave">SAVE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      // -----------------------------
+      // State
+      // -----------------------------
+      const state = {
+        running: false,
+        abort: false,
+        mode: "demo",                 // "demo" | "live"
+        phase: "idle",                // idle|lat|down|up|report|done|error
+        durationSec: 10,
+        concurrency: 6,
+        chunkMB: 8,
+        downloadUrl: "",
+        uploadUrl: "",
+        serverLabel: "",
+        t0: 0,
+        lastFrame: 0,
+        gaugeValue: 0,                // what needle is showing
+        targetGauge: 0,               // where needle wants to go
+        gaugeMax: 1000,               // MBPS scale max
+        sample: {
+          pingMs: null,
+          jitterMs: null,
+          lossPct: null,
+          bloatMs: null,
+          dnsMs: null,
+          tcpMs: null,
+          tlsMs: null,
+          downMbps: null,
+          upMbps: null,
+          quality: null,
+          client: {},
+          notes: [],
+          raw: {}
+        },
+        progress: { lat:0, down:0, up:0, rpt:0, overall:0 },
+      };
+
+      // -----------------------------
+      // Elements
+      // -----------------------------
+      const el = {
+        statusDot: document.getElementById("statusDot"),
+        statusText: document.getElementById("statusText"),
+        sysMeta: document.getElementById("sysMeta"),
+        phaseLabel: document.getElementById("phaseLabel"),
+        phaseDesc: document.getElementById("phaseDesc"),
+        readoutMode: document.getElementById("readoutMode"),
+        readoutVal: document.getElementById("readoutVal"),
+        readoutUnit: document.getElementById("readoutUnit"),
+        subDown: document.getElementById("subDown"),
+        subUp: document.getElementById("subUp"),
+        subPing: document.getElementById("subPing"),
+        subLoss: document.getElementById("subLoss"),
+        badge: document.getElementById("badge"),
+        footNote: document.getElementById("footNote"),
+
+        vPing: document.getElementById("vPing"),
+        vJitter: document.getElementById("vJitter"),
+        vLoss: document.getElementById("vLoss"),
+        vBloat: document.getElementById("vBloat"),
+        vDns: document.getElementById("vDns"),
+        vTcp: document.getElementById("vTcp"),
+        vTls: document.getElementById("vTls"),
+        vQuality: document.getElementById("vQuality"),
+
+        vPlatform: document.getElementById("vPlatform"),
+        vBrowser: document.getElementById("vBrowser"),
+        vTime: document.getElementById("vTime"),
+        vConn: document.getElementById("vConn"),
+        vHintDown: document.getElementById("vHintDown"),
+        vHintRtt: document.getElementById("vHintRtt"),
+        vSaveData: document.getElementById("vSaveData"),
+        vSec: document.getElementById("vSec"),
+
+        microFill: document.getElementById("microFill"),
+
+        pLat: document.getElementById("pLat"),
+        pDown: document.getElementById("pDown"),
+        pUp: document.getElementById("pUp"),
+        pRpt: document.getElementById("pRpt"),
+        bLat: document.getElementById("bLat"),
+        bDown: document.getElementById("bDown"),
+        bUp: document.getElementById("bUp"),
+        bRpt: document.getElementById("bRpt"),
+
+        demoSwitch: document.getElementById("demoSwitch"),
+        demoLabel: document.getElementById("demoLabel"),
+
+        btnStart: document.getElementById("btnStart"),
+        btnStop: document.getElementById("btnStop"),
+        btnReset: document.getElementById("btnReset"),
+        btnSettings: document.getElementById("btnSettings"),
+        btnCopy: document.getElementById("btnCopy"),
+        btnCsv: document.getElementById("btnCsv"),
+        btnShare: document.getElementById("btnShare"),
+
+        modalBack: document.getElementById("modalBack"),
+        btnClose: document.getElementById("btnClose"),
+        btnSave: document.getElementById("btnSave"),
+        btnDefaults: document.getElementById("btnDefaults"),
+        setMode: document.getElementById("setMode"),
+        setDuration: document.getElementById("setDuration"),
+        setConcurrency: document.getElementById("setConcurrency"),
+        setChunkMB: document.getElementById("setChunkMB"),
+        setDownloadUrl: document.getElementById("setDownloadUrl"),
+        setUploadUrl: document.getElementById("setUploadUrl"),
+        setServerName: document.getElementById("setServerName"),
+      };
+
+      // Canvas
+      const canvas = document.getElementById("gauge");
+      const ctx = canvas.getContext("2d", { alpha: true });
+
+      // -----------------------------
+      // Helpers
+      // -----------------------------
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const now = () => performance.now();
+      const fmt = (n, d=1) => (typeof n === "number" && isFinite(n)) ? n.toFixed(d) : "--";
+      const pct = (v) => Math.round(clamp(v, 0, 1) * 100);
+
+      function setStatus(kind, text){
+        // kind: idle|run|warn|err|done
+        const dot = el.statusDot;
+        const txt = el.statusText;
+        txt.textContent = text;
+
+        if(kind === "idle"){
+          dot.style.background = "var(--cyan)";
+          dot.style.boxShadow = "var(--shadowC)";
+        }else if(kind === "run"){
+          dot.style.background = "var(--green)";
+          dot.style.boxShadow = "var(--shadowG)";
+        }else if(kind === "warn"){
+          dot.style.background = "var(--yellow)";
+          dot.style.boxShadow = "var(--shadowY)";
+        }else if(kind === "err"){
+          dot.style.background = "var(--pink)";
+          dot.style.boxShadow = "var(--shadowP)";
+        }else if(kind === "done"){
+          dot.style.background = "var(--yellow)";
+          dot.style.boxShadow = "var(--shadowY)";
+        }
+      }
+
+      function setPhase(phase, label, desc, modeText){
+        state.phase = phase;
+        el.phaseLabel.textContent = label;
+        el.phaseDesc.textContent = desc;
+        el.readoutMode.textContent = modeText;
+      }
+
+      function setMode(mode){
+        state.mode = mode;
+        const isDemo = mode === "demo";
+        el.demoSwitch.classList.toggle("on", isDemo);
+        el.demoSwitch.setAttribute("aria-checked", String(isDemo));
+        el.demoLabel.textContent = isDemo ? "DEMO" : "LIVE";
+        el.leftTag.textContent = isDemo ? "SIM" : "FIELD";
+        el.rightTag.textContent = isDemo ? "LOCAL" : "REMOTE";
+        el.footNote.textContent = isDemo
+          ? "Tip: DEMO is on. Switch to LIVE if your endpoints allow it."
+          : "LIVE mode: if numbers stay '--', your endpoints likely block CORS.";
+      }
+
+      function resetResults(){
+        state.sample = {
+          pingMs: null, jitterMs: null, lossPct: null, bloatMs: null,
+          dnsMs: null, tcpMs: null, tlsMs: null,
+          downMbps: null, upMbps: null, quality: null,
+          client: {}, notes: [], raw: {}
+        };
+        state.progress = { lat:0, down:0, up:0, rpt:0, overall:0 };
+        state.gaugeValue = 0;
+        state.targetGauge = 0;
+        renderStats();
+        renderProgress();
+        setPhase("idle", "PHASE", "Waiting for operator input…", "NEUTRAL_SCAN");
+        setStatus("idle", "IDLE");
+        el.badge.textContent = "OPERATOR_READY";
+      }
+
+      function renderStats(){
+        el.vPing.textContent = `${fmt(state.sample.pingMs, 1)} ms`;
+        el.vJitter.textContent = `${fmt(state.sample.jitterMs, 1)} ms`;
+        el.vLoss.textContent = `${fmt(state.sample.lossPct, 2)} %`;
+        el.vBloat.textContent = `${fmt(state.sample.bloatMs, 1)} ms`;
+        el.vDns.textContent = `${fmt(state.sample.dnsMs, 1)} ms`;
+        el.vTcp.textContent = `${fmt(state.sample.tcpMs, 1)} ms`;
+        el.vTls.textContent = `${fmt(state.sample.tlsMs, 1)} ms`;
+        el.vQuality.textContent = (typeof state.sample.quality === "number")
+          ? `${Math.round(state.sample.quality)} / 100`
+          : "-- / 100";
+
+        el.subDown.textContent = `DL: ${typeof state.sample.downMbps === "number" ? fmt(state.sample.downMbps, 1) + " Mbps" : "--"}`;
+        el.subUp.textContent = `UL: ${typeof state.sample.upMbps === "number" ? fmt(state.sample.upMbps, 1) + " Mbps" : "--"}`;
+        el.subPing.textContent = `PING: ${typeof state.sample.pingMs === "number" ? fmt(state.sample.pingMs, 1) + " ms" : "--"}`;
+        el.subLoss.textContent = `LOSS: ${typeof state.sample.lossPct === "number" ? fmt(state.sample.lossPct, 2) + "%" : "--"}`;
+
+        const best = Math.max(state.sample.downMbps || 0, state.sample.upMbps || 0, 0);
+        state.gaugeMax = pickGaugeMax(best);
+      }
+
+      function renderProgress(){
+        el.pLat.textContent = `${pct(state.progress.lat)}%`;
+        el.pDown.textContent = `${pct(state.progress.down)}%`;
+        el.pUp.textContent = `${pct(state.progress.up)}%`;
+        el.pRpt.textContent = `${pct(state.progress.rpt)}%`;
+        el.bLat.style.width = `${pct(state.progress.lat)}%`;
+        el.bDown.style.width = `${pct(state.progress.down)}%`;
+        el.bUp.style.width = `${pct(state.progress.up)}%`;
+        el.bRpt.style.width = `${pct(state.progress.rpt)}%`;
+
+        const overall = (state.progress.lat*0.22 + state.progress.down*0.34 + state.progress.up*0.28 + state.progress.rpt*0.16);
+        state.progress.overall = clamp(overall, 0, 1);
+        el.microFill.style.width = `${pct(state.progress.overall)}%`;
+      }
+
+      function pickGaugeMax(mbps){
+        // Nice-ish steps for readability. (Because humans are allergic to clean scales.)
+        const steps = [25, 50, 100, 200, 500, 1000, 1500, 2000, 5000, 10000];
+        const m = Math.max(25, mbps || 0);
+        for(const s of steps){
+          if(m <= s*0.90) return s;
+          if(m <= s) return s;
+        }
+        return 10000;
+      }
+
+      function calcQualityScore(s){
+        // Heuristic score out of 100, focusing on "feel" not raw headline throughput.
+        // Lower ping/jitter/loss/bloat improve score. Reasonable speeds help but don't dominate.
+        const ping = clamp((s.pingMs ?? 80), 0, 400);
+        const jit  = clamp((s.jitterMs ?? 20), 0, 200);
+        const loss = clamp((s.lossPct ?? 2), 0, 10);
+        const bloat= clamp((s.bloatMs ?? 40), 0, 300);
+        const down = clamp((s.downMbps ?? 0), 0, 2000);
+        const up   = clamp((s.upMbps ?? 0), 0, 2000);
+
+        const pScore = 40 * (1 - (ping / 200));
+        const jScore = 20 * (1 - (jit / 80));
+        const lScore = 20 * (1 - (loss / 5));
+        const bScore = 10 * (1 - (bloat / 150));
+        const sScore = 10 * (clamp(Math.log10(1 + (down*0.7 + up*0.3)), 0, 3) / 3);
+
+        const total = clamp(pScore + jScore + lScore + bScore + sScore, 0, 100);
+        return total;
+      }
+
+      // -----------------------------
+      // Environment details (best-effort)
+      // -----------------------------
+      function parseBrowserCore(ua){
+        // Minimal, because UA parsing is a cursed art form.
+        const s = ua || "";
+        const b = s.includes("Edg/") ? "EDGE" :
+                  s.includes("OPR/") ? "OPERA" :
+                  s.includes("Chrome/") ? "CHROME" :
+                  s.includes("Safari/") && !s.includes("Chrome/") ? "SAFARI" :
+                  s.includes("Firefox/") ? "FIREFOX" : "UNKNOWN";
+        const m = s.match(/(Edg|OPR|Chrome|Safari|Firefox)\/([0-9.]+)/);
+        const v = m ? m[2].split(".")[0] : "";
+        return v ? `${b} ${v}` : b;
+      }
+
+      function updateEnv(){
+        el.vPlatform.textContent = `${navigator.platform || "Unknown"} • ${navigator.hardwareConcurrency || "?"}c`;
+        el.vBrowser.textContent = parseBrowserCore(navigator.userAgent);
+        el.vSec.textContent = (window.isSecureContext ? "SECURE" : "NOT_SECURE");
+
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if(conn){
+          const type = conn.effectiveType || "unknown";
+          const down = typeof conn.downlink === "number" ? `${conn.downlink.toFixed(1)} Mbps` : "--";
+          const rtt  = typeof conn.rtt === "number" ? `${Math.round(conn.rtt)} ms` : "--";
+          el.vConn.textContent = String(type).toUpperCase();
+          el.vHintDown.textContent = down;
+          el.vHintRtt.textContent = rtt;
+          el.vSaveData.textContent = conn.saveData ? "ON" : "OFF";
+        }else{
+          el.vConn.textContent = "N/A";
+          el.vHintDown.textContent = "N/A";
+          el.vHintRtt.textContent = "N/A";
+          el.vSaveData.textContent = "N/A";
+        }
+
+        el.vTime.textContent = new Date().toLocaleString();
+      }
+
+      setInterval(updateEnv, 1000);
+      updateEnv();
+
+      // -----------------------------
+      // Latency measurement (best-effort, no raw ICMP in browser)
+      // -----------------------------
+      async function measureLatencySweep(url, count, jitterWindow){
+        const times = [];
+        let fails = 0;
+
+        for(let i=0;i<count;i++){
+          if(state.abort) break;
+          const tA = now();
+          try{
+            // cache-bust to avoid cheating
+            const u = new URL(url);
+            u.searchParams.set("_t", String(Math.floor(Math.random()*1e9)));
+            // mode: 'no-cors' hides timing details and returns opaque; still gives fetch completion timing.
+            // We use 'cors' because this is your own endpoint in LIVE mode (ideally).
+            await fetch(u.toString(), {
+              method: "HEAD",
+              cache: "no-store",
+              mode: "cors",
+            });
+            const tB = now();
+            times.push(tB - tA);
+          }catch(e){
+            fails++;
+          }
+          state.progress.lat = clamp((i+1)/count, 0, 1);
+          renderProgress();
+          await sleep(80);
+        }
+
+        const lossPct = count > 0 ? (fails / count) * 100 : 0;
+        const sorted = times.slice().sort((a,b)=>a-b);
+        const p50 = sorted.length ? sorted[Math.floor(sorted.length*0.50)] : null;
+
+        // Jitter: mean abs delta over last window
+        let jit = null;
+        if(times.length >= 2){
+          const deltas = [];
+          for(let i=1;i<times.length;i++){
+            deltas.push(Math.abs(times[i]-times[i-1]));
+          }
+          const w = clamp(jitterWindow, 2, 20);
+          const recent = deltas.slice(-w);
+          jit = recent.reduce((a,b)=>a+b,0) / recent.length;
+        }
+
+        return { p50, jitter: jit, lossPct, raw: { times, fails } };
+      }
+
+      // -----------------------------
+      // Throughput tests
+      // -----------------------------
+      function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+      function randomBytes(size){
+        const arr = new Uint8Array(size);
+        crypto.getRandomValues(arr);
+        return arr;
+      }
+
+      async function runDownloadLive(url, durationSec, concurrency, onSample){
+        // Pulls bytes from url with Range requests when possible.
+        // NOTE: This needs a server that supports CORS + Range, or at least large static file with cache disabled.
+        const deadline = now() + durationSec*1000;
+        const ctrl = new AbortController();
+
+        let totalBytes = 0;
+        let lastBytes = 0;
+        let lastT = now();
+
+        const workers = [];
+        for(let w=0; w<concurrency; w++){
+          workers.push((async()=>{
+            while(!state.abort && now() < deadline){
+              try{
+                const u = new URL(url);
+                u.searchParams.set("_t", String(Math.floor(Math.random()*1e9)));
+                const res = await fetch(u.toString(), { method: "GET", cache:"no-store", mode:"cors", signal: ctrl.signal });
+                if(!res.ok) throw new Error("HTTP " + res.status);
+                const buf = await res.arrayBuffer();
+                totalBytes += buf.byteLength;
+              }catch(e){
+                // if it fails repeatedly, the UI will show it as error.
+                await sleep(120);
+              }
+            }
+          })());
+        }
+
+        while(!state.abort && now() < deadline){
+          await sleep(180);
+          const t = now();
+          const dt = (t - lastT)/1000;
+          const dB = totalBytes - lastBytes;
+          lastT = t;
+          lastBytes = totalBytes;
+
+          const mbps = dt > 0 ? (dB * 8) / (dt * 1_000_000) : 0;
+          onSample(mbps, totalBytes);
+        }
+
+        ctrl.abort();
+        await Promise.allSettled(workers);
+        return totalBytes;
+      }
+
+      async function runUploadLive(url, durationSec, concurrency, chunkMB, onSample){
+        // Upload random payloads. Needs a server endpoint that accepts POST and CORS.
+        const deadline = now() + durationSec*1000;
+        const ctrl = new AbortController();
+
+        const payload = randomBytes(chunkMB * 1024 * 1024);
+
+        let totalBytes = 0;
+        let lastBytes = 0;
+        let lastT = now();
+
+        const workers = [];
+        for(let w=0; w<concurrency; w++){
+          workers.push((async()=>{
+            while(!state.abort && now() < deadline){
+              try{
+                const u = new URL(url);
+                u.searchParams.set("_t", String(Math.floor(Math.random()*1e9)));
+                const res = await fetch(u.toString(), {
+                  method: "POST",
+                  mode: "cors",
+                  cache: "no-store",
+                  signal: ctrl.signal,
+                  headers: { "Content-Type": "application/octet-stream" },
+                  body: payload
+                });
+                if(!res.ok) throw new Error("HTTP " + res.status);
+                // If server responds with bytes, ignore. The upload bytes are the payload size.
+                totalBytes += payload.byteLength;
+              }catch(e){
+                await sleep(120);
+              }
+            }
+          })());
+        }
+
+        while(!state.abort && now() < deadline){
+          await sleep(180);
+          const t = now();
+          const dt = (t - lastT)/1000;
+          const dB = totalBytes - lastBytes;
+          lastT = t;
+          lastBytes = totalBytes;
+
+          const mbps = dt > 0 ? (dB * 8) / (dt * 1_000_000) : 0;
+          onSample(mbps, totalBytes);
+        }
+
+        ctrl.abort();
+        await Promise.allSettled(workers);
+        return totalBytes;
+      }
+
+      // -----------------------------
+      // Demo generators
+      // -----------------------------
+      function demoRand(n, spread){
+        // Smooth-ish random walk
+        const r = (Math.random()*2-1) * spread;
+        return clamp(n + r, 0, Infinity);
+      }
+
+      async function runDemoPhase(phase, durationSec, targetRangeMbps, progressKey, cb){
+        const start = now();
+        const end = start + durationSec*1000;
+        let v = (phase === "up") ? 140 : 520;
+
+        while(!state.abort && now() < end){
+          const t = now();
+          const k = clamp((t - start) / (end - start), 0, 1);
+          state.progress[progressKey] = k;
+          renderProgress();
+
+          const ease = k < 0.5 ? (2*k*k) : (1 - Math.pow(-2*k+2, 2)/2);
+          const target = lerp(targetRangeMbps[0], targetRangeMbps[1], ease);
+          v = lerp(v, target, 0.18);
+          v = demoRand(v, target * 0.06);
+
+          cb(v);
+          await sleep(80);
+        }
+      }
+
+      // -----------------------------
+      // Orchestrator
+      // -----------------------------
+      function lockControls(isRunning){
+        el.btnStart.disabled = isRunning;
+        el.btnStop.disabled = !isRunning;
+        el.btnReset.disabled = isRunning;
+        el.btnSettings.disabled = isRunning;
+        el.demoSwitch.style.opacity = isRunning ? "0.55" : "1";
+        el.demoSwitch.style.pointerEvents = isRunning ? "none" : "auto";
+      }
+
+      async function runTest(){
+        state.abort = false;
+        state.running = true;
+        lockControls(true);
+        setStatus("run", "RUNNING");
+        el.badge.textContent = "EXECUTING";
+        el.sysMeta.textContent = "SYSTEM PROTOCOL • LINK_PROBE • ACTIVE";
+
+        // Reset progress
+        state.progress = { lat:0, down:0, up:0, rpt:0, overall:0 };
+        renderProgress();
+
+        // "Accurate" note: In browsers, we can't ICMP ping.
+        state.sample.notes = [
+          "Latency uses HTTP timing (not raw ICMP).",
+          state.mode === "live"
+            ? "Throughput is best-effort and depends on endpoint + CORS + server behavior."
+            : "DEMO mode simulates measurements for UI testing."
+        ];
+
+        try{
+          // PHASE 1: Latency
+          setPhase("lat", "PHASE 01", "Latency sweep • jitter • loss • bufferbloat estimate", "LATENCY_SWEEP");
+          el.readoutUnit.textContent = "MS";
+          el.readoutVal.textContent = "0.0";
+
+          if(state.mode === "live"){
+            const url = state.downloadUrl || location.href; // fallback, might fail cors; we will handle
+            const sweep = await measureLatencySweep(url, 12, 10);
+
+            state.sample.pingMs = sweep.p50;
+            state.sample.jitterMs = sweep.jitter;
+            state.sample.lossPct = sweep.lossPct;
+
+            // We estimate DNS/TCP/TLS from Navigation timing if available (page load), plus a small offset.
+            const nav = performance.getEntriesByType("navigation")[0];
+            if(nav){
+              const dns = (nav.domainLookupEnd - nav.domainLookupStart);
+              const tcp = (nav.connectEnd - nav.connectStart);
+              // TLS time approximated, if secure, connectEnd - secureConnectionStart
+              const tls = (nav.secureConnectionStart && nav.connectEnd) ? (nav.connectEnd - nav.secureConnectionStart) : null;
+              state.sample.dnsMs = dns >= 0 ? dns : null;
+              state.sample.tcpMs = tcp >= 0 ? tcp : null;
+              state.sample.tlsMs = (tls !== null && tls >= 0) ? tls : null;
+            }else{
+              state.sample.dnsMs = null;
+              state.sample.tcpMs = null;
+              state.sample.tlsMs = null;
+            }
+
+            // Bufferbloat estimate: compare baseline ping to ping while doing a short background download
+            // This is rough, but still useful.
+            state.sample.bloatMs = null;
+            if(state.downloadUrl){
+              const base = state.sample.pingMs ?? 0;
+              // Quick "load" burst
+              const t1 = now();
+              await Promise.race([
+                runDownloadLive(state.downloadUrl, 1.6, Math.max(2, Math.floor(state.concurrency/2)), ()=>{}),
+                sleep(2200)
+              ]);
+              const sweep2 = await measureLatencySweep(url, 6, 6);
+              const loaded = sweep2.p50 ?? base;
+              const delta = loaded - base;
+              if(isFinite(delta)) state.sample.bloatMs = clamp(delta, 0, 999);
+              // keep consistent progress
+              state.progress.lat = 1;
+            }
+          }else{
+            // DEMO latency values
+            await runDemoPhase("lat", Math.min(3.2, Math.max(2.2, state.durationSec*0.35)), [8, 22], "lat", (ms)=>{
+              // ms here is fake "sweep intensity", map to ping/jitter
+              const ping = clamp(ms, 6, 34);
+              const jit = clamp((ms - 8) * 0.22 + Math.random()*1.2, 0.4, 8.0);
+              const loss = clamp(Math.random()*0.25, 0, 0.9);
+              const bloat = clamp((Math.random()*8.0), 0, 25);
+
+              state.sample.pingMs = ping;
+              state.sample.jitterMs = jit;
+              state.sample.lossPct = loss;
+              state.sample.bloatMs = bloat;
+              state.sample.dnsMs = clamp(6 + Math.random()*9, 4, 22);
+              state.sample.tcpMs = clamp(10 + Math.random()*20, 8, 45);
+              state.sample.tlsMs = clamp(18 + Math.random()*28, 10, 70);
+
+              el.readoutVal.textContent = fmt(ping, 1);
+              state.targetGauge = 0; // needle calm
+              renderStats();
+            });
+            state.progress.lat = 1;
+          }
+
+          renderProgress();
+          renderStats();
+
+          // PHASE 2: Download
+          setPhase("down", "PHASE 02", "Download throughput probe • multi-stream • smoothing", "DOWNLOAD_PROBE");
+          el.readoutUnit.textContent = "MBPS";
+
+          const downSamples = [];
+          if(state.mode === "live"){
+            if(!state.downloadUrl){
+              throw new Error("LIVE mode needs a Download URL (CORS). Open SETTINGS and set it.");
+            }
+            const deadline = now() + state.durationSec*1000;
+            await runDownloadLive(state.downloadUrl, state.durationSec, state.concurrency, (mbps, bytes)=>{
+              if(state.abort) return;
+              const t = now();
+              const k = clamp(1 - ((deadline - t)/(state.durationSec*1000)), 0, 1);
+              state.progress.down = k;
+              downSamples.push(mbps);
+              const smooth = smoothValue(downSamples, 0.18);
+              state.sample.downMbps = smooth;
+              state.targetGauge = smooth;
+              el.readoutVal.textContent = fmt(smooth, 1);
+              renderProgress();
+              renderStats();
+            });
+            state.progress.down = 1;
+          }else{
+            const lo = 320 + Math.random()*160;
+            const hi = 820 + Math.random()*220;
+            await runDemoPhase("down", Math.max(4.2, state.durationSec*0.55), [lo, hi], "down", (mbps)=>{
+              downSamples.push(mbps);
+              const smooth = smoothValue(downSamples, 0.18);
+              state.sample.downMbps = smooth;
+              state.targetGauge = smooth;
+              el.readoutVal.textContent = fmt(smooth, 1);
+              renderProgress();
+              renderStats();
+            });
+            state.progress.down = 1;
+          }
+
+          // PHASE 3: Upload
+          setPhase("up", "PHASE 03", "Upload throughput probe • payload cycling • stability tracking", "UPLOAD_PROBE");
+          const upSamples = [];
+          if(state.mode === "live"){
+            if(!state.uploadUrl){
+              throw new Error("LIVE mode needs an Upload URL (CORS). Open SETTINGS and set it.");
+            }
+            const deadline = now() + state.durationSec*1000;
+            await runUploadLive(state.uploadUrl, state.durationSec, state.concurrency, state.chunkMB, (mbps)=>{
+              if(state.abort) return;
+              const t = now();
+              const k = clamp(1 - ((deadline - t)/(state.durationSec*1000)), 0, 1);
+              state.progress.up = k;
+              upSamples.push(mbps);
+              const smooth = smoothValue(upSamples, 0.20);
+              state.sample.upMbps = smooth;
+              state.targetGauge = smooth;
+              el.readoutVal.textContent = fmt(smooth, 1);
+              renderProgress();
+              renderStats();
+            });
+            state.progress.up = 1;
+          }else{
+            const lo = 90 + Math.random()*60;
+            const hi = 260 + Math.random()*140;
+            await runDemoPhase("up", Math.max(3.6, state.durationSec*0.45), [lo, hi], "up", (mbps)=>{
+              upSamples.push(mbps);
+              const smooth = smoothValue(upSamples, 0.20);
+              state.sample.upMbps = smooth;
+              state.targetGauge = smooth;
+              el.readoutVal.textContent = fmt(smooth, 1);
+              renderProgress();
+              renderStats();
+            });
+            state.progress.up = 1;
+          }
+
+          // PHASE 4: Report
+          setPhase("report", "PHASE 04", "Stability scoring • phase recap • exportable report", "REPORT_SYNTH");
+          el.readoutUnit.textContent = "MBPS";
+
+          // Fake small animation "settle" to an overall "headline" speed:
+          const headline = Math.max(state.sample.downMbps || 0, state.sample.upMbps || 0, 0);
+          const settleStart = now();
+          while(!state.abort && now() - settleStart < 1100){
+            const k = clamp((now()-settleStart)/1100, 0, 1);
+            state.progress.rpt = k;
+            const eased = k < 0.5 ? (2*k*k) : (1 - Math.pow(-2*k+2, 2)/2);
+            state.targetGauge = lerp(state.targetGauge, headline, 0.12 + 0.10*eased);
+            el.readoutVal.textContent = fmt(headline, 1);
+            renderProgress();
+            renderStats();
+            await sleep(16);
+          }
+          state.progress.rpt = 1;
+          renderProgress();
+
+          // Quality score
+          state.sample.quality = calcQualityScore(state.sample);
+          renderStats();
+
+          // Final notes
+          if(state.serverLabel){
+            state.sample.raw.server = state.serverLabel;
+          }
+          state.sample.raw.timestamp = new Date().toISOString();
+          state.sample.raw.mode = state.mode;
+          state.sample.raw.config = {
+            durationSec: state.durationSec,
+            concurrency: state.concurrency,
+            chunkMB: state.chunkMB,
+            downloadUrl: state.downloadUrl || "",
+            uploadUrl: state.uploadUrl || ""
+          };
+          state.sample.raw.userAgent = navigator.userAgent;
+
+          setPhase("done", "COMPLETE", "Report ready • export or run again • try not to break the internet", "MISSION_COMPLETE");
+          setStatus("done", "DONE");
+          el.badge.textContent = "REPORT_READY";
+          el.sysMeta.textContent = "SYSTEM PROTOCOL • LINK_PROBE • STANDBY";
+
+        }catch(err){
+          setPhase("error", "ERROR", String(err && err.message ? err.message : err), "FAULT_STATE");
+          setStatus("err", "ERROR");
+          el.badge.textContent = "FAULT";
+          state.sample.notes.push("Error: " + (err && err.message ? err.message : String(err)));
+        }finally{
+          state.running = false;
+          lockControls(false);
+          state.abort = false;
+          renderProgress();
+          renderStats();
+        }
+      }
+
+      function smoothValue(samples, alpha){
+        // Exponential smoothing on recent samples.
+        let s = samples[0] || 0;
+        for(let i=1; i<samples.length; i++){
+          s = lerp(s, samples[i], alpha);
+        }
+        return s;
+      }
+
+      // -----------------------------
+      // UI Actions
+      // -----------------------------
+      function toggleDemo(){
+        if(state.running) return;
+        setMode(state.mode === "demo" ? "live" : "demo");
+        // Keep select in sync
+        el.setMode.value = state.mode;
+      }
+
+      el.demoSwitch.addEventListener("click", toggleDemo);
+      el.demoSwitch.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter" || e.key === " "){
+          e.preventDefault();
+          toggleDemo();
+        }
+      });
+
+      el.btnStart.addEventListener("click", ()=>{
+        if(state.running) return;
+        resetResults();
+        runTest();
+      });
+
+      el.btnStop.addEventListener("click", ()=>{
+        if(!state.running) return;
+        state.abort = true;
+        setStatus("warn", "ABORTING");
+        el.badge.textContent = "ABORTING";
+        el.phaseDesc.textContent = "Abort requested… shutting down probes.";
+      });
+
+      el.btnReset.addEventListener("click", ()=>{
+        if(state.running) return;
+        resetResults();
+      });
+
+      // Settings modal
+      function openModal(){
+        el.modalBack.classList.add("show");
+        el.modalBack.setAttribute("aria-hidden", "false");
+        // Fill current settings
+        el.setMode.value = state.mode;
+        el.setDuration.value = String(state.durationSec);
+        el.setConcurrency.value = String(state.concurrency);
+        el.setChunkMB.value = String(state.chunkMB);
+        el.setDownloadUrl.value = state.downloadUrl;
+        el.setUploadUrl.value = state.uploadUrl;
+        el.setServerName.value = state.serverLabel;
+      }
+      function closeModal(){
+        el.modalBack.classList.remove("show");
+        el.modalBack.setAttribute("aria-hidden", "true");
+      }
+      el.btnSettings.addEventListener("click", openModal);
+      el.btnClose.addEventListener("click", closeModal);
+      el.modalBack.addEventListener("click", (e)=>{
+        if(e.target === el.modalBack) closeModal();
+      });
+      document.addEventListener("keydown", (e)=>{
+        if(e.key === "Escape") closeModal();
+      });
+
+      el.btnDefaults.addEventListener("click", ()=>{
+        el.setMode.value = "demo";
+        el.setDuration.value = "10";
+        el.setConcurrency.value = "6";
+        el.setChunkMB.value = "8";
+        el.setDownloadUrl.value = "";
+        el.setUploadUrl.value = "";
+        el.setServerName.value = "";
+      });
+
+      el.btnSave.addEventListener("click", ()=>{
+        const mode = el.setMode.value === "live" ? "live" : "demo";
+        state.durationSec = clamp(parseInt(el.setDuration.value || "10", 10), 3, 30);
+        state.concurrency = clamp(parseInt(el.setConcurrency.value || "6", 10), 1, 12);
+        state.chunkMB = clamp(parseInt(el.setChunkMB.value || "8", 10), 1, 64);
+        state.downloadUrl = (el.setDownloadUrl.value || "").trim();
+        state.uploadUrl = (el.setUploadUrl.value || "").trim();
+        state.serverLabel = (el.setServerName.value || "").trim();
+        setMode(mode);
+        closeModal();
+      });
+
+      // Export helpers
+      function getReport(){
+        const r = {
+          meta: {
+            title: "NET_SPEEDTEST_HUD",
+            build: "v2.1",
+            timestamp: new Date().toISOString(),
+            mode: state.mode,
+            serverLabel: state.serverLabel || null,
+          },
+          results: {
+            pingMs: state.sample.pingMs,
+            jitterMs: state.sample.jitterMs,
+            packetLossPct: state.sample.lossPct,
+            bufferbloatDeltaMs: state.sample.bloatMs,
+            dnsMs: state.sample.dnsMs,
+            tcpMs: state.sample.tcpMs,
+            tlsMs: state.sample.tlsMs,
+            downloadMbps: state.sample.downMbps,
+            uploadMbps: state.sample.upMbps,
+            qualityScore: state.sample.quality,
+          },
+          environment: {
+            secureContext: window.isSecureContext,
+            platform: navigator.platform || null,
+            hardwareConcurrency: navigator.hardwareConcurrency || null,
+            userAgent: navigator.userAgent,
+            connection: (navigator.connection ? {
+              effectiveType: navigator.connection.effectiveType || null,
+              downlink: navigator.connection.downlink ?? null,
+              rtt: navigator.connection.rtt ?? null,
+              saveData: !!navigator.connection.saveData,
+            } : null),
+          },
+          config: state.sample.raw.config || null,
+          notes: state.sample.notes || [],
+        };
+        return r;
+      }
+
+      async function copyJson(){
+        const txt = JSON.stringify(getReport(), null, 2);
+        try{
+          await navigator.clipboard.writeText(txt);
+          toast("Copied JSON to clipboard.", "ok");
+        }catch(e){
+          // fallback
+          try{
+            const ta = document.createElement("textarea");
+            ta.value = txt;
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+            toast("Copied JSON (fallback).", "ok");
+          }catch(_){
+            toast("Clipboard blocked. Your browser is being dramatic.", "bad");
+          }
+        }
+      }
+
+      function exportCsv(){
+        const r = getReport();
+        const flat = {
+          timestamp: r.meta.timestamp,
+          mode: r.meta.mode,
+          serverLabel: r.meta.serverLabel || "",
+          pingMs: r.results.pingMs ?? "",
+          jitterMs: r.results.jitterMs ?? "",
+          packetLossPct: r.results.packetLossPct ?? "",
+          bufferbloatDeltaMs: r.results.bufferbloatDeltaMs ?? "",
+          dnsMs: r.results.dnsMs ?? "",
+          tcpMs: r.results.tcpMs ?? "",
+          tlsMs: r.results.tlsMs ?? "",
+          downloadMbps: r.results.downloadMbps ?? "",
+          uploadMbps: r.results.uploadMbps ?? "",
+          qualityScore: r.results.qualityScore ?? "",
+          connType: r.environment.connection?.effectiveType ?? "",
+          connDownlink: r.environment.connection?.downlink ?? "",
+          connRtt: r.environment.connection?.rtt ?? "",
+          saveData: r.environment.connection?.saveData ?? "",
+          secureContext: r.environment.secureContext ? "true" : "false",
+        };
+
+        const headers = Object.keys(flat);
+        const values = headers.map(k => String(flat[k]).replaceAll('"', '""'));
+        const csv = headers.join(",") + "\n" + values.map(v => `"${v}"`).join(",");
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "speedtest_report.csv";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{
+          URL.revokeObjectURL(a.href);
+          document.body.removeChild(a);
+        }, 0);
+        toast("Exported CSV.", "ok");
+      }
+
+      async function shareReport(){
+        const r = getReport();
+        const txt = "NET_SPEEDTEST_HUD report\n\n" + JSON.stringify(r.results, null, 2);
+        try{
+          if(navigator.share){
+            await navigator.share({ title: "Speedtest HUD Report", text: txt });
+            toast("Shared.", "ok");
+            return;
+          }
+        }catch(_){ /* user cancelled, or it failed */ }
+        // fallback: copy
+        await copyJson();
+      }
+
+      el.btnCopy.addEventListener("click", copyJson);
+      el.btnCsv.addEventListener("click", exportCsv);
+      el.btnShare.addEventListener("click", shareReport);
+
+      // -----------------------------
+      // Toast (tiny, inline)
+      // -----------------------------
+      const toastEl = document.createElement("div");
+      toastEl.style.position = "fixed";
+      toastEl.style.left = "50%";
+      toastEl.style.bottom = "84px";
+      toastEl.style.transform = "translateX(-50%)";
+      toastEl.style.padding = "10px 12px";
+      toastEl.style.borderRadius = "999px";
+      toastEl.style.border = "1px solid rgba(0,234,255,0.18)";
+      toastEl.style.background = "rgba(0,0,0,0.55)";
+      toastEl.style.backdropFilter = "blur(12px)";
+      toastEl.style.webkitBackdropFilter = "blur(12px)";
+      toastEl.style.fontFamily = "var(--display)";
+      toastEl.style.fontWeight = "900";
+      toastEl.style.letterSpacing = ".18em";
+      toastEl.style.textTransform = "uppercase";
+      toastEl.style.fontSize = "10px";
+      toastEl.style.color = "rgba(231,251,255,0.90)";
+      toastEl.style.boxShadow = "0 18px 55px rgba(0,0,0,0.75)";
+      toastEl.style.opacity = "0";
+      toastEl.style.pointerEvents = "none";
+      toastEl.style.transition = "opacity 140ms ease, transform 140ms ease";
+      toastEl.style.zIndex = "20";
+      document.body.appendChild(toastEl);
+
+      let toastTimer = null;
+      function toast(msg, kind){
+        clearTimeout(toastTimer);
+        toastEl.textContent = msg;
+        if(kind === "ok"){
+          toastEl.style.borderColor = "rgba(182,255,0,0.22)";
+          toastEl.style.color = "rgba(182,255,0,0.95)";
+          toastEl.style.textShadow = "var(--shadowG)";
+        }else if(kind === "bad"){
+          toastEl.style.borderColor = "rgba(255,0,229,0.22)";
+          toastEl.style.color = "rgba(255,0,229,0.95)";
+          toastEl.style.textShadow = "var(--shadowP)";
+        }else{
+          toastEl.style.borderColor = "rgba(0,234,255,0.18)";
+          toastEl.style.color = "rgba(0,234,255,0.95)";
+          toastEl.style.textShadow = "var(--shadowC)";
+        }
+        toastEl.style.opacity = "1";
+        toastEl.style.transform = "translateX(-50%) translateY(-6px)";
+        toastTimer = setTimeout(()=>{
+          toastEl.style.opacity = "0";
+          toastEl.style.transform = "translateX(-50%) translateY(0px)";
+        }, 1600);
+      }
+
+      // -----------------------------
+      // Gauge drawing (neon, particles, rings)
+      // -----------------------------
+      const particles = [];
+      function spawnParticle(x, y, hue, speed, life){
+        particles.push({
+          x, y,
+          vx: (Math.random()*2-1) * speed,
+          vy: (Math.random()*2-1) * speed,
+          life,
+          max: life,
+          hue
+        });
+      }
+
+      function colorToRGBA(c, a){
+        // Accept CSS var-like hex strings only for our internal palette
+        // We just map by name to avoid parsing.
+        const map = {
+          cyan: [0,234,255],
+          pink: [255,0,229],
+          green: [182,255,0],
+          yellow: [255,242,0]
+        };
+        const rgb = map[c] || [0,234,255];
+        return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+      }
+
+      function drawGauge(t){
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0,0,w,h);
+
+        const cx = w*0.5;
+        const cy = h*0.58;
+        const R  = Math.min(w*0.42, h*0.45);
+
+        // Background glow halo
+        const halo = ctx.createRadialGradient(cx, cy, R*0.05, cx, cy, R*1.05);
+        halo.addColorStop(0, "rgba(0,0,0,0.0)");
+        halo.addColorStop(0.35, "rgba(0,0,0,0.0)");
+        halo.addColorStop(0.55, "rgba(0,234,255,0.06)");
+        halo.addColorStop(0.72, "rgba(255,0,229,0.04)");
+        halo.addColorStop(0.92, "rgba(182,255,0,0.03)");
+        halo.addColorStop(1, "rgba(0,0,0,0.0)");
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R*1.05, 0, Math.PI*2);
+        ctx.fill();
+
+        // Scan rings
+        for(let i=0;i<3;i++){
+          const rr = R*(0.74 + i*0.08);
+          ctx.strokeStyle = i===0 ? "rgba(0,234,255,0.18)" : i===1 ? "rgba(255,0,229,0.12)" : "rgba(255,242,0,0.10)";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([2, 10]);
+          ctx.lineDashOffset = -t*0.02*(i+1);
+          ctx.beginPath();
+          ctx.arc(cx, cy, rr, Math.PI*1.08, Math.PI*1.92);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Main arc base
+        const startA = Math.PI*1.10;
+        const endA   = Math.PI*1.90;
+        ctx.lineCap = "round";
+
+        // Base arc shadow
+        ctx.strokeStyle = "rgba(0,234,255,0.10)";
+        ctx.lineWidth = 22;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, startA, endA);
+        ctx.stroke();
+
+        // Graduations
+        const ticks = 40;
+        for(let i=0;i<=ticks;i++){
+          const a = lerp(startA, endA, i/ticks);
+          const major = (i % 5 === 0);
+          const len = major ? R*0.10 : R*0.06;
+          const x1 = cx + Math.cos(a)*(R - len);
+          const y1 = cy + Math.sin(a)*(R - len);
+          const x2 = cx + Math.cos(a)*(R + 6);
+          const y2 = cy + Math.sin(a)*(R + 6);
+
+          ctx.strokeStyle = major ? "rgba(255,242,0,0.55)" : "rgba(0,234,255,0.38)";
+          ctx.lineWidth = major ? 3 : 2;
+          ctx.shadowColor = major ? "rgba(255,242,0,0.60)" : "rgba(0,234,255,0.35)";
+          ctx.shadowBlur = major ? 12 : 10;
+          ctx.beginPath();
+          ctx.moveTo(x1,y1);
+          ctx.lineTo(x2,y2);
+          ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
+
+        // Labels
+        const labels = buildLabels(state.gaugeMax);
+        ctx.font = "900 22px Orbitron, system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        labels.forEach((lab, idx)=>{
+          const tN = lab.t;
+          const a = lerp(startA, endA, tN);
+          const rr = R*1.16;
+          const x = cx + Math.cos(a)*rr;
+          const y = cy + Math.sin(a)*rr;
+
+          const col = idx % 2 === 0 ? "rgba(0,234,255,0.82)" : "rgba(255,0,229,0.78)";
+          ctx.fillStyle = col;
+          ctx.shadowColor = col;
+          ctx.shadowBlur = 16;
+          ctx.fillText(lab.text, x, y);
+        });
+        ctx.shadowBlur = 0;
+
+        // Value arc (neon gradient)
+        const v = clamp(state.gaugeValue / Math.max(1, state.gaugeMax), 0, 1);
+        const arcEnd = lerp(startA, endA, v);
+
+        const grad = ctx.createLinearGradient(cx - R, cy, cx + R, cy);
+        grad.addColorStop(0.00, "rgba(0,234,255,0.0)");
+        grad.addColorStop(0.25, "rgba(0,234,255,0.85)");
+        grad.addColorStop(0.55, "rgba(255,0,229,0.70)");
+        grad.addColorStop(0.78, "rgba(182,255,0,0.70)");
+        grad.addColorStop(1.00, "rgba(255,242,0,0.90)");
+
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 18;
+        ctx.shadowColor = "rgba(0,234,255,0.55)";
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, startA, arcEnd);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Needle
+        const needleA = arcEnd;
+        const nx = cx + Math.cos(needleA)*(R*0.92);
+        const ny = cy + Math.sin(needleA)*(R*0.92);
+
+        // needle glow body
+        ctx.strokeStyle = "rgba(255,242,0,0.85)";
+        ctx.lineWidth = 6;
+        ctx.shadowColor = "rgba(255,242,0,0.75)";
+        ctx.shadowBlur = 22;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+
+        // needle core
+        ctx.strokeStyle = "rgba(0,234,255,0.85)";
+        ctx.lineWidth = 3;
+        ctx.shadowColor = "rgba(0,234,255,0.75)";
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Pivot
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, 34, 0, Math.PI*2);
+        ctx.fill();
+
+        const pivotGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 34);
+        pivotGrad.addColorStop(0, "rgba(255,242,0,0.92)");
+        pivotGrad.addColorStop(0.45, "rgba(255,0,229,0.65)");
+        pivotGrad.addColorStop(0.82, "rgba(0,234,255,0.25)");
+        pivotGrad.addColorStop(1, "rgba(0,0,0,0.0)");
+
+        ctx.fillStyle = pivotGrad;
+        ctx.shadowColor = "rgba(255,0,229,0.60)";
+        ctx.shadowBlur = 24;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 34, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Particle emission around tip when moving fast
+        const speed = Math.abs(state.targetGauge - state.gaugeValue);
+        if(speed > 6){
+          const pCount = clamp(Math.floor(speed / 30), 1, 8);
+          for(let i=0;i<pCount;i++){
+            const hue = (Math.random() < 0.4) ? "cyan" : (Math.random() < 0.7) ? "pink" : (Math.random() < 0.85) ? "green" : "yellow";
+            spawnParticle(nx + (Math.random()*2-1)*8, ny + (Math.random()*2-1)*8, hue, 2.0 + Math.random()*2.8, 24 + Math.random()*24);
+          }
+        }
+
+        // Update & draw particles
+        for(let i=particles.length-1;i>=0;i--){
+          const p = particles[i];
+          p.life -= 1;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.98;
+          p.vy *= 0.98;
+
+          const a = clamp(p.life / p.max, 0, 1);
+          ctx.fillStyle = colorToRGBA(p.hue, 0.55 * a);
+          ctx.shadowColor = colorToRGBA(p.hue, 0.9 * a);
+          ctx.shadowBlur = 18;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3.0 + (1-a)*2.2, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          if(p.life <= 0){
+            particles.splice(i, 1);
+          }
+        }
+
+        // Techy corner glyphs (because humans love meaningless shapes)
+        drawGlyphs(cx, cy, R, t);
+      }
+
+      function buildLabels(max){
+        // Show 0, then some "nice" labels.
+        const out = [];
+        const base = (max <= 100) ? [0, 10, 25, 50, 75, 100] :
+                     (max <= 500) ? [0, 50, 100, 200, 300, 400, 500] :
+                     (max <= 1000) ? [0, 100, 200, 400, 600, 800, 1000] :
+                     (max <= 2000) ? [0, 200, 400, 800, 1200, 1600, 2000] :
+                     (max <= 5000) ? [0, 500, 1000, 2000, 3000, 4000, 5000] :
+                                     [0, 1000, 2000, 4000, 6000, 8000, 10000];
+
+        const start = 0.06;
+        const end = 0.94;
+        for(let i=0;i<base.length;i++){
+          const v = base[i];
+          const t = lerp(start, end, i/(base.length-1));
+          out.push({ t, text: v === 0 ? "0" : (v >= 1000 ? (v/1000) + "K" : String(v)) });
+        }
+        return out;
+      }
+
+      function drawGlyphs(cx, cy, R, t){
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+
+        const g1 = { x: cx - R*0.96, y: cy + R*0.12 };
+        const g2 = { x: cx + R*0.96, y: cy + R*0.12 };
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(0,234,255,0.28)";
+        ctx.shadowColor = "rgba(0,234,255,0.55)";
+        ctx.shadowBlur = 14;
+
+        // left brackets
+        ctx.beginPath();
+        ctx.moveTo(g1.x, g1.y);
+        ctx.lineTo(g1.x + 44, g1.y);
+        ctx.moveTo(g1.x, g1.y);
+        ctx.lineTo(g1.x, g1.y + 44);
+        ctx.stroke();
+
+        // right brackets
+        ctx.beginPath();
+        ctx.moveTo(g2.x, g2.y);
+        ctx.lineTo(g2.x - 44, g2.y);
+        ctx.moveTo(g2.x, g2.y);
+        ctx.lineTo(g2.x, g2.y + 44);
+        ctx.stroke();
+
+        // rotating micro arcs
+        ctx.shadowBlur = 0;
+        ctx.setLineDash([2, 8]);
+        ctx.lineDashOffset = -t*0.05;
+        ctx.strokeStyle = "rgba(255,0,229,0.20)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, R*0.58, t*0.002, t*0.002 + 1.2);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(182,255,0,0.18)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, R*0.64, -t*0.0016, -t*0.0016 + 1.0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.restore();
+      }
+
+      function animate(frameT){
+        if(!state.lastFrame) state.lastFrame = frameT;
+        const dt = clamp((frameT - state.lastFrame)/1000, 0, 0.05);
+        state.lastFrame = frameT;
+
+        // Needle easing
+        const speed = 7.5; // higher is snappier
+        const k = 1 - Math.exp(-speed * dt);
+        state.gaugeValue = lerp(state.gaugeValue, state.targetGauge, k);
+
+        // Clamp & update readout to match current phase
+        if(state.phase === "lat"){
+          // show ping on readout in MS
+          if(typeof state.sample.pingMs === "number"){
+            el.readoutVal.textContent = fmt(state.sample.pingMs, 1);
+            el.readoutUnit.textContent = "MS";
+          }
+        }else if(state.phase === "idle" || state.phase === "report" || state.phase === "done" || state.phase === "error"){
+          // show headline speed
+          const headline = Math.max(state.sample.downMbps || 0, state.sample.upMbps || 0, 0);
+          el.readoutVal.textContent = fmt(headline, 1);
+          el.readoutUnit.textContent = "MBPS";
+        }else{
+          // show needle speed
+          el.readoutUnit.textContent = "MBPS";
+          el.readoutVal.textContent = fmt(state.gaugeValue, 1);
+        }
+
+        drawGauge(frameT);
+        requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
+
+      // -----------------------------
+      // Boot
+      // -----------------------------
+      function init(){
+        // default mode demo
+        setMode("demo");
+        resetResults();
+        toast("HUD loaded. Operator, try not to set it on fire.", "ok");
+      }
+      init();
+
+    })();
+  </script>
+</body>
+</html>

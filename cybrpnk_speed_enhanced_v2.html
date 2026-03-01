@@ -1,0 +1,2545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="color-scheme" content="dark" />
+  <title>NET_NiNjA • Speedtest HUD (Mobile Clean)</title>
+
+  <!-- Futuristic fonts (external). If you need fully offline, I can embed WOFF2. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#000000;
+      --panel: rgba(8, 12, 14, 0.62);
+      --panel2: rgba(10, 14, 16, 0.42);
+
+      --cyan:#00eaff;
+      --pink:#ff00e5;
+      --green:#b6ff00;   /* yellowish-green */
+      --yellow:#fff200;
+
+      --text: rgba(231,251,255,0.92);
+
+      --shadowC: 0 0 18px rgba(0, 234, 255, 0.55), 0 0 42px rgba(0, 234, 255, 0.25);
+      --shadowP: 0 0 18px rgba(255, 0, 229, 0.55), 0 0 42px rgba(255, 0, 229, 0.25);
+      --shadowG: 0 0 18px rgba(182, 255, 0, 0.40), 0 0 38px rgba(182, 255, 0, 0.22);
+      --shadowY: 0 0 18px rgba(255, 242, 0, 0.45), 0 0 38px rgba(255, 242, 0, 0.22);
+
+      --r: 18px;
+      --r2: 14px;
+
+      --display: "Orbitron", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --mono: "Rajdhani", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+      --hHeader: 72px;
+      --hNav: 72px;
+      --safeTop: env(safe-area-inset-top, 0px);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-style: italic; /* more aggressive sci-fi vibe per request */
+      overflow: hidden; /* no page scroll, as requested */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Subtle CRT overlays */
+    .fx{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background:
+        radial-gradient(1100px 900px at 50% 40%, rgba(0, 234, 255, 0.06), transparent 62%),
+        radial-gradient(900px 700px at 30% 80%, rgba(255, 0, 229, 0.05), transparent 58%),
+        radial-gradient(900px 700px at 80% 70%, rgba(182, 255, 0, 0.04), transparent 62%),
+        radial-gradient(700px 600px at 80% 25%, rgba(255, 242, 0, 0.03), transparent 60%);
+    }
+    .fx::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.28) 50%),
+        linear-gradient(90deg, rgba(255,0,229,0.05), rgba(0,234,255,0.03), rgba(182,255,0,0.03), rgba(255,242,0,0.02));
+      background-size: 100% 4px, 4px 100%;
+      opacity: 0.8;
+      mix-blend-mode: screen;
+      animation: scan 6.2s linear infinite;
+    }
+    @keyframes scan{
+      0% { transform: translateY(-3%); }
+      100% { transform: translateY(3%); }
+    }
+    .fx::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at 50% 45%, transparent 44%, rgba(0,0,0,0.86) 100%);
+      opacity: 1;
+    }
+
+    .app{
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      width: 100%;
+      display: grid;
+      grid-template-rows: calc(var(--hHeader) + var(--safeTop)) 1fr calc(var(--hNav) + var(--safeBottom));
+      overflow: hidden;
+    }
+
+    /* HEADER */
+    header{
+      height: calc(var(--hHeader) + var(--safeTop));
+      padding: calc(10px + var(--safeTop)) 14px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(0,234,255,0.14);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      min-width: 0;
+      line-height: 1.05;
+    }
+    .brand .meta{
+      font-family: var(--display);
+      font-style: italic;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      font-size: 10px;
+      color: rgba(0,234,255,0.78);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand .title{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      letter-spacing: .06em;
+      font-size: 16px;
+      color: var(--yellow);
+      text-shadow: var(--shadowY);
+      display:flex;
+      gap: 10px;
+      align-items:baseline;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand .title .v{
+      font-size: 11px;
+      font-weight: 900;
+      color: rgba(255, 0, 229, 0.92);
+      text-shadow: var(--shadowP);
+      letter-spacing: .18em;
+    }
+
+    .hdrRight{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .pill{
+      border: 1px solid rgba(0,234,255,0.22);
+      background: rgba(8, 12, 14, 0.55);
+      border-radius: 999px;
+      padding: 8px 10px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.08);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      user-select: none;
+    }
+    .pill .dot{
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: var(--shadowC);
+      animation: pulse 1.3s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100% { transform: scale(0.88); opacity: 0.55; }
+      50% { transform: scale(1.12); opacity: 1; }
+    }
+    .pill .txt{
+      font-family: var(--display);
+      font-style: italic;
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(231,251,255,0.88);
+      white-space: nowrap;
+    }
+
+    /* CYBERPUNK ANGLED GLITCH BUTTONS */
+    button{
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--display);
+      font-style: italic;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      font-weight: 900;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .cpbtn{
+      position: relative;
+      padding: 12px 14px;
+      border-radius: 0; /* cyberpunk tends to hate softness */
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+      background:
+        linear-gradient(180deg, rgba(0,234,255,0.14), rgba(0,0,0,0.54));
+      border: 1px solid rgba(0,234,255,0.26);
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.10), 0 12px 40px rgba(0,0,0,0.75);
+      overflow: hidden;
+      min-height: 44px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+    }
+    .cpbtn::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        linear-gradient(90deg,
+          rgba(0,234,255,0.0),
+          rgba(0,234,255,0.22),
+          rgba(255,0,229,0.14),
+          rgba(182,255,0,0.12),
+          rgba(255,242,0,0.16),
+          rgba(0,234,255,0.0));
+      transform: translateX(-70%);
+      opacity: 0.9;
+      pointer-events: none;
+      animation: sheen 2.0s linear infinite;
+      mix-blend-mode: screen;
+    }
+    @keyframes sheen{
+      0% { transform: translateX(-70%); }
+      100% { transform: translateX(70%); }
+    }
+    .cpbtn::after{
+      /* corner notch glow */
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(135deg, rgba(255,0,229,0.0) 0 12px, rgba(255,0,229,0.16) 12px 14px, rgba(255,0,229,0.0) 14px 100%),
+        linear-gradient(315deg, rgba(0,234,255,0.0) 0 12px, rgba(0,234,255,0.14) 12px 14px, rgba(0,234,255,0.0) 14px 100%);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+    .cpbtn:active{ transform: translateY(1px); }
+    .cpbtn[disabled]{ opacity: 0.55; cursor: not-allowed; filter: saturate(0.8); }
+
+    .cpbtn.primary{
+      border-color: rgba(255,242,0,0.24);
+      background: linear-gradient(180deg, rgba(255,242,0,0.14), rgba(0,0,0,0.58));
+      box-shadow: inset 0 0 0 1px rgba(182,255,0,0.12), 0 12px 40px rgba(0,0,0,0.75);
+    }
+    .cpbtn.danger{
+      border-color: rgba(255,0,229,0.32);
+      background: linear-gradient(180deg, rgba(255,0,229,0.12), rgba(0,0,0,0.58));
+      box-shadow: inset 0 0 0 1px rgba(0,234,255,0.10), 0 12px 40px rgba(0,0,0,0.75);
+    }
+    .cpbtn.small{ padding: 10px 12px; min-height: 40px; font-size: 12px; }
+
+    /* glitch slice effect on hover/focus */
+    .cpbtn .glitch{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity: 0;
+      mix-blend-mode: screen;
+    }
+    .cpbtn:focus-visible .glitch,
+    .cpbtn:hover .glitch{
+      opacity: 1;
+      animation: glitch 900ms steps(2,end) infinite;
+    }
+    @keyframes glitch{
+      0%   { clip-path: inset(10% 0 78% 0); transform: translate(0,0); }
+      20%  { clip-path: inset(34% 0 46% 0); transform: translate(-2px,0); }
+      40%  { clip-path: inset(58% 0 26% 0); transform: translate(2px,-1px); }
+      60%  { clip-path: inset(78% 0 10% 0); transform: translate(-1px,1px); }
+      80%  { clip-path: inset(16% 0 66% 0); transform: translate(1px,0); }
+      100% { clip-path: inset(10% 0 78% 0); transform: translate(0,0); }
+    }
+    .cpbtn .glitch::before,
+    .cpbtn .glitch::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        repeating-linear-gradient(90deg, rgba(0,234,255,0.0) 0 10px, rgba(0,234,255,0.10) 10px 12px),
+        repeating-linear-gradient(0deg, rgba(255,0,229,0.0) 0 6px, rgba(255,0,229,0.09) 6px 7px);
+      opacity: 0.75;
+    }
+
+    /* MAIN CONTENT: tabbed views */
+    .content{
+      position: relative;
+      overflow: hidden;
+      padding: 10px 12px 10px;
+      min-height: 0;
+    }
+
+    .view{
+      position:absolute;
+      inset: 10px 12px 10px;
+      border-radius: var(--r);
+      border: 1px solid rgba(0,234,255,0.18);
+      background: linear-gradient(180deg, rgba(8, 12, 14, 0.58), rgba(0,0,0,0.50));
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.08), 0 18px 55px rgba(0,0,0,0.78);
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display:none;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+    .view.active{ display:grid; }
+
+    .viewHead{
+      padding: 12px 12px 10px;
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(0,234,255,0.12);
+      background: rgba(0,0,0,0.22);
+    }
+    .viewHead .h{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: .30em;
+      color: rgba(0,234,255,0.88);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .viewHead .tag{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: .26em;
+      text-transform: uppercase;
+      color: rgba(255,242,0,0.82);
+      text-shadow: var(--shadowY);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* HUD view layout */
+    .hudBody{
+      min-height: 0;
+      display:grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+      padding: 10px 10px 12px;
+    }
+
+    .phaseRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .phase{
+      display:flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+      flex: 1;
+    }
+    .phase .label{
+      font-family: var(--display);
+      font-style: italic;
+      letter-spacing: .30em;
+      text-transform: uppercase;
+      font-weight: 900;
+      font-size: 10px;
+      color: rgba(231,251,255,0.86);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .phase .desc{
+      font-family: var(--mono);
+      font-style: italic;
+      font-weight: 800;
+      letter-spacing: .08em;
+      font-size: 12px;
+      color: rgba(0,234,255,0.88);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .microBar{
+      width: min(180px, 52vw);
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,242,0,0.18);
+      background: rgba(0,0,0,0.22);
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(0,234,255,0.10);
+    }
+    .microBar > i{
+      display:block;
+      height: 100%;
+      width: 0%;
+      background:
+        linear-gradient(90deg, rgba(0,234,255,0.0), rgba(0,234,255,0.75), rgba(255,0,229,0.55), rgba(182,255,0,0.55), rgba(255,242,0,0.85));
+      box-shadow: 0 0 24px rgba(0,234,255,0.35);
+      transition: width 160ms linear;
+    }
+    .microBar::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.0), rgba(255,255,255,0.08), rgba(255,255,255,0.0));
+      transform: translateX(-55%);
+      animation: sheen 1.7s linear infinite;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .tog{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      user-select:none;
+      flex-shrink: 0;
+    }
+    .switch{
+      width: 54px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,234,255,0.22);
+      background: rgba(0,0,0,0.22);
+      position: relative;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.10);
+    }
+    .switch::before{
+      content:"";
+      position:absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: var(--shadowC);
+      transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+    .switch.on{
+      border-color: rgba(182,255,0,0.26);
+    }
+    .switch.on::before{
+      transform: translateX(26px);
+      background: var(--green);
+      box-shadow: var(--shadowG);
+    }
+    .tog .tlabel{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(231,251,255,0.85);
+      white-space: nowrap;
+    }
+
+    .canvasArea{
+      position: relative;
+      min-height: 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0 6px;
+      overflow: hidden;
+    }
+    canvas{
+      width: min(520px, 100%);
+      height: auto;
+      aspect-ratio: 1.2 / 1;
+      max-height: 46vh; /* keep within viewport */
+      display:block;
+    }
+
+    .centerReadout{
+      position:absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      text-align:center;
+      width: min(520px, 96%);
+      pointer-events:none;
+    }
+    .centerReadout .mode{
+      font-family: var(--display);
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: .40em;
+      font-weight: 900;
+      font-size: 10px;
+      color: rgba(255,0,229,0.78);
+      text-shadow: var(--shadowP);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .centerReadout .big{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      letter-spacing: .04em;
+      font-size: clamp(40px, 7vw, 72px);
+      line-height: 1;
+      color: var(--yellow);
+      text-shadow: 2px 0 rgba(255,0,229,0.9), -2px 0 rgba(0,234,255,0.9), var(--shadowY);
+    }
+    .centerReadout .unit{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      letter-spacing: .32em;
+      text-transform: uppercase;
+      font-size: 14px;
+      color: rgba(0,234,255,0.86);
+      text-shadow: var(--shadowC);
+      margin-top: 2px;
+    }
+    .centerReadout .sub{
+      margin-top: 8px;
+      display:flex;
+      gap: 8px;
+      justify-content:center;
+      flex-wrap: wrap;
+      font-family: var(--mono);
+      font-style: italic;
+      font-weight: 800;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(231,251,255,0.82);
+    }
+    .centerReadout .sub span{
+      padding: 6px 9px;
+      border: 1px solid rgba(0,234,255,0.16);
+      border-radius: 999px;
+      background: rgba(0,0,0,0.18);
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.06);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      white-space: nowrap;
+    }
+
+    .progressGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding-top: 2px;
+    }
+    .prog{
+      border: 1px solid rgba(255,0,229,0.12);
+      border-radius: var(--r2);
+      padding: 8px 10px 10px;
+      background: rgba(0,0,0,0.14);
+      overflow: hidden;
+      position: relative;
+      min-height: 54px;
+    }
+    .prog::before{
+      content:"";
+      position:absolute;
+      inset:-20px;
+      background: radial-gradient(circle at 20% 20%, rgba(0,234,255,0.10), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .prog .row{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .prog .name{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      font-size: 9px;
+      letter-spacing: .30em;
+      text-transform: uppercase;
+      color: rgba(231,251,255,0.85);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70%;
+    }
+    .prog .pct{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      letter-spacing: .14em;
+      font-size: 10px;
+      color: rgba(182,255,0,0.88);
+      text-shadow: var(--shadowG);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .bar{
+      margin-top: 8px;
+      height: 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,234,255,0.18);
+      background: rgba(0,0,0,0.22);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .bar i{
+      display:block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(0,234,255,0.85), rgba(255,0,229,0.65), rgba(182,255,0,0.65), rgba(255,242,0,0.85));
+      box-shadow: 0 0 24px rgba(0,234,255,0.30);
+      transition: width 160ms linear;
+    }
+    .bar::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.0), rgba(255,255,255,0.10), rgba(255,255,255,0.0));
+      transform: translateX(-55%);
+      animation: sheen 1.5s linear infinite;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    /* Stat grid for Latency/Env/Report views: no scrolling, compact */
+    .grid{
+      padding: 10px 10px 12px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      min-height: 0;
+      align-content: start;
+    }
+    .stat{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:space-between;
+      border: 1px solid rgba(255,0,229,0.12);
+      background: rgba(0,0,0,0.18);
+      border-radius: var(--r2);
+      padding: 10px 10px 10px 12px;
+      min-height: 56px;
+    }
+    .stat .k{
+      font-family: var(--mono);
+      font-style: italic;
+      font-weight: 800;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 10px;
+      color: rgba(231,251,255,0.85);
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .stat .k .chip{
+      font-family: var(--display);
+      font-style: italic;
+      font-size: 9px;
+      letter-spacing: .24em;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,234,255,0.18);
+      background: rgba(0,234,255,0.08);
+      color: rgba(0,234,255,0.92);
+      text-shadow: var(--shadowC);
+      width: fit-content;
+      white-space: nowrap;
+    }
+    .stat .v{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      letter-spacing: .08em;
+      font-size: 13px;
+      white-space: nowrap;
+      text-align:right;
+      max-width: 44%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .c{ color: var(--cyan); text-shadow: var(--shadowC); }
+    .p{ color: var(--pink); text-shadow: var(--shadowP); }
+    .g{ color: var(--green); text-shadow: var(--shadowG); }
+    .y{ color: var(--yellow); text-shadow: var(--shadowY); }
+
+    .reportActions{
+      padding: 10px;
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      border-top: 1px solid rgba(0,234,255,0.12);
+      background: rgba(0,0,0,0.18);
+    }
+
+    /* NAV BAR (interactive) */
+    nav{
+      height: calc(var(--hNav) + var(--safeBottom));
+      padding: 10px 10px calc(10px + var(--safeBottom));
+      display:grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      border-top: 1px solid rgba(0,234,255,0.14);
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+    .tab{
+      position: relative;
+      border: 1px solid rgba(0,234,255,0.18);
+      background: rgba(0,0,0,0.22);
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      justify-content:center;
+      gap: 6px;
+      min-height: 52px;
+      padding: 8px 6px;
+      color: rgba(231,251,255,0.86);
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      letter-spacing: .20em;
+      text-transform: uppercase;
+      font-size: 9px;
+      user-select:none;
+      cursor:pointer;
+      overflow: hidden;
+    }
+    .tab::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: linear-gradient(90deg, rgba(0,234,255,0.0), rgba(0,234,255,0.16), rgba(255,0,229,0.10), rgba(182,255,0,0.10), rgba(255,242,0,0.14), rgba(0,234,255,0.0));
+      transform: translateX(-70%);
+      opacity: 0.0;
+      pointer-events: none;
+      animation: sheen 1.8s linear infinite;
+      transition: opacity 140ms ease;
+      mix-blend-mode: screen;
+    }
+    .tab.active{
+      border-color: rgba(255,242,0,0.22);
+      box-shadow: inset 0 0 0 1px rgba(255,0,229,0.10);
+    }
+    .tab.active::before{ opacity: 0.95; }
+    .ico{
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,234,255,0.20);
+      box-shadow: 0 0 18px rgba(0,234,255,0.16);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(0,234,255,0.25), rgba(0,0,0,0.0) 55%),
+        radial-gradient(circle at 70% 60%, rgba(255,0,229,0.18), rgba(0,0,0,0.0) 58%),
+        rgba(0,0,0,0.35);
+    }
+    .tab.active .ico{
+      border-color: rgba(255,242,0,0.22);
+      box-shadow: 0 0 18px rgba(255,242,0,0.18);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,242,0,0.22), rgba(0,0,0,0.0) 55%),
+        radial-gradient(circle at 70% 60%, rgba(182,255,0,0.16), rgba(0,0,0,0.0) 58%),
+        rgba(0,0,0,0.35);
+    }
+
+    /* SETTINGS MODAL */
+    .modalBack{
+      position: fixed;
+      inset:0;
+      background: rgba(0,0,0,0.72);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 10;
+      padding: 14px;
+    }
+    .modalBack.show{ display:flex; }
+    .modal{
+      width: min(720px, 100%);
+      border: 1px solid rgba(0,234,255,0.22);
+      background: linear-gradient(180deg, rgba(8, 12, 14, 0.78), rgba(0,0,0,0.72));
+      box-shadow: 0 25px 90px rgba(0,0,0,0.85);
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+      max-height: calc(100vh - 24px);
+    }
+    .modalHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid rgba(0,234,255,0.14);
+    }
+    .modalHead .mTitle{
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .30em;
+      font-size: 12px;
+      color: rgba(0,234,255,0.90);
+      text-shadow: var(--shadowC);
+      white-space: nowrap;
+    }
+    .modalBody{
+      padding: 12px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .field{
+      border: 1px solid rgba(255,0,229,0.12);
+      border-radius: var(--r2);
+      padding: 10px;
+      background: rgba(0,0,0,0.18);
+    }
+    .field label{
+      display:block;
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      font-size: 10px;
+      letter-spacing: .26em;
+      text-transform: uppercase;
+      color: rgba(255,242,0,0.78);
+      text-shadow: var(--shadowY);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    input, select{
+      width: 100%;
+      border-radius: 0;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+      border: 1px solid rgba(0,234,255,0.18);
+      background: rgba(0,0,0,0.35);
+      color: rgba(231,251,255,0.92);
+      padding: 10px 10px;
+      outline: none;
+      font-family: var(--mono);
+      font-style: italic;
+      font-weight: 800;
+      letter-spacing: .06em;
+      min-height: 42px;
+    }
+    input:focus, select:focus{
+      border-color: rgba(182,255,0,0.34);
+      box-shadow: 0 0 0 2px rgba(182,255,0,0.10);
+    }
+    .modalFoot{
+      padding: 10px 12px 12px;
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      border-top: 1px solid rgba(0,234,255,0.14);
+      background: rgba(0,0,0,0.22);
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    .hint{
+      font-family: var(--mono);
+      font-style: italic;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 11px;
+      color: rgba(231,251,255,0.76);
+      max-width: 62%;
+    }
+    .btnRow{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+
+    /* TOAST */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: calc(var(--hNav) + 14px + var(--safeBottom));
+      transform: translateX(-50%);
+      padding: 10px 12px;
+      clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      border: 1px solid rgba(0,234,255,0.18);
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      font-family: var(--display);
+      font-style: italic;
+      font-weight: 900;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      font-size: 10px;
+      color: rgba(231,251,255,0.90);
+      box-shadow: 0 18px 55px rgba(0,0,0,0.75);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 140ms ease, transform 140ms ease;
+      z-index: 20;
+      width: min(560px, calc(100vw - 24px));
+      text-align:center;
+    }
+
+    @media (max-width: 560px){
+      :root{ --hHeader: 68px; --hNav: 68px; }
+      .brand .title{ font-size: 14px; }
+      .microBar{ width: min(160px, 52vw); }
+      .grid{ grid-template-columns: 1fr; }
+      .reportActions{ grid-template-columns: 1fr; }
+      .modalBody{ grid-template-columns: 1fr; }
+      canvas{ max-height: 44vh; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .fx::before, .cpbtn::before, .tab::before, .bar::after, .microBar::after{ animation: none !important; }
+      .pill .dot{ animation: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="fx"></div>
+
+  <div class="app" id="app">
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="meta" id="sysMeta">SYSTEM PROTOCOL • LINK_PROBE</div>
+        <div class="title">NET_SPEEDTEST_HUD <span class="v" id="buildTag">v2.1</span></div>
+      </div>
+
+      <div class="hdrRight">
+        <div class="pill" title="Status">
+          <span class="dot" id="statusDot"></span>
+          <span class="txt" id="statusText">IDLE</span>
+        </div>
+
+        <div class="btnRow" aria-label="Primary controls">
+          <button class="cpbtn primary small" id="btnStart"><span>START</span><span class="glitch" aria-hidden="true"></span></button>
+          <button class="cpbtn danger small" id="btnStop" disabled><span>ABORT</span><span class="glitch" aria-hidden="true"></span></button>
+          <button class="cpbtn small" id="btnReset"><span>RESET</span><span class="glitch" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT (TABBED VIEWS) -->
+    <section class="content" aria-label="Main content">
+      <!-- HUD -->
+      <div class="view active" id="view-hud" data-view="hud" aria-label="HUD view">
+        <div class="viewHead">
+          <div class="h">Speed HUD</div>
+          <div class="tag" id="hudTag">LIVE/SIM</div>
+        </div>
+
+        <div class="hudBody">
+          <div class="phaseRow">
+            <div class="phase">
+              <div class="label" id="phaseLabel">PHASE</div>
+              <div class="desc" id="phaseDesc">Waiting for operator input…</div>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:center; flex-shrink:0;">
+              <div class="microBar" title="Overall progress">
+                <i id="microFill"></i>
+              </div>
+
+              <div class="tog" title="Demo mode simulates results. Live mode attempts real throughput tests if your endpoints allow CORS.">
+                <div class="switch on" id="demoSwitch" role="switch" aria-checked="true" tabindex="0"></div>
+                <div class="tlabel" id="demoLabel">DEMO</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvasArea">
+            <canvas id="gauge" width="900" height="720" aria-label="Speedometer canvas"></canvas>
+
+            <div class="centerReadout">
+              <div class="mode" id="readoutMode">NEUTRAL_SCAN</div>
+              <div class="big" id="readoutVal">0.0</div>
+              <div class="unit" id="readoutUnit">MBPS</div>
+              <div class="sub">
+                <span id="subDown" class="c">DL: --</span>
+                <span id="subUp" class="p">UL: --</span>
+                <span id="subPing" class="y">PING: --</span>
+                <span id="subLoss" class="g">LOSS: --</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="progressGrid" aria-label="Progress indicators">
+            <div class="prog">
+              <div class="row">
+                <div class="name">Latency sweep</div>
+                <div class="pct" id="pLat">0%</div>
+              </div>
+              <div class="bar"><i id="bLat"></i></div>
+            </div>
+
+            <div class="prog">
+              <div class="row">
+                <div class="name">Download probe</div>
+                <div class="pct" id="pDown">0%</div>
+              </div>
+              <div class="bar"><i id="bDown"></i></div>
+            </div>
+
+            <div class="prog">
+              <div class="row">
+                <div class="name">Upload probe</div>
+                <div class="pct" id="pUp">0%</div>
+              </div>
+              <div class="bar"><i id="bUp"></i></div>
+            </div>
+
+            <div class="prog">
+              <div class="row">
+                <div class="name">Stability report</div>
+                <div class="pct" id="pRpt">0%</div>
+              </div>
+              <div class="bar"><i id="bRpt"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LATENCY -->
+      <div class="view" id="view-lat" data-view="lat" aria-label="Latency view">
+        <div class="viewHead">
+          <div class="h">Latency + Quality</div>
+          <div class="tag" id="leftTag">REALTIME</div>
+        </div>
+
+        <div class="grid" aria-label="Latency stats grid">
+          <div class="stat">
+            <div class="k"><span class="chip">PING</span>Base latency</div>
+            <div class="v p" id="vPing">-- ms</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">JITTER</span>Variance</div>
+            <div class="v p" id="vJitter">-- ms</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">LOSS</span>Packet loss</div>
+            <div class="v p" id="vLoss">-- %</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">BBLOAT</span>Bufferbloat (Δ)</div>
+            <div class="v y" id="vBloat">-- ms</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">DNS</span>Resolve</div>
+            <div class="v c" id="vDns">-- ms</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">TCP</span>Connect</div>
+            <div class="v c" id="vTcp">-- ms</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">TLS</span>Handshake</div>
+            <div class="v c" id="vTls">-- ms</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">QOS</span>Quality</div>
+            <div class="v g" id="vQuality">-- / 100</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENV -->
+      <div class="view" id="view-env" data-view="env" aria-label="Environment view">
+        <div class="viewHead">
+          <div class="h">Env + Diagnostics</div>
+          <div class="tag" id="rightTag">LOCAL</div>
+        </div>
+
+        <div class="grid" aria-label="Environment stats grid">
+          <div class="stat">
+            <div class="k"><span class="chip">DEVICE</span>Platform</div>
+            <div class="v c" id="vPlatform">--</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">BROWSER</span>UA core</div>
+            <div class="v c" id="vBrowser">--</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">TIME</span>Local</div>
+            <div class="v y" id="vTime">--</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">SEC</span>Context</div>
+            <div class="v y" id="vSec">--</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">CONN</span>Type</div>
+            <div class="v g" id="vConn">--</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">DOWN</span>Downlink hint</div>
+            <div class="v g" id="vHintDown">--</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">RTT</span>RTT hint</div>
+            <div class="v p" id="vHintRtt">--</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">SAVE</span>Data saver</div>
+            <div class="v y" id="vSaveData">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORT -->
+      <div class="view" id="view-report" data-view="report" aria-label="Report view">
+        <div class="viewHead">
+          <div class="h">Report + Export</div>
+          <div class="tag" id="repTag">JSON/CSV</div>
+        </div>
+
+        <div class="grid" aria-label="Report stats grid">
+          <div class="stat">
+            <div class="k"><span class="chip">DL</span>Download</div>
+            <div class="v c" id="rDown">-- Mbps</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">UL</span>Upload</div>
+            <div class="v p" id="rUp">-- Mbps</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">PING</span>Latency</div>
+            <div class="v y" id="rPing">-- ms</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">LOSS</span>Loss</div>
+            <div class="v g" id="rLoss">-- %</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">QOS</span>Score</div>
+            <div class="v g" id="rQos">-- / 100</div>
+          </div>
+          <div class="stat">
+            <div class="k"><span class="chip">MODE</span>Run mode</div>
+            <div class="v y" id="rMode">--</div>
+          </div>
+          <div class="stat" style="grid-column: 1 / -1;">
+            <div class="k"><span class="chip">NOTE</span>Reality check</div>
+            <div class="v" style="max-width: 62%;"><span class="p" id="rNote">Live test needs CORS-ready endpoints.</span></div>
+          </div>
+        </div>
+
+        <div class="reportActions" aria-label="Report actions">
+          <button class="cpbtn small" id="btnCopy"><span>COPY JSON</span><span class="glitch" aria-hidden="true"></span></button>
+          <button class="cpbtn small" id="btnCsv"><span>EXPORT CSV</span><span class="glitch" aria-hidden="true"></span></button>
+          <button class="cpbtn small" id="btnShare"><span>SHARE</span><span class="glitch" aria-hidden="true"></span></button>
+        </div>
+      </div>
+
+      <!-- SETTINGS (shortcut panel, opens modal) -->
+      <div class="view" id="view-settings" data-view="settings" aria-label="Settings view">
+        <div class="viewHead">
+          <div class="h">Settings</div>
+          <div class="tag">CONTROL</div>
+        </div>
+
+        <div class="grid" aria-label="Settings quick actions">
+          <div class="stat" style="grid-column: 1 / -1;">
+            <div class="k"><span class="chip">MODE</span>Toggle DEMO/LIVE</div>
+            <div class="v y" id="sMode">DEMO</div>
+          </div>
+          <div class="stat" style="grid-column: 1 / -1;">
+            <div class="k"><span class="chip">CONFIG</span>Open full settings</div>
+            <div class="v">
+              <button class="cpbtn small" id="btnSettings"><span>OPEN</span><span class="glitch" aria-hidden="true"></span></button>
+            </div>
+          </div>
+          <div class="stat" style="grid-column: 1 / -1;">
+            <div class="k"><span class="chip">TIP</span>What “accurate” means</div>
+            <div class="v" style="max-width: 62%;"><span class="c">Browser tests are best-effort. Servers decide the truth.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAV BAR -->
+    <nav aria-label="Navigation">
+      <div class="tab active" id="tab-hud" data-target="hud" role="button" tabindex="0" aria-current="page">
+        <div class="ico" aria-hidden="true"></div>
+        HUD
+      </div>
+      <div class="tab" id="tab-lat" data-target="lat" role="button" tabindex="0">
+        <div class="ico" aria-hidden="true"></div>
+        LAT
+      </div>
+      <div class="tab" id="tab-env" data-target="env" role="button" tabindex="0">
+        <div class="ico" aria-hidden="true"></div>
+        ENV
+      </div>
+      <div class="tab" id="tab-report" data-target="report" role="button" tabindex="0">
+        <div class="ico" aria-hidden="true"></div>
+        REPORT
+      </div>
+      <div class="tab" id="tab-settings" data-target="settings" role="button" tabindex="0">
+        <div class="ico" aria-hidden="true"></div>
+        SET
+      </div>
+    </nav>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modalBack" id="modalBack" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
+      <div class="modalHead">
+        <div class="mTitle">Test Settings</div>
+        <button class="cpbtn small" id="btnClose"><span>CLOSE</span><span class="glitch" aria-hidden="true"></span></button>
+      </div>
+      <div class="modalBody">
+        <div class="field">
+          <label for="setMode">Live mode</label>
+          <select id="setMode">
+            <option value="demo">DEMO (simulated)</option>
+            <option value="live">LIVE (requires endpoints)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="setDuration">Probe duration (sec)</label>
+          <input id="setDuration" type="number" min="3" max="30" step="1" value="10" />
+        </div>
+
+        <div class="field">
+          <label for="setConcurrency">Streams</label>
+          <input id="setConcurrency" type="number" min="1" max="12" step="1" value="6" />
+        </div>
+
+        <div class="field">
+          <label for="setChunkMB">Chunk size (MB)</label>
+          <input id="setChunkMB" type="number" min="1" max="64" step="1" value="8" />
+        </div>
+
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="setDownloadUrl">Download URL (CORS)</label>
+          <input id="setDownloadUrl" type="text" placeholder="https://your-host.example/test.bin" />
+        </div>
+
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="setUploadUrl">Upload URL (CORS)</label>
+          <input id="setUploadUrl" type="text" placeholder="https://your-host.example/upload" />
+        </div>
+
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="setServerName">Server label</label>
+          <input id="setServerName" type="text" placeholder="edge-01 / lab / router / whatever" />
+        </div>
+      </div>
+      <div class="modalFoot">
+        <div class="hint" id="modalHint">LIVE tests fail without CORS. Yes, it’s annoying. No, you can’t negotiate with the browser.</div>
+        <div class="btnRow">
+          <button class="cpbtn small" id="btnDefaults"><span>DEFAULTS</span><span class="glitch" aria-hidden="true"></span></button>
+          <button class="cpbtn primary small" id="btnSave"><span>SAVE</span><span class="glitch" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      // -----------------------------
+      // State
+      // -----------------------------
+      const state = {
+        running: false,
+        abort: false,
+        mode: "demo",                 // "demo" | "live"
+        phase: "idle",                // idle|lat|down|up|report|done|error
+        durationSec: 10,
+        concurrency: 6,
+        chunkMB: 8,
+        downloadUrl: "",
+        uploadUrl: "",
+        serverLabel: "",
+        lastFrame: 0,
+        gaugeValue: 0,
+        targetGauge: 0,
+        gaugeMax: 1000,
+        sample: {
+          pingMs: null, jitterMs: null, lossPct: null, bloatMs: null,
+          dnsMs: null, tcpMs: null, tlsMs: null,
+          downMbps: null, upMbps: null, quality: null,
+          notes: [], raw: {}
+        },
+        progress: { lat:0, down:0, up:0, rpt:0, overall:0 },
+      };
+
+      // -----------------------------
+      // Elements
+      // -----------------------------
+      const el = {
+        statusDot: document.getElementById("statusDot"),
+        statusText: document.getElementById("statusText"),
+        sysMeta: document.getElementById("sysMeta"),
+        hudTag: document.getElementById("hudTag"),
+
+        phaseLabel: document.getElementById("phaseLabel"),
+        phaseDesc: document.getElementById("phaseDesc"),
+        readoutMode: document.getElementById("readoutMode"),
+        readoutVal: document.getElementById("readoutVal"),
+        readoutUnit: document.getElementById("readoutUnit"),
+        subDown: document.getElementById("subDown"),
+        subUp: document.getElementById("subUp"),
+        subPing: document.getElementById("subPing"),
+        subLoss: document.getElementById("subLoss"),
+
+        vPing: document.getElementById("vPing"),
+        vJitter: document.getElementById("vJitter"),
+        vLoss: document.getElementById("vLoss"),
+        vBloat: document.getElementById("vBloat"),
+        vDns: document.getElementById("vDns"),
+        vTcp: document.getElementById("vTcp"),
+        vTls: document.getElementById("vTls"),
+        vQuality: document.getElementById("vQuality"),
+
+        vPlatform: document.getElementById("vPlatform"),
+        vBrowser: document.getElementById("vBrowser"),
+        vTime: document.getElementById("vTime"),
+        vConn: document.getElementById("vConn"),
+        vHintDown: document.getElementById("vHintDown"),
+        vHintRtt: document.getElementById("vHintRtt"),
+        vSaveData: document.getElementById("vSaveData"),
+        vSec: document.getElementById("vSec"),
+
+        rDown: document.getElementById("rDown"),
+        rUp: document.getElementById("rUp"),
+        rPing: document.getElementById("rPing"),
+        rLoss: document.getElementById("rLoss"),
+        rQos: document.getElementById("rQos"),
+        rMode: document.getElementById("rMode"),
+        rNote: document.getElementById("rNote"),
+
+        sMode: document.getElementById("sMode"),
+
+        microFill: document.getElementById("microFill"),
+
+        pLat: document.getElementById("pLat"),
+        pDown: document.getElementById("pDown"),
+        pUp: document.getElementById("pUp"),
+        pRpt: document.getElementById("pRpt"),
+        bLat: document.getElementById("bLat"),
+        bDown: document.getElementById("bDown"),
+        bUp: document.getElementById("bUp"),
+        bRpt: document.getElementById("bRpt"),
+
+        demoSwitch: document.getElementById("demoSwitch"),
+        demoLabel: document.getElementById("demoLabel"),
+
+        btnStart: document.getElementById("btnStart"),
+        btnStop: document.getElementById("btnStop"),
+        btnReset: document.getElementById("btnReset"),
+        btnSettings: document.getElementById("btnSettings"),
+        btnCopy: document.getElementById("btnCopy"),
+        btnCsv: document.getElementById("btnCsv"),
+        btnShare: document.getElementById("btnShare"),
+
+        toast: document.getElementById("toast"),
+
+        modalBack: document.getElementById("modalBack"),
+        btnClose: document.getElementById("btnClose"),
+        btnSave: document.getElementById("btnSave"),
+        btnDefaults: document.getElementById("btnDefaults"),
+        setMode: document.getElementById("setMode"),
+        setDuration: document.getElementById("setDuration"),
+        setConcurrency: document.getElementById("setConcurrency"),
+        setChunkMB: document.getElementById("setChunkMB"),
+        setDownloadUrl: document.getElementById("setDownloadUrl"),
+        setUploadUrl: document.getElementById("setUploadUrl"),
+        setServerName: document.getElementById("setServerName"),
+      };
+
+      // Tabs / Views
+      const tabs = Array.from(document.querySelectorAll(".tab[data-target]"));
+      const views = Array.from(document.querySelectorAll(".view[data-view]"));
+      function setView(name){
+        views.forEach(v => v.classList.toggle("active", v.dataset.view === name));
+        tabs.forEach(t => {
+          const on = t.dataset.target === name;
+          t.classList.toggle("active", on);
+          if(on){
+            t.setAttribute("aria-current", "page");
+          }else{
+            t.removeAttribute("aria-current");
+          }
+        });
+      }
+      tabs.forEach(t => {
+        t.addEventListener("click", ()=> setView(t.dataset.target));
+        t.addEventListener("keydown", (e)=>{
+          if(e.key === "Enter" || e.key === " "){
+            e.preventDefault();
+            setView(t.dataset.target);
+          }
+        });
+      });
+
+      // Canvas
+      const canvas = document.getElementById("gauge");
+      const ctx = canvas.getContext("2d", { alpha: true });
+
+      // -----------------------------
+      // Helpers
+      // -----------------------------
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const now = () => performance.now();
+      const fmt = (n, d=1) => (typeof n === "number" && isFinite(n)) ? n.toFixed(d) : "--";
+      const pct = (v) => Math.round(clamp(v, 0, 1) * 100);
+
+      function setStatus(kind, text){
+        el.statusText.textContent = text;
+        const dot = el.statusDot;
+        if(kind === "idle"){
+          dot.style.background = "var(--cyan)"; dot.style.boxShadow = "var(--shadowC)";
+        }else if(kind === "run"){
+          dot.style.background = "var(--green)"; dot.style.boxShadow = "var(--shadowG)";
+        }else if(kind === "warn"){
+          dot.style.background = "var(--yellow)"; dot.style.boxShadow = "var(--shadowY)";
+        }else if(kind === "err"){
+          dot.style.background = "var(--pink)"; dot.style.boxShadow = "var(--shadowP)";
+        }else if(kind === "done"){
+          dot.style.background = "var(--yellow)"; dot.style.boxShadow = "var(--shadowY)";
+        }
+      }
+
+      function setPhase(phase, label, desc, modeText){
+        state.phase = phase;
+        el.phaseLabel.textContent = label;
+        el.phaseDesc.textContent = desc;
+        el.readoutMode.textContent = modeText;
+      }
+
+      function setMode(mode){
+        state.mode = mode;
+        const isDemo = mode === "demo";
+        el.demoSwitch.classList.toggle("on", isDemo);
+        el.demoSwitch.setAttribute("aria-checked", String(isDemo));
+        el.demoLabel.textContent = isDemo ? "DEMO" : "LIVE";
+        document.getElementById("leftTag").textContent = isDemo ? "SIM" : "FIELD";
+        document.getElementById("rightTag").textContent = isDemo ? "LOCAL" : "REMOTE";
+        el.hudTag.textContent = isDemo ? "SIMULATED" : "LIVE";
+        el.sMode.textContent = isDemo ? "DEMO" : "LIVE";
+        el.rMode.textContent = isDemo ? "DEMO" : "LIVE";
+      }
+
+      function resetResults(){
+        state.sample = {
+          pingMs: null, jitterMs: null, lossPct: null, bloatMs: null,
+          dnsMs: null, tcpMs: null, tlsMs: null,
+          downMbps: null, upMbps: null, quality: null,
+          notes: [], raw: {}
+        };
+        state.progress = { lat:0, down:0, up:0, rpt:0, overall:0 };
+        state.gaugeValue = 0;
+        state.targetGauge = 0;
+        renderStats();
+        renderProgress();
+        renderReport();
+        setPhase("idle", "PHASE", "Waiting for operator input…", "NEUTRAL_SCAN");
+        setStatus("idle", "IDLE");
+        el.sysMeta.textContent = "SYSTEM PROTOCOL • LINK_PROBE";
+      }
+
+      function pickGaugeMax(mbps){
+        const steps = [25, 50, 100, 200, 500, 1000, 1500, 2000, 5000, 10000];
+        const m = Math.max(25, mbps || 0);
+        for(const s of steps){
+          if(m <= s*0.90) return s;
+          if(m <= s) return s;
+        }
+        return 10000;
+      }
+
+      function calcQualityScore(s){
+        const ping = clamp((s.pingMs ?? 80), 0, 400);
+        const jit  = clamp((s.jitterMs ?? 20), 0, 200);
+        const loss = clamp((s.lossPct ?? 2), 0, 10);
+        const bloat= clamp((s.bloatMs ?? 40), 0, 300);
+        const down = clamp((s.downMbps ?? 0), 0, 2000);
+        const up   = clamp((s.upMbps ?? 0), 0, 2000);
+
+        const pScore = 40 * (1 - (ping / 200));
+        const jScore = 20 * (1 - (jit / 80));
+        const lScore = 20 * (1 - (loss / 5));
+        const bScore = 10 * (1 - (bloat / 150));
+        const sScore = 10 * (clamp(Math.log10(1 + (down*0.7 + up*0.3)), 0, 3) / 3);
+
+        return clamp(pScore + jScore + lScore + bScore + sScore, 0, 100);
+      }
+
+      function renderStats(){
+        document.getElementById("vPing").textContent = `${fmt(state.sample.pingMs, 1)} ms`;
+        document.getElementById("vJitter").textContent = `${fmt(state.sample.jitterMs, 1)} ms`;
+        document.getElementById("vLoss").textContent = `${fmt(state.sample.lossPct, 2)} %`;
+        document.getElementById("vBloat").textContent = `${fmt(state.sample.bloatMs, 1)} ms`;
+        document.getElementById("vDns").textContent = `${fmt(state.sample.dnsMs, 1)} ms`;
+        document.getElementById("vTcp").textContent = `${fmt(state.sample.tcpMs, 1)} ms`;
+        document.getElementById("vTls").textContent = `${fmt(state.sample.tlsMs, 1)} ms`;
+        document.getElementById("vQuality").textContent = (typeof state.sample.quality === "number")
+          ? `${Math.round(state.sample.quality)} / 100`
+          : "-- / 100";
+
+        el.subDown.textContent = `DL: ${typeof state.sample.downMbps === "number" ? fmt(state.sample.downMbps, 1) + " Mbps" : "--"}`;
+        el.subUp.textContent = `UL: ${typeof state.sample.upMbps === "number" ? fmt(state.sample.upMbps, 1) + " Mbps" : "--"}`;
+        el.subPing.textContent = `PING: ${typeof state.sample.pingMs === "number" ? fmt(state.sample.pingMs, 1) + " ms" : "--"}`;
+        el.subLoss.textContent = `LOSS: ${typeof state.sample.lossPct === "number" ? fmt(state.sample.lossPct, 2) + "%" : "--"}`;
+
+        const best = Math.max(state.sample.downMbps || 0, state.sample.upMbps || 0, 0);
+        state.gaugeMax = pickGaugeMax(best);
+      }
+
+      function renderReport(){
+        el.rDown.textContent = `${typeof state.sample.downMbps === "number" ? fmt(state.sample.downMbps, 1) : "--"} Mbps`;
+        el.rUp.textContent = `${typeof state.sample.upMbps === "number" ? fmt(state.sample.upMbps, 1) : "--"} Mbps`;
+        el.rPing.textContent = `${typeof state.sample.pingMs === "number" ? fmt(state.sample.pingMs, 1) : "--"} ms`;
+        el.rLoss.textContent = `${typeof state.sample.lossPct === "number" ? fmt(state.sample.lossPct, 2) : "--"} %`;
+        el.rQos.textContent = `${typeof state.sample.quality === "number" ? Math.round(state.sample.quality) : "--"} / 100`;
+        el.rMode.textContent = state.mode.toUpperCase();
+
+        el.rNote.textContent = (state.mode === "live")
+          ? "LIVE: needs CORS endpoints, otherwise the browser says “no”."
+          : "DEMO: simulated numbers for UI testing.";
+      }
+
+      function renderProgress(){
+        document.getElementById("pLat").textContent = `${pct(state.progress.lat)}%`;
+        document.getElementById("pDown").textContent = `${pct(state.progress.down)}%`;
+        document.getElementById("pUp").textContent = `${pct(state.progress.up)}%`;
+        document.getElementById("pRpt").textContent = `${pct(state.progress.rpt)}%`;
+        document.getElementById("bLat").style.width = `${pct(state.progress.lat)}%`;
+        document.getElementById("bDown").style.width = `${pct(state.progress.down)}%`;
+        document.getElementById("bUp").style.width = `${pct(state.progress.up)}%`;
+        document.getElementById("bRpt").style.width = `${pct(state.progress.rpt)}%`;
+
+        const overall = (state.progress.lat*0.22 + state.progress.down*0.34 + state.progress.up*0.28 + state.progress.rpt*0.16);
+        state.progress.overall = clamp(overall, 0, 1);
+        el.microFill.style.width = `${pct(state.progress.overall)}%`;
+      }
+
+      // -----------------------------
+      // Environment (best-effort)
+      // -----------------------------
+      function parseBrowserCore(ua){
+        const s = ua || "";
+        const b = s.includes("Edg/") ? "EDGE" :
+                  s.includes("OPR/") ? "OPERA" :
+                  s.includes("Chrome/") ? "CHROME" :
+                  s.includes("Safari/") && !s.includes("Chrome/") ? "SAFARI" :
+                  s.includes("Firefox/") ? "FIREFOX" : "UNKNOWN";
+        const m = s.match(/(Edg|OPR|Chrome|Safari|Firefox)\/([0-9.]+)/);
+        const v = m ? m[2].split(".")[0] : "";
+        return v ? `${b} ${v}` : b;
+      }
+
+      function updateEnv(){
+        el.vPlatform.textContent = `${navigator.platform || "Unknown"} • ${navigator.hardwareConcurrency || "?"}c`;
+        el.vBrowser.textContent = parseBrowserCore(navigator.userAgent);
+        el.vSec.textContent = (window.isSecureContext ? "SECURE" : "NOT_SECURE");
+
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if(conn){
+          const type = conn.effectiveType || "unknown";
+          const down = typeof conn.downlink === "number" ? `${conn.downlink.toFixed(1)} Mbps` : "--";
+          const rtt  = typeof conn.rtt === "number" ? `${Math.round(conn.rtt)} ms` : "--";
+          el.vConn.textContent = String(type).toUpperCase();
+          el.vHintDown.textContent = down;
+          el.vHintRtt.textContent = rtt;
+          el.vSaveData.textContent = conn.saveData ? "ON" : "OFF";
+        }else{
+          el.vConn.textContent = "N/A";
+          el.vHintDown.textContent = "N/A";
+          el.vHintRtt.textContent = "N/A";
+          el.vSaveData.textContent = "N/A";
+        }
+
+        el.vTime.textContent = new Date().toLocaleTimeString();
+      }
+      setInterval(updateEnv, 1000);
+      updateEnv();
+
+      // -----------------------------
+      // Latency / Throughput
+      // -----------------------------
+      function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+      async function measureLatencySweep(url, count, jitterWindow){
+        const times = [];
+        let fails = 0;
+        for(let i=0;i<count;i++){
+          if(state.abort) break;
+          const tA = now();
+          try{
+            const u = new URL(url);
+            u.searchParams.set("_t", String(Math.floor(Math.random()*1e9)));
+            await fetch(u.toString(), { method: "HEAD", cache: "no-store", mode: "cors" });
+            times.push(now() - tA);
+          }catch(e){
+            fails++;
+          }
+          state.progress.lat = clamp((i+1)/count, 0, 1);
+          renderProgress();
+          await sleep(70);
+        }
+
+        const lossPct = count > 0 ? (fails / count) * 100 : 0;
+        const sorted = times.slice().sort((a,b)=>a-b);
+        const p50 = sorted.length ? sorted[Math.floor(sorted.length*0.50)] : null;
+
+        let jit = null;
+        if(times.length >= 2){
+          const deltas = [];
+          for(let i=1;i<times.length;i++) deltas.push(Math.abs(times[i]-times[i-1]));
+          const w = clamp(jitterWindow, 2, 20);
+          const recent = deltas.slice(-w);
+          jit = recent.reduce((a,b)=>a+b,0) / recent.length;
+        }
+        return { p50, jitter: jit, lossPct };
+      }
+
+      function randomBytes(size){
+        const arr = new Uint8Array(size);
+        crypto.getRandomValues(arr);
+        return arr;
+      }
+
+      async function runDownloadLive(url, durationSec, concurrency, onSample){
+        const deadline = now() + durationSec*1000;
+        const ctrl = new AbortController();
+
+        let totalBytes = 0;
+        let lastBytes = 0;
+        let lastT = now();
+
+        const workers = [];
+        for(let w=0; w<concurrency; w++){
+          workers.push((async()=>{
+            while(!state.abort && now() < deadline){
+              try{
+                const u = new URL(url);
+                u.searchParams.set("_t", String(Math.floor(Math.random()*1e9)));
+                const res = await fetch(u.toString(), { method: "GET", cache:"no-store", mode:"cors", signal: ctrl.signal });
+                if(!res.ok) throw new Error("HTTP " + res.status);
+                const buf = await res.arrayBuffer();
+                totalBytes += buf.byteLength;
+              }catch(e){
+                await sleep(120);
+              }
+            }
+          })());
+        }
+
+        while(!state.abort && now() < deadline){
+          await sleep(180);
+          const t = now();
+          const dt = (t - lastT)/1000;
+          const dB = totalBytes - lastBytes;
+          lastT = t;
+          lastBytes = totalBytes;
+
+          const mbps = dt > 0 ? (dB * 8) / (dt * 1_000_000) : 0;
+          onSample(mbps);
+        }
+
+        ctrl.abort();
+        await Promise.allSettled(workers);
+      }
+
+      async function runUploadLive(url, durationSec, concurrency, chunkMB, onSample){
+        const deadline = now() + durationSec*1000;
+        const ctrl = new AbortController();
+        const payload = randomBytes(chunkMB * 1024 * 1024);
+
+        let totalBytes = 0;
+        let lastBytes = 0;
+        let lastT = now();
+
+        const workers = [];
+        for(let w=0; w<concurrency; w++){
+          workers.push((async()=>{
+            while(!state.abort && now() < deadline){
+              try{
+                const u = new URL(url);
+                u.searchParams.set("_t", String(Math.floor(Math.random()*1e9)));
+                const res = await fetch(u.toString(), {
+                  method: "POST",
+                  mode: "cors",
+                  cache: "no-store",
+                  signal: ctrl.signal,
+                  headers: { "Content-Type": "application/octet-stream" },
+                  body: payload
+                });
+                if(!res.ok) throw new Error("HTTP " + res.status);
+                totalBytes += payload.byteLength;
+              }catch(e){
+                await sleep(120);
+              }
+            }
+          })());
+        }
+
+        while(!state.abort && now() < deadline){
+          await sleep(180);
+          const t = now();
+          const dt = (t - lastT)/1000;
+          const dB = totalBytes - lastBytes;
+          lastT = t;
+          lastBytes = totalBytes;
+
+          const mbps = dt > 0 ? (dB * 8) / (dt * 1_000_000) : 0;
+          onSample(mbps);
+        }
+
+        ctrl.abort();
+        await Promise.allSettled(workers);
+      }
+
+      function smoothValue(samples, alpha){
+        let s = samples[0] || 0;
+        for(let i=1; i<samples.length; i++){
+          s = lerp(s, samples[i], alpha);
+        }
+        return s;
+      }
+
+      function demoRand(n, spread){
+        const r = (Math.random()*2-1) * spread;
+        return clamp(n + r, 0, Infinity);
+      }
+
+      async function runDemoPhase(durationSec, targetRangeMbps, progressKey, cb){
+        const start = now();
+        const end = start + durationSec*1000;
+        let v = targetRangeMbps[0];
+
+        while(!state.abort && now() < end){
+          const t = now();
+          const k = clamp((t - start) / (end - start), 0, 1);
+          state.progress[progressKey] = k;
+          renderProgress();
+
+          const ease = k < 0.5 ? (2*k*k) : (1 - Math.pow(-2*k+2, 2)/2);
+          const target = lerp(targetRangeMbps[0], targetRangeMbps[1], ease);
+          v = lerp(v, target, 0.18);
+          v = demoRand(v, target * 0.06);
+
+          cb(v);
+          await sleep(80);
+        }
+      }
+
+      function lockControls(isRunning){
+        el.btnStart.disabled = isRunning;
+        el.btnStop.disabled = !isRunning;
+        el.btnReset.disabled = isRunning;
+        el.demoSwitch.style.opacity = isRunning ? "0.55" : "1";
+        el.demoSwitch.style.pointerEvents = isRunning ? "none" : "auto";
+      }
+
+      async function runTest(){
+        state.abort = false;
+        state.running = true;
+        lockControls(true);
+        setStatus("run", "RUNNING");
+        el.sysMeta.textContent = "SYSTEM PROTOCOL • LINK_PROBE • ACTIVE";
+
+        state.progress = { lat:0, down:0, up:0, rpt:0, overall:0 };
+        renderProgress();
+
+        state.sample.notes = [
+          "Latency uses HTTP timing (not raw ICMP).",
+          state.mode === "live"
+            ? "Throughput is best-effort and depends on endpoint + CORS + server behavior."
+            : "DEMO mode simulates measurements for UI testing."
+        ];
+
+        try{
+          // PHASE 1: Latency
+          setPhase("lat", "PHASE 01", "Latency sweep • jitter • loss • bufferbloat estimate", "LATENCY_SWEEP");
+          el.readoutUnit.textContent = "MS";
+          el.readoutVal.textContent = "0.0";
+
+          if(state.mode === "live"){
+            const url = state.downloadUrl || location.href;
+            const sweep = await measureLatencySweep(url, 10, 10);
+
+            state.sample.pingMs = sweep.p50;
+            state.sample.jitterMs = sweep.jitter;
+            state.sample.lossPct = sweep.lossPct;
+
+            const nav = performance.getEntriesByType("navigation")[0];
+            if(nav){
+              const dns = (nav.domainLookupEnd - nav.domainLookupStart);
+              const tcp = (nav.connectEnd - nav.connectStart);
+              const tls = (nav.secureConnectionStart && nav.connectEnd) ? (nav.connectEnd - nav.secureConnectionStart) : null;
+              state.sample.dnsMs = dns >= 0 ? dns : null;
+              state.sample.tcpMs = tcp >= 0 ? tcp : null;
+              state.sample.tlsMs = (tls !== null && tls >= 0) ? tls : null;
+            }
+
+            // crude bufferbloat estimate: compare baseline to short "load"
+            state.sample.bloatMs = null;
+            if(state.downloadUrl){
+              const base = state.sample.pingMs ?? 0;
+              await Promise.race([
+                runDownloadLive(state.downloadUrl, 1.4, Math.max(2, Math.floor(state.concurrency/2)), ()=>{}),
+                sleep(2000)
+              ]);
+              const sweep2 = await measureLatencySweep(url, 5, 6);
+              const loaded = sweep2.p50 ?? base;
+              const delta = loaded - base;
+              if(isFinite(delta)) state.sample.bloatMs = clamp(delta, 0, 999);
+              state.progress.lat = 1;
+            }
+          }else{
+            await runDemoPhase(Math.min(3.2, Math.max(2.2, state.durationSec*0.35)), [8, 22], "lat", (ms)=>{
+              const ping = clamp(ms, 6, 34);
+              const jit = clamp((ms - 8) * 0.22 + Math.random()*1.2, 0.4, 8.0);
+              const loss = clamp(Math.random()*0.25, 0, 0.9);
+              const bloat = clamp((Math.random()*8.0), 0, 25);
+
+              state.sample.pingMs = ping;
+              state.sample.jitterMs = jit;
+              state.sample.lossPct = loss;
+              state.sample.bloatMs = bloat;
+              state.sample.dnsMs = clamp(6 + Math.random()*9, 4, 22);
+              state.sample.tcpMs = clamp(10 + Math.random()*20, 8, 45);
+              state.sample.tlsMs = clamp(18 + Math.random()*28, 10, 70);
+
+              el.readoutVal.textContent = fmt(ping, 1);
+              state.targetGauge = 0;
+              renderStats(); renderReport();
+            });
+            state.progress.lat = 1;
+          }
+
+          renderProgress(); renderStats(); renderReport();
+
+          // PHASE 2: Download
+          setPhase("down", "PHASE 02", "Download throughput probe • multi-stream • smoothing", "DOWNLOAD_PROBE");
+          el.readoutUnit.textContent = "MBPS";
+
+          const downSamples = [];
+          if(state.mode === "live"){
+            if(!state.downloadUrl) throw new Error("LIVE mode needs a Download URL (CORS). Open SETTINGS and set it.");
+            const deadline = now() + state.durationSec*1000;
+            await runDownloadLive(state.downloadUrl, state.durationSec, state.concurrency, (mbps)=>{
+              if(state.abort) return;
+              const t = now();
+              const k = clamp(1 - ((deadline - t)/(state.durationSec*1000)), 0, 1);
+              state.progress.down = k;
+
+              downSamples.push(mbps);
+              const smooth = smoothValue(downSamples, 0.18);
+              state.sample.downMbps = smooth;
+              state.targetGauge = smooth;
+              el.readoutVal.textContent = fmt(smooth, 1);
+              renderProgress(); renderStats(); renderReport();
+            });
+            state.progress.down = 1;
+          }else{
+            const lo = 320 + Math.random()*160;
+            const hi = 820 + Math.random()*220;
+            await runDemoPhase(Math.max(4.0, state.durationSec*0.55), [lo, hi], "down", (mbps)=>{
+              downSamples.push(mbps);
+              const smooth = smoothValue(downSamples, 0.18);
+              state.sample.downMbps = smooth;
+              state.targetGauge = smooth;
+              el.readoutVal.textContent = fmt(smooth, 1);
+              renderProgress(); renderStats(); renderReport();
+            });
+            state.progress.down = 1;
+          }
+
+          // PHASE 3: Upload
+          setPhase("up", "PHASE 03", "Upload throughput probe • payload cycling • stability tracking", "UPLOAD_PROBE");
+          const upSamples = [];
+          if(state.mode === "live"){
+            if(!state.uploadUrl) throw new Error("LIVE mode needs an Upload URL (CORS). Open SETTINGS and set it.");
+            const deadline = now() + state.durationSec*1000;
+            await runUploadLive(state.uploadUrl, state.durationSec, state.concurrency, state.chunkMB, (mbps)=>{
+              if(state.abort) return;
+              const t = now();
+              const k = clamp(1 - ((deadline - t)/(state.durationSec*1000)), 0, 1);
+              state.progress.up = k;
+
+              upSamples.push(mbps);
+              const smooth = smoothValue(upSamples, 0.20);
+              state.sample.upMbps = smooth;
+              state.targetGauge = smooth;
+              el.readoutVal.textContent = fmt(smooth, 1);
+              renderProgress(); renderStats(); renderReport();
+            });
+            state.progress.up = 1;
+          }else{
+            const lo = 90 + Math.random()*60;
+            const hi = 260 + Math.random()*140;
+            await runDemoPhase(Math.max(3.3, state.durationSec*0.45), [lo, hi], "up", (mbps)=>{
+              upSamples.push(mbps);
+              const smooth = smoothValue(upSamples, 0.20);
+              state.sample.upMbps = smooth;
+              state.targetGauge = smooth;
+              el.readoutVal.textContent = fmt(smooth, 1);
+              renderProgress(); renderStats(); renderReport();
+            });
+            state.progress.up = 1;
+          }
+
+          // PHASE 4: Report
+          setPhase("report", "PHASE 04", "Stability scoring • recap • exportable report", "REPORT_SYNTH");
+
+          const headline = Math.max(state.sample.downMbps || 0, state.sample.upMbps || 0, 0);
+          const settleStart = now();
+          while(!state.abort && now() - settleStart < 900){
+            const k = clamp((now()-settleStart)/900, 0, 1);
+            state.progress.rpt = k;
+            state.targetGauge = lerp(state.targetGauge, headline, 0.12);
+            renderProgress();
+            await sleep(16);
+          }
+          state.progress.rpt = 1;
+          renderProgress();
+
+          state.sample.quality = calcQualityScore(state.sample);
+          renderStats(); renderReport();
+
+          setPhase("done", "COMPLETE", "Report ready • export or run again", "MISSION_COMPLETE");
+          setStatus("done", "DONE");
+          el.sysMeta.textContent = "SYSTEM PROTOCOL • LINK_PROBE • STANDBY";
+
+        }catch(err){
+          setPhase("error", "ERROR", String(err && err.message ? err.message : err), "FAULT_STATE");
+          setStatus("err", "ERROR");
+          state.sample.notes.push("Error: " + (err && err.message ? err.message : String(err)));
+          renderReport();
+        }finally{
+          state.running = false;
+          lockControls(false);
+          state.abort = false;
+          renderProgress();
+          renderStats();
+          renderReport();
+        }
+      }
+
+      // -----------------------------
+      // UI Actions
+      // -----------------------------
+      function toggleDemo(){
+        if(state.running) return;
+        setMode(state.mode === "demo" ? "live" : "demo");
+        el.setMode.value = state.mode;
+        renderReport();
+        toast(`Mode: ${state.mode.toUpperCase()}`, "ok");
+      }
+      el.demoSwitch.addEventListener("click", toggleDemo);
+      el.demoSwitch.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter" || e.key === " "){
+          e.preventDefault();
+          toggleDemo();
+        }
+      });
+
+      el.btnStart.addEventListener("click", ()=>{
+        if(state.running) return;
+        resetResults();
+        toast("Running test.", "ok");
+        runTest();
+      });
+
+      el.btnStop.addEventListener("click", ()=>{
+        if(!state.running) return;
+        state.abort = true;
+        setStatus("warn", "ABORTING");
+        el.phaseDesc.textContent = "Abort requested… shutting down probes.";
+        toast("Abort requested.", "mid");
+      });
+
+      el.btnReset.addEventListener("click", ()=>{
+        if(state.running) return;
+        resetResults();
+        toast("Reset.", "ok");
+      });
+
+      // Settings modal
+      function openModal(){
+        el.modalBack.classList.add("show");
+        el.modalBack.setAttribute("aria-hidden", "false");
+        el.setMode.value = state.mode;
+        el.setDuration.value = String(state.durationSec);
+        el.setConcurrency.value = String(state.concurrency);
+        el.setChunkMB.value = String(state.chunkMB);
+        el.setDownloadUrl.value = state.downloadUrl;
+        el.setUploadUrl.value = state.uploadUrl;
+        el.setServerName.value = state.serverLabel;
+      }
+      function closeModal(){
+        el.modalBack.classList.remove("show");
+        el.modalBack.setAttribute("aria-hidden", "true");
+      }
+      el.btnSettings.addEventListener("click", openModal);
+      el.btnClose.addEventListener("click", closeModal);
+      el.modalBack.addEventListener("click", (e)=>{
+        if(e.target === el.modalBack) closeModal();
+      });
+      document.addEventListener("keydown", (e)=>{
+        if(e.key === "Escape") closeModal();
+      });
+
+      el.btnDefaults.addEventListener("click", ()=>{
+        el.setMode.value = "demo";
+        el.setDuration.value = "10";
+        el.setConcurrency.value = "6";
+        el.setChunkMB.value = "8";
+        el.setDownloadUrl.value = "";
+        el.setUploadUrl.value = "";
+        el.setServerName.value = "";
+      });
+
+      el.btnSave.addEventListener("click", ()=>{
+        const mode = el.setMode.value === "live" ? "live" : "demo";
+        state.durationSec = clamp(parseInt(el.setDuration.value || "10", 10), 3, 30);
+        state.concurrency = clamp(parseInt(el.setConcurrency.value || "6", 10), 1, 12);
+        state.chunkMB = clamp(parseInt(el.setChunkMB.value || "8", 10), 1, 64);
+        state.downloadUrl = (el.setDownloadUrl.value || "").trim();
+        state.uploadUrl = (el.setUploadUrl.value || "").trim();
+        state.serverLabel = (el.setServerName.value || "").trim();
+        setMode(mode);
+        closeModal();
+        toast("Settings saved.", "ok");
+      });
+
+      // -----------------------------
+      // Export helpers
+      // -----------------------------
+      function getReport(){
+        return {
+          meta: {
+            title: "NET_SPEEDTEST_HUD",
+            build: "v2.1",
+            timestamp: new Date().toISOString(),
+            mode: state.mode,
+            serverLabel: state.serverLabel || null,
+          },
+          results: {
+            pingMs: state.sample.pingMs,
+            jitterMs: state.sample.jitterMs,
+            packetLossPct: state.sample.lossPct,
+            bufferbloatDeltaMs: state.sample.bloatMs,
+            dnsMs: state.sample.dnsMs,
+            tcpMs: state.sample.tcpMs,
+            tlsMs: state.sample.tlsMs,
+            downloadMbps: state.sample.downMbps,
+            uploadMbps: state.sample.upMbps,
+            qualityScore: state.sample.quality,
+          },
+          environment: {
+            secureContext: window.isSecureContext,
+            platform: navigator.platform || null,
+            hardwareConcurrency: navigator.hardwareConcurrency || null,
+            userAgent: navigator.userAgent,
+            connection: (navigator.connection ? {
+              effectiveType: navigator.connection.effectiveType || null,
+              downlink: navigator.connection.downlink ?? null,
+              rtt: navigator.connection.rtt ?? null,
+              saveData: !!navigator.connection.saveData,
+            } : null),
+          },
+          config: {
+            durationSec: state.durationSec,
+            concurrency: state.concurrency,
+            chunkMB: state.chunkMB,
+            downloadUrl: state.downloadUrl || "",
+            uploadUrl: state.uploadUrl || ""
+          },
+          notes: state.sample.notes || [],
+        };
+      }
+
+      async function copyJson(){
+        const txt = JSON.stringify(getReport(), null, 2);
+        try{
+          await navigator.clipboard.writeText(txt);
+          toast("Copied JSON.", "ok");
+        }catch(e){
+          try{
+            const ta = document.createElement("textarea");
+            ta.value = txt;
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+            toast("Copied JSON (fallback).", "ok");
+          }catch(_){
+            toast("Clipboard blocked.", "bad");
+          }
+        }
+      }
+
+      function exportCsv(){
+        const r = getReport();
+        const flat = {
+          timestamp: r.meta.timestamp,
+          mode: r.meta.mode,
+          serverLabel: r.meta.serverLabel || "",
+          pingMs: r.results.pingMs ?? "",
+          jitterMs: r.results.jitterMs ?? "",
+          packetLossPct: r.results.packetLossPct ?? "",
+          bufferbloatDeltaMs: r.results.bufferbloatDeltaMs ?? "",
+          dnsMs: r.results.dnsMs ?? "",
+          tcpMs: r.results.tcpMs ?? "",
+          tlsMs: r.results.tlsMs ?? "",
+          downloadMbps: r.results.downloadMbps ?? "",
+          uploadMbps: r.results.uploadMbps ?? "",
+          qualityScore: r.results.qualityScore ?? "",
+          connType: r.environment.connection?.effectiveType ?? "",
+          connDownlink: r.environment.connection?.downlink ?? "",
+          connRtt: r.environment.connection?.rtt ?? "",
+          saveData: r.environment.connection?.saveData ?? "",
+          secureContext: r.environment.secureContext ? "true" : "false",
+        };
+
+        const headers = Object.keys(flat);
+        const values = headers.map(k => String(flat[k]).replaceAll('"', '""'));
+        const csv = headers.join(",") + "\n" + values.map(v => `"${v}"`).join(",");
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "speedtest_report.csv";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{
+          URL.revokeObjectURL(a.href);
+          document.body.removeChild(a);
+        }, 0);
+        toast("Exported CSV.", "ok");
+      }
+
+      async function shareReport(){
+        const r = getReport();
+        const txt = "NET_SPEEDTEST_HUD report\n\n" + JSON.stringify(r.results, null, 2);
+        try{
+          if(navigator.share){
+            await navigator.share({ title: "Speedtest HUD Report", text: txt });
+            toast("Shared.", "ok");
+            return;
+          }
+        }catch(_){}
+        await copyJson();
+      }
+
+      el.btnCopy.addEventListener("click", copyJson);
+      el.btnCsv.addEventListener("click", exportCsv);
+      el.btnShare.addEventListener("click", shareReport);
+
+      // -----------------------------
+      // Toast
+      // -----------------------------
+      let toastTimer = null;
+      function toast(msg, kind){
+        clearTimeout(toastTimer);
+        el.toast.textContent = msg;
+        if(kind === "ok"){
+          el.toast.style.borderColor = "rgba(182,255,0,0.22)";
+          el.toast.style.color = "rgba(182,255,0,0.95)";
+          el.toast.style.textShadow = "var(--shadowG)";
+        }else if(kind === "bad"){
+          el.toast.style.borderColor = "rgba(255,0,229,0.22)";
+          el.toast.style.color = "rgba(255,0,229,0.95)";
+          el.toast.style.textShadow = "var(--shadowP)";
+        }else{
+          el.toast.style.borderColor = "rgba(0,234,255,0.18)";
+          el.toast.style.color = "rgba(0,234,255,0.95)";
+          el.toast.style.textShadow = "var(--shadowC)";
+        }
+        el.toast.style.opacity = "1";
+        el.toast.style.transform = "translateX(-50%) translateY(-6px)";
+        toastTimer = setTimeout(()=>{
+          el.toast.style.opacity = "0";
+          el.toast.style.transform = "translateX(-50%) translateY(0px)";
+        }, 1500);
+      }
+
+      // -----------------------------
+      // Gauge drawing (neon + particles)
+      // -----------------------------
+      const particles = [];
+      function spawnParticle(x, y, hue, speed, life){
+        particles.push({
+          x, y,
+          vx: (Math.random()*2-1) * speed,
+          vy: (Math.random()*2-1) * speed,
+          life,
+          max: life,
+          hue
+        });
+      }
+
+      function colorToRGBA(name, a){
+        const map = {
+          cyan: [0,234,255],
+          pink: [255,0,229],
+          green: [182,255,0],
+          yellow: [255,242,0]
+        };
+        const rgb = map[name] || map.cyan;
+        return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+      }
+
+      function buildLabels(max){
+        const out = [];
+        const base = (max <= 100) ? [0, 10, 25, 50, 75, 100] :
+                     (max <= 500) ? [0, 50, 100, 200, 300, 400, 500] :
+                     (max <= 1000) ? [0, 100, 200, 400, 600, 800, 1000] :
+                     (max <= 2000) ? [0, 200, 400, 800, 1200, 1600, 2000] :
+                     (max <= 5000) ? [0, 500, 1000, 2000, 3000, 4000, 5000] :
+                                     [0, 1000, 2000, 4000, 6000, 8000, 10000];
+
+        const start = 0.06;
+        const end = 0.94;
+        for(let i=0;i<base.length;i++){
+          const v = base[i];
+          const t = lerp(start, end, i/(base.length-1));
+          out.push({ t, text: v === 0 ? "0" : (v >= 1000 ? (v/1000) + "K" : String(v)) });
+        }
+        return out;
+      }
+
+      function drawGlyphs(cx, cy, R, t){
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        const g1 = { x: cx - R*0.96, y: cy + R*0.12 };
+        const g2 = { x: cx + R*0.96, y: cy + R*0.12 };
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(0,234,255,0.28)";
+        ctx.shadowColor = "rgba(0,234,255,0.55)";
+        ctx.shadowBlur = 14;
+
+        ctx.beginPath();
+        ctx.moveTo(g1.x, g1.y);
+        ctx.lineTo(g1.x + 44, g1.y);
+        ctx.moveTo(g1.x, g1.y);
+        ctx.lineTo(g1.x, g1.y + 44);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(g2.x, g2.y);
+        ctx.lineTo(g2.x - 44, g2.y);
+        ctx.moveTo(g2.x, g2.y);
+        ctx.lineTo(g2.x, g2.y + 44);
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        ctx.setLineDash([2, 8]);
+        ctx.lineDashOffset = -t*0.05;
+        ctx.strokeStyle = "rgba(255,0,229,0.20)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, R*0.58, t*0.002, t*0.002 + 1.2);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(182,255,0,0.18)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, R*0.64, -t*0.0016, -t*0.0016 + 1.0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      function drawGauge(t){
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0,0,w,h);
+
+        const cx = w*0.5;
+        const cy = h*0.58;
+        const R  = Math.min(w*0.42, h*0.45);
+
+        const halo = ctx.createRadialGradient(cx, cy, R*0.05, cx, cy, R*1.05);
+        halo.addColorStop(0, "rgba(0,0,0,0.0)");
+        halo.addColorStop(0.55, "rgba(0,234,255,0.06)");
+        halo.addColorStop(0.72, "rgba(255,0,229,0.04)");
+        halo.addColorStop(0.92, "rgba(182,255,0,0.03)");
+        halo.addColorStop(1, "rgba(0,0,0,0.0)");
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R*1.05, 0, Math.PI*2);
+        ctx.fill();
+
+        for(let i=0;i<3;i++){
+          const rr = R*(0.74 + i*0.08);
+          ctx.strokeStyle = i===0 ? "rgba(0,234,255,0.18)" : i===1 ? "rgba(255,0,229,0.12)" : "rgba(255,242,0,0.10)";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([2, 10]);
+          ctx.lineDashOffset = -t*0.02*(i+1);
+          ctx.beginPath();
+          ctx.arc(cx, cy, rr, Math.PI*1.08, Math.PI*1.92);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        const startA = Math.PI*1.10;
+        const endA   = Math.PI*1.90;
+        ctx.lineCap = "round";
+
+        ctx.strokeStyle = "rgba(0,234,255,0.10)";
+        ctx.lineWidth = 22;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, startA, endA);
+        ctx.stroke();
+
+        const ticks = 40;
+        for(let i=0;i<=ticks;i++){
+          const a = lerp(startA, endA, i/ticks);
+          const major = (i % 5 === 0);
+          const len = major ? R*0.10 : R*0.06;
+          const x1 = cx + Math.cos(a)*(R - len);
+          const y1 = cy + Math.sin(a)*(R - len);
+          const x2 = cx + Math.cos(a)*(R + 6);
+          const y2 = cy + Math.sin(a)*(R + 6);
+
+          ctx.strokeStyle = major ? "rgba(255,242,0,0.55)" : "rgba(0,234,255,0.38)";
+          ctx.lineWidth = major ? 3 : 2;
+          ctx.shadowColor = major ? "rgba(255,242,0,0.60)" : "rgba(0,234,255,0.35)";
+          ctx.shadowBlur = major ? 12 : 10;
+          ctx.beginPath();
+          ctx.moveTo(x1,y1);
+          ctx.lineTo(x2,y2);
+          ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
+
+        const labels = buildLabels(state.gaugeMax);
+        ctx.font = "900 22px Orbitron, system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        labels.forEach((lab, idx)=>{
+          const a = lerp(startA, endA, lab.t);
+          const rr = R*1.16;
+          const x = cx + Math.cos(a)*rr;
+          const y = cy + Math.sin(a)*rr;
+          const col = idx % 2 === 0 ? "rgba(0,234,255,0.82)" : "rgba(255,0,229,0.78)";
+          ctx.fillStyle = col;
+          ctx.shadowColor = col;
+          ctx.shadowBlur = 16;
+          ctx.fillText(lab.text, x, y);
+        });
+        ctx.shadowBlur = 0;
+
+        const v = clamp(state.gaugeValue / Math.max(1, state.gaugeMax), 0, 1);
+        const arcEnd = lerp(startA, endA, v);
+
+        const grad = ctx.createLinearGradient(cx - R, cy, cx + R, cy);
+        grad.addColorStop(0.00, "rgba(0,234,255,0.0)");
+        grad.addColorStop(0.25, "rgba(0,234,255,0.85)");
+        grad.addColorStop(0.55, "rgba(255,0,229,0.70)");
+        grad.addColorStop(0.78, "rgba(182,255,0,0.70)");
+        grad.addColorStop(1.00, "rgba(255,242,0,0.90)");
+
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 18;
+        ctx.shadowColor = "rgba(0,234,255,0.55)";
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, startA, arcEnd);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        const needleA = arcEnd;
+        const nx = cx + Math.cos(needleA)*(R*0.92);
+        const ny = cy + Math.sin(needleA)*(R*0.92);
+
+        ctx.strokeStyle = "rgba(255,242,0,0.85)";
+        ctx.lineWidth = 6;
+        ctx.shadowColor = "rgba(255,242,0,0.75)";
+        ctx.shadowBlur = 22;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(0,234,255,0.85)";
+        ctx.lineWidth = 3;
+        ctx.shadowColor = "rgba(0,234,255,0.75)";
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, 34, 0, Math.PI*2);
+        ctx.fill();
+
+        const pivotGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 34);
+        pivotGrad.addColorStop(0, "rgba(255,242,0,0.92)");
+        pivotGrad.addColorStop(0.45, "rgba(255,0,229,0.65)");
+        pivotGrad.addColorStop(0.82, "rgba(0,234,255,0.25)");
+        pivotGrad.addColorStop(1, "rgba(0,0,0,0.0)");
+        ctx.fillStyle = pivotGrad;
+        ctx.shadowColor = "rgba(255,0,229,0.60)";
+        ctx.shadowBlur = 24;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 34, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        const speed = Math.abs(state.targetGauge - state.gaugeValue);
+        if(speed > 6){
+          const pCount = clamp(Math.floor(speed / 30), 1, 8);
+          for(let i=0;i<pCount;i++){
+            const hue = (Math.random() < 0.4) ? "cyan" : (Math.random() < 0.7) ? "pink" : (Math.random() < 0.85) ? "green" : "yellow";
+            spawnParticle(nx + (Math.random()*2-1)*8, ny + (Math.random()*2-1)*8, hue, 2.0 + Math.random()*2.8, 24 + Math.random()*24);
+          }
+        }
+
+        for(let i=particles.length-1;i>=0;i--){
+          const p = particles[i];
+          p.life -= 1;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.98;
+          p.vy *= 0.98;
+
+          const a = clamp(p.life / p.max, 0, 1);
+          ctx.fillStyle = colorToRGBA(p.hue, 0.55 * a);
+          ctx.shadowColor = colorToRGBA(p.hue, 0.9 * a);
+          ctx.shadowBlur = 18;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3.0 + (1-a)*2.2, 0, Math.PI*2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          if(p.life <= 0) particles.splice(i, 1);
+        }
+
+        drawGlyphs(cx, cy, R, t);
+      }
+
+      function animate(frameT){
+        if(!state.lastFrame) state.lastFrame = frameT;
+        const dt = clamp((frameT - state.lastFrame)/1000, 0, 0.05);
+        state.lastFrame = frameT;
+
+        const speed = 7.5;
+        const k = 1 - Math.exp(-speed * dt);
+        state.gaugeValue = lerp(state.gaugeValue, state.targetGauge, k);
+
+        if(state.phase === "lat"){
+          if(typeof state.sample.pingMs === "number"){
+            el.readoutVal.textContent = fmt(state.sample.pingMs, 1);
+            el.readoutUnit.textContent = "MS";
+          }
+        }else if(state.phase === "idle" || state.phase === "report" || state.phase === "done" || state.phase === "error"){
+          const headline = Math.max(state.sample.downMbps || 0, state.sample.upMbps || 0, 0);
+          el.readoutVal.textContent = fmt(headline, 1);
+          el.readoutUnit.textContent = "MBPS";
+        }else{
+          el.readoutUnit.textContent = "MBPS";
+          el.readoutVal.textContent = fmt(state.gaugeValue, 1);
+        }
+
+        drawGauge(frameT);
+        requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
+
+      // Boot defaults
+      setMode("demo");
+      resetResults();
+      setView("hud");
+      toast("HUD loaded. Try not to summon undefined behavior.", "ok");
+
+      // Ensure buttons don't keep focus outline on mobile tap
+      document.addEventListener("pointerdown", (e)=>{
+        const b = e.target.closest("button, .tab");
+        if(b) b.blur && b.blur();
+      }, { passive: true });
+
+    })();
+  </script>
+</body>
+</html>
