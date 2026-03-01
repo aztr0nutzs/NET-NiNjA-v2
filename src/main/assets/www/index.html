@@ -1596,39 +1596,6 @@
         return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
       };
 
-      const getThemeColor = (varName, fallback = "") => {
-        try {
-          const value = getComputedStyle(document.documentElement).getPropertyValue(varName);
-          const clean = String(value || "").trim();
-          return clean || fallback;
-        } catch {
-          return fallback;
-        }
-      };
-
-      const hexToRgb = (hexValue) => {
-        const hex = String(hexValue || "").trim();
-        const normalized = hex.startsWith("#") ? hex.slice(1) : hex;
-        if (!/^[0-9a-fA-F]{3,8}$/.test(normalized)) return null;
-        const full = normalized.length === 3
-          ? normalized.split("").map((c) => c + c).join("")
-          : normalized.slice(0, 6);
-        const int = Number.parseInt(full, 16);
-        if (Number.isNaN(int)) return null;
-        return {
-          r: (int >> 16) & 255,
-          g: (int >> 8) & 255,
-          b: int & 255,
-        };
-      };
-
-      const themeRgba = (varName, alpha, fallbackHex) => {
-        const source = getThemeColor(varName, fallbackHex);
-        const rgb = hexToRgb(source) || hexToRgb(fallbackHex);
-        if (!rgb) return `rgba(255,255,255,${alpha})`;
-        return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
-      };
-
       class HoloGaugeRenderer {
         constructor(particlesCanvas, compositeCanvas) {
           this.particlesCanvas = particlesCanvas;
@@ -2215,6 +2182,10 @@
         }
       }
       function setActive(tab) {
+        const nextScreenId = tab === "engine" ? "speedtest" : tab;
+        const prevScreenId = rendererRegistry?.getActiveScreenId?.() || null;
+        const screenChanged = prevScreenId !== nextScreenId;
+
         // Hide all screens
         Object.values(screens).forEach((s) => {
           if (s) s.classList.add("hidden");
@@ -2233,20 +2204,19 @@
         if (nav[tab]) {
           nav[tab].classList.add("is-active");
         }
-<<<<<<< ours
-        const screenThemeId = tab === "engine" ? "speedtest" : tab;
-        if (window.HoloThemeManager) window.HoloThemeManager.applyThemeForScreen(screenThemeId);
-=======
-        const nextScreenId = tab === "engine" ? "speedtest" : tab;
-        const prevScreenId = rendererRegistry?.getActiveScreenId?.();
-        if (prevScreenId && prevScreenId !== nextScreenId) {
-          rendererRegistry.stop(prevScreenId);
+
+        if (screenChanged && prevScreenId) {
+          rendererRegistry?.stop?.(prevScreenId);
         }
-        if (window.HoloThemeManager) window.HoloThemeManager.applyThemeForScreen(nextScreenId);
+        if (window.HoloThemeManager) {
+          window.HoloThemeManager.applyThemeForScreen(nextScreenId);
+        }
         if (tab !== "engine") closeThemeModal();
->>>>>>> theirs
+        if (screenChanged || !prevScreenId) {
+          rendererRegistry?.start?.(nextScreenId);
+        }
         if (tab === "map") renderMapFromScan();
-        rendererRegistry?.start?.(nextScreenId);
+        rendererRegistry?.resizeActive?.();
       }
       // initial state: engine screen
       setActive("engine");
@@ -2804,11 +2774,7 @@
           const radial = ctx.createRadialGradient(centerX, centerY, 18, centerX, centerY, Math.max(mapState.lastWidth, mapState.lastHeight) * 0.75);
           radial.addColorStop(0, themeRgba("--ring-0", 0.12, "#00d4ff"));
           radial.addColorStop(0.5, themeRgba("--panel-1", 0.22, "#111c25"));
-<<<<<<< ours
-          radial.addColorStop(1, themeRgba("--bg-0", 0.92, "#000000"));
-=======
           radial.addColorStop(1, themeRgba("--bg-0", 0.94, "#000000"));
->>>>>>> theirs
           ctx.fillStyle = radial;
           ctx.fillRect(0, 0, mapState.lastWidth, mapState.lastHeight);
 
@@ -2827,13 +2793,8 @@
 
           ctx.save();
           ctx.translate(centerX, centerY);
-<<<<<<< ours
-          for (let ring = 1; ring <= 4; ring += 1) {
-            ctx.strokeStyle = themeRgba("--ring-0", 0.06 + ring * 0.04, "#00d4ff");
-=======
           for (let ring = 1; ring <= 5; ring += 1) {
             ctx.strokeStyle = themeRgba("--ring-0", 0.04 + ring * 0.025, "#00d4ff");
->>>>>>> theirs
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.ellipse(0, 0, ring * 66 * mapState.zoom, ring * 40 * mapState.zoom, Math.sin(ts * 0.00022 + ring) * 0.06, 0, Math.PI * 2);
@@ -2841,11 +2802,7 @@
           }
           if (runtime.mapScanInProgress) {
             const wave = mapState.scanWaveRadius;
-<<<<<<< ours
-            ctx.strokeStyle = themeRgba("--good-0", 0.14 + Math.sin(mapState.scanWavePulse) * 0.08, "#b7ff2a");
-=======
             ctx.strokeStyle = themeRgba("--good-0", 0.16 + Math.sin(mapState.scanWavePulse) * 0.08, "#b7ff2a");
->>>>>>> theirs
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.ellipse(0, 0, wave, wave * 0.58, 0, 0, Math.PI * 2);
@@ -2853,20 +2810,6 @@
           }
           ctx.restore();
 
-<<<<<<< ours
-          const screenNodes = mapState.nodes.map((node) => ({ node, screen: toScreenPoint(node, ts) }));
-          screenNodes.sort((a, b) => a.screen.z - b.screen.z);
-
-          for (let i = 0; i < screenNodes.length; i += 1) {
-            const curr = screenNodes[i];
-            const next = screenNodes[(i + 1) % screenNodes.length];
-            if (!next || screenNodes.length < 2) break;
-            const isHot = curr.node.index === mapState.hoveredIndex || next.node.index === mapState.hoveredIndex;
-            const glow = isHot ? themeRgba("--good-0", 0.52, "#b7ff2a") : themeRgba("--ring-0", 0.24, "#00d4ff");
-            ctx.strokeStyle = glow;
-            ctx.lineWidth = isHot ? 2.2 : 1.1;
-            ctx.globalAlpha = 0.2 + ((curr.screen.scale + next.screen.scale) * 0.18);
-=======
           // build draw node cache (reused array, no per-frame object allocations)
           const nodeCount = mapState.nodes.length;
           if (mapState.drawNodes.length < nodeCount) {
@@ -2912,25 +2855,16 @@
             ctx.strokeStyle = beamGradient;
             ctx.globalAlpha = hot ? 0.9 : 0.42;
             ctx.lineWidth = hot ? 2.4 : 1.2;
->>>>>>> theirs
             ctx.beginPath();
             ctx.moveTo(currX, currY);
             ctx.lineTo(nextX, nextY);
             ctx.stroke();
 
-<<<<<<< ours
-            if (runtime.mapScanInProgress || runtime.lastScanSource !== "none") {
-              const p = ((ts * 0.0004) + (i * 0.13)) % 1;
-              const px = curr.screen.x + ((next.screen.x - curr.screen.x) * p);
-              const py = curr.screen.y + ((next.screen.y - curr.screen.y) * p);
-              ctx.fillStyle = isHot ? themeRgba("--good-0", 0.95, "#b7ff2a") : themeRgba("--ring-0", 0.8, "#00d4ff");
-=======
-            if (!mapState.heavyMode) {
+            if (!mapState.heavyMode && (runtime.mapScanInProgress || runtime.lastScanSource !== "none")) {
               const beamPulse = ((ts * 0.0012) + (i * 0.18)) % 1;
               const px = currX + (nextX - currX) * beamPulse;
               const py = currY + (nextY - currY) * beamPulse;
               ctx.fillStyle = hot ? themeRgba("--good-0", 0.92, "#b7ff2a") : themeRgba("--ring-0", 0.75, "#00d4ff");
->>>>>>> theirs
               ctx.shadowColor = ctx.fillStyle;
               ctx.shadowBlur = 10;
               ctx.beginPath();
@@ -2962,11 +2896,7 @@
           ctx.beginPath();
           ctx.arc(centerX, centerY, 22, 0, Math.PI * 2);
           ctx.fill();
-<<<<<<< ours
-          ctx.strokeStyle = themeRgba("--ring-0", 0.7, "#00d4ff");
-=======
           ctx.strokeStyle = themeRgba("--ring-0", 0.72, "#00d4ff");
->>>>>>> theirs
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.arc(centerX, centerY, coreGlow, 0, Math.PI * 2);
@@ -3007,16 +2937,10 @@
             ctx.arc(drawX, drawY, radius, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.filter = "none";
-<<<<<<< ours
-            ctx.globalAlpha = isHover || isSelected ? 1 : Math.min(1, opacity + 0.26);
-            ctx.strokeStyle = isHover ? getThemeColor("--good-0", "#b7ff2a") : accent.color;
-            ctx.lineWidth = isHover ? 2.4 : 1.1;
-=======
+          ctx.filter = "none";
             ctx.globalAlpha = isHover || isSelected ? 1 : Math.min(1, baseOpacity + 0.26 + waveBoost * 0.5);
             ctx.strokeStyle = isHover ? getThemeColor("--good-0", "#b7ff2a") : accent.color;
             ctx.lineWidth = isHover ? 2.6 : 1.2;
->>>>>>> theirs
             ctx.beginPath();
             ctx.arc(drawX, drawY, radius + (isHover ? 4.4 : 2.2), 0, Math.PI * 2);
             ctx.stroke();
