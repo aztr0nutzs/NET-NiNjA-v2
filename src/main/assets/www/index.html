@@ -196,7 +196,7 @@
     }
 
     .neon-yellow-readout {
-      color: #faff00;
+      color: #b7ff00;
       animation: readoutFlicker 1.8s ease-in-out infinite;
     }
 
@@ -410,19 +410,26 @@
       box-shadow: 0 0 6px #00d4ff;
     }
     /* Neon button style */
+    :root {
+      --neon-yellow-green: #b7ff00;
+      --neon-yellow-green-glow: rgba(183, 255, 0, 0.56);
+    }
     .btn-neon {
       position: relative;
       padding: 0.6rem 1.2rem;
       font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
+      font-weight: 900;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
       border: 2px solid currentColor;
       border-radius: 0.375rem;
       color: var(--btn-color, #00d4ff);
-      background: transparent;
+      background: linear-gradient(140deg, rgba(4, 4, 4, 0.95), rgba(12, 4, 16, 0.92));
       overflow: hidden;
-      transition: color 0.3s;
+      transition: color 0.3s, transform 0.16s ease;
+      font-family: "Orbitron", sans-serif;
+      text-shadow: 0 0 8px color-mix(in srgb, var(--btn-color, #00d4ff) 60%, transparent);
+      animation: navFlux 2.8s ease-in-out infinite;
     }
     .btn-neon::before {
       content: "";
@@ -436,6 +443,7 @@
     }
     .btn-neon:hover {
       color: #000;
+      transform: translateY(-1px) scale(1.02);
     }
     .btn-neon:hover::before {
       opacity: 1;
@@ -471,19 +479,16 @@
     }
     /* Device card styles */
     .shard-card {
-      background: rgba(10, 20, 30, 0.6);
-      backdrop-filter: blur(8px);
-      border-left: 1px solid rgba(255, 255, 255, 0.3);
-      border-top: 1px solid rgba(255, 255, 255, 0.3);
-      border-right: 1px solid rgba(0, 0, 0, 0.5);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.5);
-      transform: perspective(800px) rotateY(-5deg) rotateX(5deg);
+      background: rgba(0, 0, 0, 0.96);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(0, 212, 255, 0.2);
       transform-style: preserve-3d;
-      box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 255, 157, 0.05);
-      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
       position: relative;
       overflow: hidden;
-      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+      clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+      contain: content;
+      touch-action: pan-y;
     }
     .shard-card::before {
       content: "";
@@ -501,18 +506,59 @@
       position: absolute;
       inset: 0;
       border-radius: 2px;
-      padding: 2px;
+      padding: 1px;
       background: linear-gradient(45deg, transparent, var(--edge-color, #00ff9d), transparent);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
-      opacity: 0.8;
+      opacity: 0.55;
       pointer-events: none;
     }
     .shard-card:hover {
-      transform: perspective(800px) rotateY(0deg) rotateX(0deg) scale(1.02);
-      box-shadow: 0 0 20px var(--glow-color, rgba(0, 255, 157, 0.3)), 0 0 40px var(--glow-color, rgba(0, 255, 157, 0.1));
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--edge-color, #00d4ff) 60%, #ffffff 40%);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--edge-color, #00d4ff) 42%, transparent);
       z-index: 10;
+    }
+    .shard-card:active {
+      border-color: color-mix(in srgb, var(--edge-color, #00d4ff) 80%, #ffffff 20%);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--edge-color, #00d4ff) 78%, transparent), 0 0 18px var(--glow-color, rgba(0, 212, 255, 0.32));
+      z-index: 10;
+    }
+    .device-rim-icon {
+      border: 1px solid color-mix(in srgb, var(--edge-color, #00d4ff) 40%, transparent);
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.14), transparent 55%), rgba(0, 8, 14, 0.92);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 14px color-mix(in srgb, var(--edge-color, #00d4ff) 18%, transparent);
+    }
+    .holo-meter-track {
+      height: 6px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, rgba(0, 212, 255, 0.08), rgba(157, 80, 187, 0.22));
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+    .holo-meter-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--edge-color, #00d4ff) 65%, #9d50bb 35%), #d6ffff);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--edge-color, #00d4ff) 25%, transparent);
+    }
+    .signal-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--edge-color, #00d4ff);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--edge-color, #00d4ff) 35%, transparent);
+      animation: pulseBeacon 1.8s ease-in-out infinite;
+    }
+    @keyframes pulseBeacon {
+      0%, 100% { transform: scale(0.82); opacity: 0.58; }
+      50% { transform: scale(1); opacity: 0.95; }
+    }
+    .holo-state-card {
+      background: linear-gradient(130deg, rgba(0, 10, 16, 0.95), rgba(2, 4, 8, 0.98));
+      border: 1px solid rgba(0,212,255,0.25);
+      box-shadow: inset 0 0 28px rgba(0,212,255,0.04);
     }
     .liquid-bar-container {
       background: rgba(0, 0, 0, 0.8);
@@ -628,10 +674,10 @@
       border: 1px solid rgba(0, 212, 255, 0.2);
     }
     .app-nav {
-      background: rgba(5, 5, 5, 0.9);
+      background: linear-gradient(180deg, rgba(1, 1, 1, 0.96), rgba(8, 3, 10, 0.95));
       backdrop-filter: blur(18px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+      border-top: 1px solid rgba(255, 0, 221, 0.35);
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(250, 255, 0, 0.24);
     }
     .italic-heavy {
       font-style: italic;
@@ -645,63 +691,108 @@
       justify-content: center;
       gap: 4px;
       padding: 2px 0;
-      color: #64748b;
-      transition: color 0.16s ease;
+      color: #66e8ff;
+      transition: color 0.16s ease, transform 0.16s ease, text-shadow 0.16s ease;
+      font-family: "Orbitron", "Space Grotesk", sans-serif;
+      font-weight: 900;
+      letter-spacing: 0.07em;
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.35);
     }
     .nav-tab .material-symbols-outlined {
       font-size: 24px;
       font-variation-settings: "FILL" 0;
     }
+    .nav-tab .nav-icon-word {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-family: "Orbitron", "Space Grotesk", sans-serif;
+      font-style: italic;
+      font-weight: 900;
+      line-height: 1;
+    }
     .nav-tab .tab-label {
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.12em;
     }
     .nav-tab:hover {
-      color: #cbd5e1;
+      color: var(--neon-yellow-green);
+      text-shadow: 0 0 12px var(--neon-yellow-green-glow);
     }
     .nav-tab.is-active {
-      color: #00f3ff;
-      text-shadow: 0 0 15px rgba(0, 243, 255, 0.65);
+      color: #ff33df;
+      text-shadow: 0 0 16px rgba(255, 51, 223, 0.68), 0 0 8px rgba(250,255,0,0.35);
     }
     .nav-tab.is-active .material-symbols-outlined {
       font-variation-settings: "FILL" 1;
     }
     .nav-tab:active {
-      transform: scale(0.98);
+      transform: scale(0.96);
     }
-    .electric-wordmark {
+    .nav-tab .tab-label,
+    .nav-tab .material-symbols-outlined,
+    .nav-tab .nav-icon-word {
+      animation: navFlux 2.4s ease-in-out infinite;
+    }
+    .nav-emoji {
+      font-size: 14px;
+      line-height: 1;
+    }
+    .holo-center-intel {
       position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(42px, 10vw, 58px);
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      color: transparent;
-      -webkit-text-stroke: 2px rgba(186, 245, 255, 0.95);
-      background-image: linear-gradient(120deg, #faff00 0%, #00e0ff 32%, #ffffff 48%, #73f1ff 66%, #faff00 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      background-size: 220% 220%;
-      text-shadow: 0 0 12px rgba(0, 212, 255, 0.5), 0 0 26px rgba(250, 255, 0, 0.36);
-      animation: sparkFlow 2.2s linear infinite;
+      width: min(86%, 260px);
+      border: 1px solid color-mix(in srgb, var(--neon-yellow-green) 80%, transparent);
+      background: linear-gradient(145deg, rgba(0, 8, 12, 0.86), rgba(10, 3, 14, 0.88));
+      border-radius: 14px;
+      box-shadow: inset 0 0 18px rgba(0, 212, 255, 0.16), 0 0 16px rgba(255, 0, 221, 0.2);
+      overflow: hidden;
+      padding: 10px;
     }
-    .electric-wordmark::before {
-      content: "WIFI";
+    .holo-center-intel::before {
+      content: "";
       position: absolute;
       inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: transparent;
-      background-image: repeating-linear-gradient(115deg, rgba(255,255,255,0.9) 0px, rgba(255,255,255,0.9) 1px, rgba(0,212,255,0) 2px, rgba(0,212,255,0) 6px);
-      -webkit-background-clip: text;
-      background-clip: text;
+      background: linear-gradient(120deg, transparent 0%, color-mix(in srgb, var(--neon-yellow-green) 28%, transparent) 48%, transparent 100%);
       mix-blend-mode: screen;
-      animation: sparkFlow 1.1s linear infinite reverse;
+      animation: sparkFlow 3s linear infinite;
       pointer-events: none;
+    }
+    .holo-center-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .holo-center-cell {
+      border: 1px solid rgba(255, 51, 223, 0.28);
+      border-radius: 8px;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.72);
+    }
+    .holo-center-label {
+      font-family: "Orbitron", sans-serif;
+      font-size: 8px;
+      letter-spacing: 0.2em;
+      color: color-mix(in srgb, var(--neon-yellow-green) 86%, white 14%);
+      text-transform: uppercase;
+    }
+    .holo-center-value {
+      font-family: "Orbitron", sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #66e8ff;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      margin-top: 3px;
+      display: block;
+    }
+    .holo-center-value.warn {
+      color: var(--neon-yellow-green);
+      text-shadow: 0 0 10px var(--neon-yellow-green-glow);
+    }
+    .holo-center-value.hot {
+      color: #ff33df;
+      text-shadow: 0 0 10px rgba(255, 51, 223, 0.5);
     }
     .electric-aura {
       position: absolute;
@@ -749,6 +840,30 @@
       0% { background-position: 0% 50%; }
       100% { background-position: 100% 50%; }
     }
+    @keyframes navFlux {
+      0%, 100% { filter: brightness(1) saturate(1); }
+      50% { filter: brightness(1.16) saturate(1.3); }
+    }
+    @keyframes memoryPulse {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(255, 0, 221, 0.34), 0 0 12px rgba(0, 212, 255, 0.2); }
+      50% { box-shadow: 0 0 0 1px var(--neon-yellow-green-glow), 0 0 20px rgba(255, 0, 221, 0.35); }
+    }
+    .wifi-list-screen,
+    .wifi-list-screen *:not(.material-symbols-outlined) {
+      font-family: "Orbitron", "Space Grotesk", sans-serif;
+    }
+    .memory-pulse {
+      animation: memoryPulse 2.2s ease-in-out infinite;
+    }
+    .memory-word {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      font-family: "Orbitron", "Space Grotesk", sans-serif;
+      font-style: italic;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1;
+    }
   </style>
 </head>
 
@@ -769,21 +884,22 @@
   </div>
 
   <!-- WiFi List screen -->
-  <section id="wifiListScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col items-center bg-black text-slate-100 overflow-y-auto holo-layer holo-scanlines">
+  <section id="wifiListScreen" class="wifi-list-screen hidden relative flex min-h-[100dvh] w-full flex-col items-center bg-black text-slate-100 overflow-y-auto holo-layer holo-scanlines">
     <!-- Header -->
     <div class="w-full border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-md p-4 sm:p-6 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="material-symbols-outlined text-ethereal-blue text-xl sm:text-2xl">wifi</span>
         <div class="flex flex-col">
-          <span class="text-ethereal-blue/60 text-[10px] sm:text-[10px] font-bold tracking-[0.3em] uppercase italic" style="color:#faff00;">Device Matrix</span>
-          <h2 class="text-slate-100 text-sm sm:text-lg font-bold leading-tight tracking-tight italic" style="color:#ff00ff;">Neural Device Scanner</h2>
+          <span class="text-[10px] sm:text-[10px] font-black tracking-[0.42em] uppercase" style="font-family:'Orbitron',sans-serif; color:var(--neon-yellow-green); animation:navFlux 2.1s ease-in-out infinite;">DEVICE_MATRIX</span>
+          <h2 class="text-sm sm:text-lg font-black leading-tight tracking-[0.08em] uppercase" style="font-family:'Orbitron',sans-serif; color:#ff00ff;">NEURAL_DEVICE_SCANNER</h2>
         </div>
       </div>
-      <button class="tap-glow size-9 rounded-full bg-ethereal-blue/10 border border-ethereal-blue/30 flex items-center justify-center text-ethereal-blue" type="button">
-        <span class="material-symbols-outlined">memory</span>
+      <button class="tap-glow memory-pulse size-12 rounded-full bg-[#ff00dd]/10 border border-[#ff00dd]/45 flex flex-col items-center justify-center text-[var(--neon-yellow-green)]" type="button" aria-label="Memory telemetry">
+        <span class="memory-word">MEMORY</span>
+        <span class="text-[7px] leading-none tracking-[0.2em] uppercase">mem</span>
       </button>
     </div>
-    <h4 class="text-ethereal-blue/60 text-[9px] sm:text-[10px] font-bold leading-normal tracking-[0.3em] px-4 py-2 text-center uppercase italic" style="color:#faff00;">Device Matrix Online</h4>
+    <h4 class="text-[9px] sm:text-[10px] font-black leading-normal tracking-[0.34em] px-4 py-2 text-center uppercase" style="font-family:'Orbitron',sans-serif; color:var(--neon-yellow-green); animation:navFlux 2.2s ease-in-out infinite;">DEVICE_MATRIX_ONLINE</h4>
     <!-- Central Hologram -->
     <div class="relative w-full flex justify-center p-4">
       <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center overflow-hidden">
@@ -791,22 +907,38 @@
         <div class="absolute inset-0 bg-ethereal-blue/10 rounded-full blur-3xl animate-pulse"></div>
         <div class="electric-aura" aria-hidden="true"></div>
         <div class="relative z-10 flex items-center justify-center">
-          <!-- Use a WiFi icon combined with a bolt icon to simulate electrified lightning. Both icons animate using the electrify effect. -->
-          <span class="electric-wordmark" aria-label="WiFi">WIFI</span>
-          <!-- Bolt overlay enlarged to sit within the Wiâ€‘Fi arcs -->
-          
+          <div class="holo-center-intel" aria-label="Live scan telemetry">
+            <div class="holo-center-grid">
+              <div class="holo-center-cell">
+                <span class="holo-center-label">Targets</span>
+                <span id="wifiIntelCount" class="holo-center-value">0</span>
+              </div>
+              <div class="holo-center-cell">
+                <span class="holo-center-label">Strongest</span>
+                <span id="wifiIntelSignal" class="holo-center-value warn">-- dBm</span>
+              </div>
+              <div class="holo-center-cell">
+                <span class="holo-center-label">Band</span>
+                <span id="wifiIntelBand" class="holo-center-value">-- MHz</span>
+              </div>
+              <div class="holo-center-cell">
+                <span class="holo-center-label">Status</span>
+                <span id="wifiIntelStatus" class="holo-center-value hot">STBY</span>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- Spinning Neon Square Frames -->
         <!-- Outer square frame uses the same slow spin animation as the engine gauge and is colored neon yellow -->
-        <div class="absolute inset-0 border border-yellow-400 border-dashed spin-slow opacity-70" style="border-color:#faff00;"></div>
+        <div class="absolute inset-0 border border-yellow-400 border-dashed spin-slow opacity-70" style="border-color:var(--neon-yellow-green);"></div>
         <!-- Inner square frame inset to provide depth and rotates in the opposite direction for a parallax effect -->
-        <div class="absolute inset-[10%] border border-yellow-400 border-dashed spin-slower opacity-40" style="border-color:#faff00;"></div>
+        <div class="absolute inset-[10%] border border-yellow-400 border-dashed spin-slower opacity-40" style="border-color:var(--neon-yellow-green);"></div>
       </div>
       <!-- Overlay Data -->
-      <div class="absolute top-6 left-4 glass-panel p-2 rounded text-[9px] sm:text-[10px] text-ethereal-blue/80 font-mono italic">
+      <div class="absolute top-6 left-4 glass-panel p-2 rounded text-[9px] sm:text-[10px] font-mono italic" style="color:color-mix(in srgb, var(--neon-yellow-green) 88%, white 12%);">
         LAT: 37.7749<br/>LNG: -122.4194
       </div>
-      <div class="absolute bottom-4 right-4 glass-panel p-2 rounded text-[9px] sm:text-[10px] text-ethereal-blue font-mono flicker">
+      <div class="absolute bottom-4 right-4 glass-panel p-2 rounded text-[9px] sm:text-[10px] text-[#ff33df] font-mono flicker">
         PACKETS: 1.2k/s<br/>DROPPED: 0.02%
       </div>
     </div>
@@ -814,30 +946,35 @@
     <div class="w-full px-4 py-3 flex flex-col gap-3 border-b border-ethereal-blue/20">
       <div class="flex items-end justify-between gap-4">
         <div class="flex flex-col">
-          <h3 class="text-ethereal-blue text-xs sm:text-sm font-bold leading-tight tracking-[0.1em] uppercase italic">Nearby_SSIDs_Scan</h3>
-          <span id="wifiScanMeta" class="text-ethereal-blue/40 text-[9px] sm:text-[10px] font-mono">Waiting for live scan data</span>
+          <h3 class="text-[#ff33df] text-xs sm:text-sm font-black leading-tight tracking-[0.18em] uppercase" style="font-family:'Orbitron',sans-serif;">Nearby_SSIDs_Scan</h3>
+          <span id="wifiScanMeta" class="text-[9px] sm:text-[10px] font-mono" style="color:color-mix(in srgb, var(--neon-yellow-green) 74%, white 26%);">Waiting for live scan data</span>
         </div>
         <div class="flex flex-wrap justify-end gap-2">
-          <button id="wifiScanBtn" class="btn-neon" style="--btn-color:#00d4ff; --btn-glow:rgba(0,212,255,0.3)">Scan</button>
-          <button id="wifiExportBtn" class="btn-neon" style="--btn-color:#faff00; --btn-glow:rgba(250,255,0,0.3)">Export</button>
+          <button id="wifiScanBtn" class="btn-neon" style="--btn-color:#ff33df; --btn-glow:rgba(255,51,223,0.34)">⚡ Scan</button>
+          <button id="wifiExportBtn" class="btn-neon" style="--btn-color:var(--neon-yellow-green); --btn-glow:var(--neon-yellow-green-glow)">📤 Export</button>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <div class="soft-frost border border-ethereal-blue/20 rounded-lg px-3 py-2">
-          <div class="text-[9px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Bridge</div>
-          <div id="wifiBridgeState" class="text-xs font-bold text-ethereal-blue mt-1">Offline</div>
+        <div class="soft-frost border border-[#ff33df]/30 rounded-lg px-3 py-2">
+          <div class="text-[9px] uppercase tracking-[0.3em] font-mono" style="color:color-mix(in srgb, var(--neon-yellow-green) 82%, white 18%);">Bridge</div>
+          <div id="wifiBridgeState" class="text-xs font-bold text-[#ff33df] mt-1">Offline</div>
         </div>
-        <div class="soft-frost border border-ethereal-blue/20 rounded-lg px-3 py-2">
-          <div class="text-[9px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Permissions</div>
-          <div id="wifiPermissionState" class="text-xs font-bold text-ethereal-blue mt-1">Tap Scan To Grant</div>
+        <div class="soft-frost border border-[#00d4ff]/30 rounded-lg px-3 py-2">
+          <div class="text-[9px] uppercase tracking-[0.3em] text-[#00d4ff]/80 font-mono">Permissions</div>
+          <div id="wifiPermissionState" class="text-xs font-bold text-[#00d4ff] mt-1">Tap Scan To Grant</div>
         </div>
-        <div class="soft-frost border border-ethereal-blue/20 rounded-lg px-3 py-2">
-          <div class="text-[9px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Scanner</div>
-          <div id="wifiScanState" class="text-xs font-bold text-ethereal-blue mt-1">Standby</div>
+        <div class="soft-frost border rounded-lg px-3 py-2" style="border-color:color-mix(in srgb, var(--neon-yellow-green) 38%, transparent);">
+          <div class="text-[9px] uppercase tracking-[0.3em] text-[#ff33df]/85 font-mono">Scanner</div>
+          <div id="wifiScanState" class="text-xs font-bold mt-1" style="color:var(--neon-yellow-green);">Standby</div>
         </div>
       </div>
     </div>
-    <div id="wifiEmptyState" class="w-full px-4 pt-5 text-center text-[11px] tracking-[0.2em] uppercase text-ethereal-blue/50 font-mono">No networks loaded. Tap Scan for live discovery.</div>
+    <div id="wifiEmptyState" class="w-full px-4 pt-5">
+      <div class="holo-state-card rounded-xl px-4 py-4 text-center">
+        <div id="wifiStateBadge" class="text-[9px] tracking-[0.34em] uppercase text-ethereal-blue/70 font-black" style="font-family:'Orbitron',sans-serif;">STANDBY</div>
+        <div id="wifiStateMessage" class="mt-2 text-[11px] tracking-[0.2em] uppercase text-ethereal-blue/55 font-mono">No networks loaded. Tap Scan for live discovery.</div>
+      </div>
+    </div>
     <div id="wifiDeviceList" class="flex flex-col w-full px-4 py-4 gap-4 overflow-y-auto"></div>
   </section>
 
@@ -905,8 +1042,8 @@
       </div>
       <!-- Buttons -->
       <div class="flex justify-start gap-4 pt-4">
-        <button id="cfgSaveBtn" class="btn-neon" style="--btn-color:#00d4ff; --btn-glow:rgba(0,212,255,0.3)">Save</button>
-        <button id="cfgResetBtn" class="btn-neon" style="--btn-color:#ff3c00; --btn-glow:rgba(255,60,0,0.3)">Reset</button>
+        <button id="cfgSaveBtn" class="btn-neon" style="--btn-color:#00d4ff; --btn-glow:rgba(0,212,255,0.3)">💾 Save</button>
+        <button id="cfgResetBtn" class="btn-neon" style="--btn-color:#ff3c00; --btn-glow:rgba(255,60,0,0.3)">♻️ Reset</button>
       </div>
       <div class="space-y-3 border border-ethereal-blue/20 rounded-lg p-4 soft-frost">
         <div>
@@ -918,8 +1055,8 @@
           <div id="cfgDeviceSummary" class="text-sm text-slate-300 mt-1">No device snapshot yet.</div>
         </div>
         <div class="flex flex-wrap gap-3 pt-1">
-          <button id="cfgRefreshDeviceBtn" class="btn-neon" style="--btn-color:#00ff9d; --btn-glow:rgba(0,255,157,0.3)">Refresh Device</button>
-          <button id="cfgExportDiagBtn" class="btn-neon" style="--btn-color:#faff00; --btn-glow:rgba(250,255,0,0.3)">Export Diag</button>
+          <button id="cfgRefreshDeviceBtn" class="btn-neon" style="--btn-color:#00ff9d; --btn-glow:rgba(0,255,157,0.3)">🧠 Refresh Device</button>
+          <button id="cfgExportDiagBtn" class="btn-neon" style="--btn-color:#b7ff00; --btn-glow:rgba(250,255,0,0.3)">🛰️ Export Diag</button>
         </div>
       </div>
       <p id="cfgStatusMsg" class="text-[10px] text-cyber-violet uppercase mt-2 hidden">Settings saved.</p>
@@ -1143,14 +1280,14 @@
               <div class="absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.26)_0%,rgba(255,255,255,0.03)_33%,transparent_48%)] mix-blend-screen opacity-35 pointer-events-none"></div>
 
               <div class="relative z-10 flex flex-col items-center select-none">
-                <span id="phaseLabel" class="text-[10px] tracking-[0.5em] text-[#faff00]/90 font-mono font-bold mb-1 uppercase italic neon-yellow-readout">IDLE</span>
+                <span id="phaseLabel" class="text-[10px] tracking-[0.5em] text-[#b7ff00]/90 font-mono font-bold mb-1 uppercase italic neon-yellow-readout">IDLE</span>
 
                 <div class="flex items-baseline gap-1 chromatic-aberration">
-                  <span id="mainInt" class="text-6xl sm:text-7xl font-black italic text-[#faff00] tracking-tighter leading-none neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif; letter-spacing:-0.03em;">0</span>
-                  <span id="mainFrac" class="text-xl font-black italic text-[#faff00] neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif;">.0</span>
+                  <span id="mainInt" class="text-6xl sm:text-7xl font-black italic text-[#b7ff00] tracking-tighter leading-none neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif; letter-spacing:-0.03em;">0</span>
+                  <span id="mainFrac" class="text-xl font-black italic text-[#b7ff00] neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif;">.0</span>
                 </div>
 
-                <span id="unitLabel" class="text-lg font-bold text-[#faff00] tracking-widest mt-2 neon-yellow-readout">Mbps</span>
+                <span id="unitLabel" class="text-lg font-bold text-[#b7ff00] tracking-widest mt-2 neon-yellow-readout">Mbps</span>
 
                 <div class="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] font-mono uppercase tracking-wider text-white/75 digital-shimmer">
                   <span class="micro-metric">Up <span id="microUpVal" class="text-cyber-violet">0.0</span></span>
@@ -1263,21 +1400,21 @@
   <!-- Global bottom navigation -->
   <nav id="bottomNav" class="app-nav fixed bottom-0 left-0 right-0 z-40">
     <div class="flex gap-2 px-4 pb-8 pt-4">
-      <button id="navEngine" class="nav-tab italic-heavy flex-1" type="button">
-        <span class="material-symbols-outlined">speed</span>
-        <span class="tab-label">Core</span>
+      <button id="navEngine" class="nav-tab italic-heavy flex-1" type="button" aria-label="Core engine tab">
+        <span class="nav-icon-word" aria-hidden="true">SPEED</span>
+        <span class="tab-label"><span class="nav-emoji" aria-hidden="true">⚙️</span> Core</span>
       </button>
-      <button id="navList" class="nav-tab italic-heavy flex-1" type="button">
-        <span class="material-symbols-outlined">insights</span>
-        <span class="tab-label">Graph</span>
+      <button id="navList" class="nav-tab italic-heavy flex-1" type="button" aria-label="Device list tab">
+        <span class="nav-icon-word" aria-hidden="true">INSIGHTS</span>
+        <span class="tab-label"><span class="nav-emoji" aria-hidden="true">📡</span> Graph</span>
       </button>
-      <button id="navMap" class="nav-tab italic-heavy flex-1" type="button">
-        <span class="material-symbols-outlined">public</span>
-        <span class="tab-label">Nodes</span>
+      <button id="navMap" class="nav-tab italic-heavy flex-1" type="button" aria-label="Network map tab">
+        <span class="nav-icon-word" aria-hidden="true">PUBLIC</span>
+        <span class="tab-label"><span class="nav-emoji" aria-hidden="true">🛰️</span> Nodes</span>
       </button>
-      <button id="navConfig" class="nav-tab italic-heavy flex-1" type="button">
-        <span class="material-symbols-outlined">security</span>
-        <span class="tab-label">Shield</span>
+      <button id="navConfig" class="nav-tab italic-heavy flex-1" type="button" aria-label="Security settings tab">
+        <span class="nav-icon-word" aria-hidden="true">SAFETY</span>
+        <span class="tab-label"><span class="nav-emoji" aria-hidden="true">🛡️</span> Shield</span>
       </button>
     </div>
   </nav>
@@ -1328,6 +1465,12 @@
         wifiBridgeState: $("wifiBridgeState"),
         wifiPermissionState: $("wifiPermissionState"),
         wifiScanState: $("wifiScanState"),
+        wifiStateBadge: $("wifiStateBadge"),
+        wifiStateMessage: $("wifiStateMessage"),
+        wifiIntelCount: $("wifiIntelCount"),
+        wifiIntelSignal: $("wifiIntelSignal"),
+        wifiIntelBand: $("wifiIntelBand"),
+        wifiIntelStatus: $("wifiIntelStatus"),
         wifiScanBtn: $("wifiScanBtn"),
         wifiExportBtn: $("wifiExportBtn"),
         holoMapViewport: $("holoMapViewport"),
@@ -1550,7 +1693,7 @@
         const yellowGlow = 0.35 + intensity * 0.45;
         const magentaGlow = 0.12 + intensity * 0.25;
         ui.aura.style.background = `radial-gradient(circle, rgba(250,255,0,${yellowGlow.toFixed(3)}) 0%, rgba(0,212,255,${(0.18 + intensity * 0.25).toFixed(3)}) 36%, rgba(255,0,255,${magentaGlow.toFixed(3)}) 58%, rgba(255,80,25,${(danger * 0.45).toFixed(3)}) 72%, rgba(0,0,0,0) 84%)`;
-        ui.wavePath.style.color = value > 780 ? '#ff4a1a' : value > 350 ? '#ff00ff' : value > 120 ? '#00d4ff' : '#faff00';
+        ui.wavePath.style.color = value > 780 ? '#ff4a1a' : value > 350 ? '#ff00ff' : value > 120 ? '#00d4ff' : '#b7ff00';
         ui.scanJitter.style.background = `radial-gradient(circle at 50% 50%, rgba(250,255,0,${(0.10 + intensity * 0.24).toFixed(3)}) 0%, rgba(255,0,255,${(0.06 + intensity * 0.18).toFixed(3)}) 45%, rgba(0,0,0,0) 80%)`;
         ui.gaugeCompositeCanvas.style.opacity = (0.75 + intensity * 0.25 + danger * 0.1).toFixed(2);
       };
@@ -1590,10 +1733,10 @@
         ui.aura.style.opacity = scanning ? "0.72" : "0.42";
         ui.aura.style.filter = scanning ? "blur(40px) saturate(1.25)" : "blur(30px)";
         ui.needlePivot.parentElement.style.mixBlendMode = scanning ? "screen" : "normal";
-        ui.phaseLabel.style.color = "#faff00";
-        ui.unitLabel.style.color = "#faff00";
-        ui.mainInt.style.color = scanning ? "#faff00" : "#faff00";
-        ui.mainFrac.style.color = scanning ? "#faff00" : "#faff00";
+        ui.phaseLabel.style.color = "#b7ff00";
+        ui.unitLabel.style.color = "#b7ff00";
+        ui.mainInt.style.color = scanning ? "#b7ff00" : "#b7ff00";
+        ui.mainFrac.style.color = scanning ? "#b7ff00" : "#b7ff00";
       };
 
       const lockButtons = (locked) => {
@@ -2058,40 +2201,104 @@
           : `${info.manufacturer} ${info.model} / Android ${info.release} / SDK ${info.sdkInt}`;
       }
 
+      function updateWifiListState(networks, source, meta) {
+        const lowerMeta = String(meta || "").toLowerCase();
+        let badge = "STANDBY";
+        let message = "No networks loaded. Tap Scan for live discovery.";
+
+        if (lowerMeta.includes("request sent") || lowerMeta.includes("scanning") || lowerMeta.includes("await")) {
+          badge = "SCANNING";
+          message = "Sensor sweep in progress. Awaiting uplink packets.";
+        }
+        if (lowerMeta.includes("grant") || lowerMeta.includes("permission")) {
+          badge = "AUTH";
+          message = "Permission gate is blocking active discovery.";
+        }
+        if (lowerMeta.includes("error") || lowerMeta.includes("failed")) {
+          badge = "ERROR";
+          message = "Scan feed interrupted. Retry when bridge is stable.";
+        }
+        if (networks.length > 0) {
+          badge = source === "cached" ? "CACHED" : "LIVE";
+          message = `${networks.length} targets synchronized in matrix.`;
+        }
+
+        if (nativeUi.wifiStateBadge) nativeUi.wifiStateBadge.textContent = badge;
+        if (nativeUi.wifiStateMessage) nativeUi.wifiStateMessage.textContent = message;
+        if (nativeUi.wifiIntelStatus) {
+          nativeUi.wifiIntelStatus.textContent = badge.slice(0, 5);
+        }
+      }
+
+      function updateWifiCenterIntel(networks) {
+        const list = Array.isArray(networks) ? networks : [];
+        if (nativeUi.wifiIntelCount) {
+          nativeUi.wifiIntelCount.textContent = String(list.length);
+        }
+        if (list.length === 0) {
+          if (nativeUi.wifiIntelSignal) nativeUi.wifiIntelSignal.textContent = "-- dBm";
+          if (nativeUi.wifiIntelBand) nativeUi.wifiIntelBand.textContent = "-- MHz";
+          return;
+        }
+        const strongest = list.reduce((best, curr) => Number(curr.signalLevel ?? -120) > Number(best.signalLevel ?? -120) ? curr : best, list[0]);
+        if (nativeUi.wifiIntelSignal) {
+          nativeUi.wifiIntelSignal.textContent = `${strongest.signalLevel ?? "--"} dBm`;
+        }
+        if (nativeUi.wifiIntelBand) {
+          nativeUi.wifiIntelBand.textContent = strongest.frequency ? `${strongest.frequency} MHz` : "Unknown";
+        }
+      }
+
       function renderWifiNetworks(networks, source, meta) {
         runtime.lastScanResults = networks;
         runtime.lastScanSource = source;
         nativeUi.wifiScanMeta.textContent = meta;
+        updateWifiListState(networks, source, meta);
+        updateWifiCenterIntel(networks);
         nativeUi.wifiEmptyState.classList.toggle("hidden", networks.length > 0);
         nativeUi.wifiDeviceList.innerHTML = networks.map((network, index) => {
-          const accent = signalAccent(Number(network.signalLevel ?? -90));
-          const pct = Math.max(12, Math.min(100, 120 + Number(network.signalLevel ?? -90)));
+          const signalLevel = Number(network.signalLevel ?? -90);
+          const accent = signalAccent(signalLevel);
+          const signalPct = Math.max(9, Math.min(100, 120 + signalLevel));
+          const meterPct = Math.max(8, Math.min(100, 100 - Math.max(0, (Math.abs(signalLevel) - 34))));
           const ssid = escapeHtml(network.ssid || `Hidden-${index + 1}`);
           const bssid = escapeHtml(network.bssid || "N/A");
           const level = escapeHtml(`${network.signalLevel ?? "--"} dBm`);
           const freq = escapeHtml(network.frequency ? `${network.frequency} MHz` : "Unknown band");
           const security = escapeHtml(formatSecurity(network.capabilities));
+          const latency = Math.max(8, Math.min(220, Math.round(220 - (meterPct * 1.8))));
           const badge = source === "cached" ? "CACHED" : "LIVE";
+          const active = source === "real" && signalLevel > -72;
           return `
-            <div class="shard-card p-5 group holo-interactive" style="--edge-color:${accent.color}; --glow-color:${accent.glow};">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 flex items-center justify-center rounded-xl border border-white/10 holo-bloom" data-depth="0.7" style="box-shadow:0 0 18px ${accent.glow};">
-                  <span class="material-symbols-outlined" style="color:${accent.color};">wifi</span>
+            <div class="shard-card p-4 group holo-interactive" style="--edge-color:${accent.color}; --glow-color:${accent.glow};">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 flex items-center justify-center rounded-xl device-rim-icon" data-depth="0.7">
+                  <span class="material-symbols-outlined" style="color:${accent.color};">router</span>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                      <h3 class="text-lg uppercase tracking-wider truncate" style="font-family:'Orbitron', sans-serif; color:#ffffff;">${ssid}</h3>
-                      <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400 mt-1">${bssid}</p>
+                      <h3 class="text-base sm:text-lg uppercase tracking-[0.12em] truncate font-black" style="font-family:'Orbitron',sans-serif;color:#ff7cea;text-shadow:0 0 8px rgba(255,51,223,0.35);">${ssid}</h3>
+                      <p class="text-[10px] uppercase tracking-[0.19em] mt-1" style="color:rgba(250,255,0,0.78);">IP: -- // MAC: ${bssid}</p>
+                      <p class="text-[10px] uppercase tracking-[0.17em] mt-1" style="color:rgba(106,236,255,0.72);">VENDOR: ${security} // ${freq}</p>
                     </div>
-                    <span class="text-[9px] font-black tracking-[0.3em] px-2 py-1 rounded-full border" style="color:${accent.color}; border-color:${accent.color};">${badge}</span>
+                    <div class="shrink-0 text-right">
+                      <span class="text-[9px] font-black tracking-[0.3em] px-2 py-1 rounded-full border" style="font-family:'Orbitron',sans-serif;color:${accent.color}; border-color:${accent.color};">${badge}</span>
+                      <div class="mt-2 w-20">
+                        <div class="text-[8px] tracking-[0.28em] uppercase mb-1" style="font-family:'Orbitron',sans-serif;color:#b7ff00;">LATENCY</div>
+                        <div class="holo-meter-track"><div class="holo-meter-fill" style="width:${meterPct}%; --edge-color:${accent.color};"></div></div>
+                        <div class="text-[9px] mt-1 font-mono" style="color:${accent.color};">${latency} ms</div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="mt-3 relative h-4 w-full liquid-bar-container">
-                    <div class="liquid-bar-fill" style="width:${pct}%; --bar-start:${accent.color}; --bar-mid:${accent.color}; --bar-end:#ffffff;"></div>
-                  </div>
-                  <div class="flex flex-wrap justify-between gap-2 mt-3 text-[10px] font-bold tracking-widest">
-                    <span class="text-gray-400">${freq}</span>
-                    <span style="color:${accent.color}; text-shadow:0 0 5px ${accent.glow};">${level} // ${security}</span>
+                  <div class="mt-3 flex items-center justify-between gap-3">
+                    <div class="relative h-2.5 w-full liquid-bar-container">
+                      <div class="liquid-bar-fill" style="width:${signalPct}%; --bar-start:${accent.color}; --bar-mid:${accent.color}; --bar-end:#ffffff;"></div>
+                    </div>
+                    <div class="flex items-center gap-2 whitespace-nowrap">
+                      ${active ? '<span class="signal-pulse" aria-label="active-device"></span>' : '<span class="size-2 rounded-full bg-ethereal-blue/30"></span>'}
+                      <span class="text-[10px] font-bold tracking-[0.16em]" style="color:${accent.color};">${level}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2367,7 +2574,7 @@
 
             ctx.filter = "none";
             ctx.globalAlpha = isHover || isSelected ? 1 : Math.min(1, opacity + 0.26);
-            ctx.strokeStyle = isHover ? "#faff00" : accent.color;
+            ctx.strokeStyle = isHover ? "#b7ff00" : accent.color;
             ctx.lineWidth = isHover ? 2.4 : 1.1;
             ctx.beginPath();
             ctx.arc(drawX, drawY, radius + (isHover ? 4 : 2), 0, Math.PI * 2);
@@ -2689,6 +2896,7 @@
         if (!userInitiated && !runtime.bridgeState.scanPermissionGranted) {
           nativeUi.wifiScanState.textContent = "Tap Scan To Grant";
           nativeUi.wifiScanMeta.textContent = "Auto scan paused until permissions are granted";
+          updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           return;
         }
         const result = nativeBridge.call("requestWifiScan");
@@ -2700,11 +2908,13 @@
         } else if (result?.status === "permission_requested") {
           nativeUi.wifiScanState.textContent = "Permission Requested";
           nativeUi.wifiScanMeta.textContent = "Grant permissions to continue live scanning";
+          updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
         } else {
           runtime.mapScanInProgress = true;
           holoMapRenderer.setScanState(true);
           nativeUi.wifiScanState.textContent = "Scanning";
           nativeUi.wifiScanMeta.textContent = "Native scan request sent to Android";
+          updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           renderMapFromScan();
         }
       }
@@ -2742,6 +2952,7 @@
           nativeUi.wifiScanState.textContent = status.replaceAll("_", " ").toUpperCase();
           if (payload.message) {
             nativeUi.wifiScanMeta.textContent = payload.message;
+            updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           }
           return;
         }
@@ -2760,6 +2971,7 @@
         }
         if (runtime.lastScanResults.length === 0) {
           nativeUi.wifiScanMeta.textContent = "Waiting for live scan data";
+          updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
         }
       }
 
