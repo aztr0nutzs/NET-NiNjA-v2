@@ -206,7 +206,7 @@
     }
 
     .neon-yellow-readout {
-      color: #b7ff00;
+      color: var(--good-0);
       animation: readoutFlicker 1.8s ease-in-out infinite;
     }
 
@@ -343,10 +343,31 @@
   31%, 61%, 100% { clip-path: var(--clip-four); }
 }
 
-/* Color variants: green engage, pink abort, violet reset */
-.cybr-green { --primary-hue: 135; --shadow-primary-hue: 150; --shadow-secondary-hue: 60; --primary-lightness: 58; }
-.cybr-pink  { --primary-hue: 315; --shadow-primary-hue: 320; --shadow-secondary-hue: 180; --primary-lightness: 60; }
-.cybr-violet{ --primary-hue: 275; --shadow-primary-hue: 285; --shadow-secondary-hue: 180; --primary-lightness: 58; }
+/* Theme-driven cybr button variants */
+.cybr-btn.holo-btn-primary,
+.cybr-btn.holo-btn-good,
+.cybr-btn.holo-btn-warn,
+.cybr-btn.holo-btn-secondary {
+  --color: #000;
+  --primary: var(--btn-color);
+  --shadow-primary: color-mix(in srgb, var(--btn-color) 68%, white 32%);
+  --shadow-secondary: color-mix(in srgb, var(--btn-glow) 70%, white 30%);
+}
+
+.cybr-btn.holo-btn-primary .cybr-btn__glitch,
+.cybr-btn.holo-btn-good .cybr-btn__glitch,
+.cybr-btn.holo-btn-warn .cybr-btn__glitch,
+.cybr-btn.holo-btn-secondary .cybr-btn__glitch {
+  background: var(--shadow-primary);
+  text-shadow: 2px 2px var(--shadow-primary), -2px -2px var(--shadow-secondary);
+}
+
+.cybr-btn.holo-btn-primary .cybr-btn__glitch:before,
+.cybr-btn.holo-btn-good .cybr-btn__glitch:before,
+.cybr-btn.holo-btn-warn .cybr-btn__glitch:before,
+.cybr-btn.holo-btn-secondary .cybr-btn__glitch:before {
+  background: var(--primary);
+}
 
 @media (prefers-reduced-motion: reduce) {
       * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
@@ -358,7 +379,7 @@
       width: 3rem;
       height: 1.4rem;
       background-color: rgba(255,255,255,0.05);
-      border: 1px solid var(--toggle-border, #00d4ff);
+      border: 1px solid var(--toggle-border, var(--accent-0));
       border-radius: 9999px;
       position: relative;
       cursor: pointer;
@@ -372,19 +393,19 @@
       left: 0.1rem;
       width: 1.2rem;
       height: 1.2rem;
-      background-color: var(--toggle-knob, #00d4ff);
+      background-color: var(--toggle-knob, var(--accent-0));
       border-radius: 9999px;
       transition: transform 0.3s, background-color 0.3s;
-      box-shadow: 0 0 6px var(--toggle-knob, #00d4ff);
+      box-shadow: 0 0 6px var(--toggle-knob, var(--accent-0));
     }
     .toggle:checked {
       background-color: rgba(157,80,187,0.3);
-      border-color: #9d50bb;
+      border-color: var(--accent-1);
     }
     .toggle:checked::after {
       transform: translateX(1.6rem);
-      background-color: #9d50bb;
-      box-shadow: 0 0 6px #9d50bb;
+      background-color: var(--accent-1);
+      box-shadow: 0 0 6px var(--accent-1);
     }
     /* Range slider styling */
     input[type="range"] {
@@ -394,35 +415,35 @@
     }
     input[type="range"]::-webkit-slider-runnable-track {
       height: 4px;
-      background: rgba(0,212,255,0.3);
+      background: color-mix(in srgb, var(--accent-0) 30%, transparent);
       border-radius: 2px;
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 14px;
       height: 14px;
-      background: #00d4ff;
+      background: var(--accent-0);
       border-radius: 50%;
       margin-top: -5px;
-      box-shadow: 0 0 6px #00d4ff;
+      box-shadow: 0 0 6px var(--accent-0);
     }
     input[type="range"]::-moz-range-track {
       height: 4px;
-      background: rgba(0,212,255,0.3);
+      background: color-mix(in srgb, var(--accent-0) 30%, transparent);
       border-radius: 2px;
     }
     input[type="range"]::-moz-range-thumb {
       width: 14px;
       height: 14px;
-      background: #00d4ff;
+      background: var(--accent-0);
       border-radius: 50%;
       border: none;
-      box-shadow: 0 0 6px #00d4ff;
+      box-shadow: 0 0 6px var(--accent-0);
     }
     /* Neon button style */
     :root {
-      --neon-yellow-green: #b7ff00;
-      --neon-yellow-green-glow: rgba(183, 255, 0, 0.56);
+      --neon-yellow-green: var(--good-0);
+      --neon-yellow-green-glow: color-mix(in srgb, var(--good-0) 56%, transparent);
     }
     .btn-neon {
       position: relative;
@@ -619,14 +640,14 @@
       0% { transform: rotateX(-15deg) rotateY(0deg); }
       100% { transform: rotateX(-15deg) rotateY(360deg); }
     }
-    .shadow-neon { box-shadow: 0 0 5px #00ff9d, 0 0 15px #00ff9d; }
-    .shadow-neon-cyan { box-shadow: 0 0 5px #00f3ff, 0 0 15px #00f3ff; }
-    .shadow-neon-orange { box-shadow: 0 0 10px #ffaa00, 0 0 25px #ffaa00; }
-    .shadow-purple { box-shadow: 0 0 10px #a855f7, 0 0 20px #a855f7; }
+    .shadow-neon { box-shadow: 0 0 5px var(--good-0), 0 0 15px var(--good-0); }
+    .shadow-neon-cyan { box-shadow: 0 0 5px var(--accent-0), 0 0 15px var(--accent-0); }
+    .shadow-neon-orange { box-shadow: 0 0 10px var(--warn-0), 0 0 25px var(--warn-0); }
+    .shadow-purple { box-shadow: 0 0 10px var(--accent-1), 0 0 20px var(--accent-1); }
 
     /* Additional HUD classes from Wifi_map for map screen */
     .glitch-text {
-      text-shadow: 2px 0 #00d4ff, -2px 0 #9d50bb;
+      text-shadow: 2px 0 var(--accent-0), -2px 0 var(--accent-1);
       letter-spacing: -0.05em;
     }
     .shard-clip {
@@ -636,24 +657,24 @@
       clip-path: polygon(0 15%, 95% 0, 100% 85%, 5% 100%);
     }
     .radar-ring {
-      border: 1px solid rgba(0, 212, 255, 0.3);
+      border: 1px solid color-mix(in srgb, var(--accent-0) 30%, transparent);
       border-radius: 50%;
       position: absolute;
     }
     .lightning-line {
-      background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+      background: linear-gradient(90deg, transparent, var(--accent-0), transparent);
       height: 1px;
       filter: blur(1px);
     }
     /* Wireframe and digital rain overlays used in the WiFi map screen */
     .wireframe-bg {
       background-image:
-        linear-gradient(to right, rgba(0, 212, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+        linear-gradient(to right, color-mix(in srgb, var(--grid-0) 55%, transparent) 1px, transparent 1px),
+        linear-gradient(to bottom, color-mix(in srgb, var(--grid-0) 55%, transparent) 1px, transparent 1px);
       background-size: 20px 20px;
     }
     .digital-rain-overlay {
-      background: linear-gradient(180deg, rgba(0,212,255,0) 0%, rgba(0,212,255,0.05) 50%, rgba(0,212,255,0) 100%);
+      background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--accent-0) 12%, transparent) 50%, transparent 100%);
       background-size: 100% 200%;
     }
     /* Triangular shard clipping used for the overdrive/cloak buttons from wifi_map */
@@ -665,7 +686,7 @@
     }
     /* Conic gradient used for the engine gauge to restore the missing blue and red arcs. The mask ensures the center remains transparent. */
     .gauge-conic {
-      background: conic-gradient(from 225deg, transparent 0deg, #00d4ff 40deg, #00d4ff 180deg, #ff3c00 240deg, transparent 270deg);
+      background: conic-gradient(from 225deg, transparent 0deg, var(--accent-0) 40deg, var(--ring-0) 180deg, var(--warn-0) 240deg, transparent 270deg);
       mask: radial-gradient(transparent 65%, black 66%);
       -webkit-mask: radial-gradient(transparent 65%, black 66%);
     }
@@ -731,8 +752,8 @@
       text-shadow: 0 0 12px var(--neon-yellow-green-glow);
     }
     .nav-tab.is-active {
-      color: #ff33df;
-      text-shadow: 0 0 16px rgba(255, 51, 223, 0.68), 0 0 8px rgba(250,255,0,0.35);
+      color: var(--accent-1);
+      text-shadow: 0 0 16px color-mix(in srgb, var(--accent-1) 68%, transparent), 0 0 8px color-mix(in srgb, var(--good-0) 35%, transparent);
     }
     .nav-tab.is-active .material-symbols-outlined {
       font-variation-settings: "FILL" 1;
@@ -752,10 +773,10 @@
     .holo-center-intel {
       position: relative;
       width: min(86%, 260px);
-      border: 1px solid color-mix(in srgb, var(--neon-yellow-green) 80%, transparent);
-      background: linear-gradient(145deg, rgba(0, 8, 12, 0.86), rgba(10, 3, 14, 0.88));
+      border: 1px solid color-mix(in srgb, var(--good-0) 80%, transparent);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--panel-0) 90%, black), color-mix(in srgb, var(--panel-1) 86%, black));
       border-radius: 14px;
-      box-shadow: inset 0 0 18px rgba(0, 212, 255, 0.16), 0 0 16px rgba(255, 0, 221, 0.2);
+      box-shadow: inset 0 0 18px color-mix(in srgb, var(--accent-0) 16%, transparent), 0 0 16px color-mix(in srgb, var(--accent-1) 20%, transparent);
       overflow: hidden;
       padding: 10px;
     }
@@ -774,10 +795,10 @@
       gap: 8px;
     }
     .holo-center-cell {
-      border: 1px solid rgba(255, 51, 223, 0.28);
+      border: 1px solid color-mix(in srgb, var(--accent-1) 28%, transparent);
       border-radius: 8px;
       padding: 8px;
-      background: rgba(0, 0, 0, 0.72);
+      background: color-mix(in srgb, var(--bg-0) 72%, transparent);
     }
     .holo-center-label {
       font-family: "Orbitron", sans-serif;
@@ -791,8 +812,8 @@
       font-size: 16px;
       font-weight: 900;
       letter-spacing: 0.08em;
-      color: #66e8ff;
-      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      color: var(--accent-0);
+      text-shadow: 0 0 10px color-mix(in srgb, var(--accent-0) 50%, transparent);
       margin-top: 3px;
       display: block;
     }
@@ -801,15 +822,15 @@
       text-shadow: 0 0 10px var(--neon-yellow-green-glow);
     }
     .holo-center-value.hot {
-      color: #ff33df;
-      text-shadow: 0 0 10px rgba(255, 51, 223, 0.5);
+      color: var(--accent-1);
+      text-shadow: 0 0 10px color-mix(in srgb, var(--accent-1) 50%, transparent);
     }
     .electric-aura {
       position: absolute;
       width: 76%;
       height: 76%;
       border-radius: 9999px;
-      background: radial-gradient(circle, rgba(0, 224, 255, 0.25) 0%, rgba(250, 255, 0, 0.18) 36%, rgba(2,4,8,0) 70%);
+      background: radial-gradient(circle, color-mix(in srgb, var(--accent-0) 25%, transparent) 0%, color-mix(in srgb, var(--good-0) 18%, transparent) 36%, rgba(2,4,8,0) 70%);
       filter: blur(9px);
       animation: holoPulse 2.6s ease-in-out infinite;
     }
@@ -877,7 +898,7 @@
   </style>
 </head>
 
-<body class="bg-black font-display text-slate-100 overflow-y-auto antialiased">
+<body class="holo-screen font-display overflow-y-auto antialiased">
   <div class="fixed inset-0 vhs-overlay z-50 mix-blend-overlay opacity-30 pointer-events-none"></div>
 
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none holo-layer" id="holoParticleField">
@@ -889,32 +910,32 @@
     <div class="absolute bottom-[18%] right-[18%] w-2 h-2 neural-node rounded-full blur-[3px] opacity-22" style="animation: drift 12s ease-in-out infinite;"></div>
     <div class="absolute top-[58%] left-[8%] w-1 h-1 neural-node rounded-full blur-[1px] opacity-55" style="animation: drift 6s ease-in-out infinite;"></div>
 
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,212,255,0.08)_0%,rgba(2,4,8,0.00)_55%,rgba(2,4,8,0.90)_78%)]"></div>
-    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-void-black to-void-black"></div>
+    <div class="absolute inset-0 holo-stage-glow"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/80 to-black"></div>
   </div>
 
   <!-- WiFi List screen -->
-  <section id="wifiListScreen" class="wifi-list-screen hidden relative flex min-h-[100dvh] w-full flex-col items-center bg-black text-slate-100 overflow-y-auto holo-layer holo-scanlines">
+  <section id="wifiListScreen" class="wifi-list-screen holo-screen hidden relative flex min-h-[100dvh] w-full flex-col items-center overflow-y-auto holo-layer holo-scanlines">
     <!-- Header -->
-    <div class="w-full border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-md p-4 sm:p-6 flex items-center justify-between">
+    <div class="w-full holo-header p-4 sm:p-6 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-ethereal-blue text-xl sm:text-2xl">wifi</span>
+        <span class="material-symbols-outlined holo-header-icon text-xl sm:text-2xl">wifi</span>
         <div class="flex flex-col">
-          <span class="text-[10px] sm:text-[10px] font-black tracking-[0.42em] uppercase" style="font-family:'Orbitron',sans-serif; color:var(--neon-yellow-green); animation:navFlux 2.1s ease-in-out infinite;">DEVICE_MATRIX</span>
-          <h2 class="text-sm sm:text-lg font-black leading-tight tracking-[0.08em] uppercase" style="font-family:'Orbitron',sans-serif; color:#ff00ff;">NEURAL_DEVICE_SCANNER</h2>
+          <span class="text-[10px] sm:text-[10px] font-black tracking-[0.42em] uppercase holo-text-good" style="font-family:'Orbitron',sans-serif; animation:navFlux 2.1s ease-in-out infinite;">DEVICE_MATRIX</span>
+          <h2 class="text-sm sm:text-lg font-black leading-tight tracking-[0.08em] uppercase holo-title-strong" style="font-family:'Orbitron',sans-serif;">NEURAL_DEVICE_SCANNER</h2>
         </div>
       </div>
-      <button class="tap-glow memory-pulse size-12 rounded-full bg-[#ff00dd]/10 border border-[#ff00dd]/45 flex flex-col items-center justify-center text-[var(--neon-yellow-green)]" type="button" aria-label="Memory telemetry">
+      <button class="tap-glow memory-pulse size-12 rounded-full holo-orb-btn flex flex-col items-center justify-center holo-text-good" type="button" aria-label="Memory telemetry">
         <span class="memory-word">MEMORY</span>
         <span class="text-[7px] leading-none tracking-[0.2em] uppercase">mem</span>
       </button>
     </div>
-    <h4 class="text-[9px] sm:text-[10px] font-black leading-normal tracking-[0.34em] px-4 py-2 text-center uppercase" style="font-family:'Orbitron',sans-serif; color:var(--neon-yellow-green); animation:navFlux 2.2s ease-in-out infinite;">DEVICE_MATRIX_ONLINE</h4>
+    <h4 class="text-[9px] sm:text-[10px] font-black leading-normal tracking-[0.34em] px-4 py-2 text-center uppercase holo-text-good" style="font-family:'Orbitron',sans-serif; animation:navFlux 2.2s ease-in-out infinite;">DEVICE_MATRIX_ONLINE</h4>
     <!-- Central Hologram -->
     <div class="relative w-full flex justify-center p-4">
       <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center overflow-hidden">
-        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #00d4ff 1px, transparent 1px); background-size: 20px 20px;"></div>
-        <div class="absolute inset-0 bg-ethereal-blue/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, var(--accent-0) 1px, transparent 1px); background-size: 20px 20px;"></div>
+        <div class="absolute inset-0 rounded-full blur-3xl animate-pulse" style="background:color-mix(in srgb, var(--accent-0) 14%, transparent);"></div>
         <div class="electric-aura" aria-hidden="true"></div>
         <div class="relative z-10 flex items-center justify-center">
           <div class="holo-center-intel" aria-label="Live scan telemetry">
@@ -940,102 +961,102 @@
         </div>
         <!-- Spinning Neon Square Frames -->
         <!-- Outer square frame uses the same slow spin animation as the engine gauge and is colored neon yellow -->
-        <div class="absolute inset-0 border border-yellow-400 border-dashed spin-slow opacity-70" style="border-color:var(--neon-yellow-green);"></div>
+        <div class="absolute inset-0 border border-dashed spin-slow opacity-70 holo-border-strong" style="border-color:var(--good-0);"></div>
         <!-- Inner square frame inset to provide depth and rotates in the opposite direction for a parallax effect -->
-        <div class="absolute inset-[10%] border border-yellow-400 border-dashed spin-slower opacity-40" style="border-color:var(--neon-yellow-green);"></div>
+        <div class="absolute inset-[10%] border border-dashed spin-slower opacity-40 holo-border" style="border-color:var(--good-0);"></div>
       </div>
       <!-- Overlay Data -->
-      <div class="absolute top-6 left-4 glass-panel p-2 rounded text-[9px] sm:text-[10px] font-mono italic" style="color:color-mix(in srgb, var(--neon-yellow-green) 88%, white 12%);">
+      <div class="absolute top-6 left-4 glass-panel p-2 rounded text-[9px] sm:text-[10px] font-mono italic holo-text-good">
         LAT: 37.7749<br/>LNG: -122.4194
       </div>
-      <div class="absolute bottom-4 right-4 glass-panel p-2 rounded text-[9px] sm:text-[10px] text-[#ff33df] font-mono flicker">
+      <div class="absolute bottom-4 right-4 glass-panel p-2 rounded text-[9px] sm:text-[10px] holo-title-strong font-mono flicker">
         PACKETS: 1.2k/s<br/>DROPPED: 0.02%
       </div>
     </div>
     <!-- Scan header -->
-    <div class="w-full px-4 py-3 flex flex-col gap-3 border-b border-ethereal-blue/20">
+    <div class="w-full px-4 py-3 flex flex-col gap-3 border-b holo-border">
       <div class="flex items-end justify-between gap-4">
         <div class="flex flex-col">
-          <h3 class="text-[#ff33df] text-xs sm:text-sm font-black leading-tight tracking-[0.18em] uppercase" style="font-family:'Orbitron',sans-serif;">Nearby_SSIDs_Scan</h3>
-          <span id="wifiScanMeta" class="text-[9px] sm:text-[10px] font-mono" style="color:color-mix(in srgb, var(--neon-yellow-green) 74%, white 26%);">Waiting for live scan data</span>
+          <h3 class="holo-title-strong text-xs sm:text-sm font-black leading-tight tracking-[0.18em] uppercase" style="font-family:'Orbitron',sans-serif;">Nearby_SSIDs_Scan</h3>
+          <span id="wifiScanMeta" class="text-[9px] sm:text-[10px] font-mono holo-text-good">Waiting for live scan data</span>
         </div>
         <div class="flex flex-wrap justify-end gap-2">
-          <button id="wifiScanBtn" class="btn-neon" style="--btn-color:#ff33df; --btn-glow:rgba(255,51,223,0.34)">⚡ Scan</button>
-          <button id="wifiExportBtn" class="btn-neon" style="--btn-color:var(--neon-yellow-green); --btn-glow:var(--neon-yellow-green-glow)">📤 Export</button>
+          <button id="wifiScanBtn" class="btn-neon holo-btn holo-btn-secondary">⚡ Scan</button>
+          <button id="wifiExportBtn" class="btn-neon holo-btn holo-btn-good">📤 Export</button>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <div class="soft-frost border border-[#ff33df]/30 rounded-lg px-3 py-2">
-          <div class="text-[9px] uppercase tracking-[0.3em] font-mono" style="color:color-mix(in srgb, var(--neon-yellow-green) 82%, white 18%);">Bridge</div>
-          <div id="wifiBridgeState" class="text-xs font-bold text-[#ff33df] mt-1">Offline</div>
+        <div class="soft-frost holo-panel-soft rounded-lg px-3 py-2">
+          <div class="text-[9px] uppercase tracking-[0.3em] font-mono holo-text-good">Bridge</div>
+          <div id="wifiBridgeState" class="text-xs font-bold holo-title-strong mt-1">Offline</div>
         </div>
-        <div class="soft-frost border border-[#00d4ff]/30 rounded-lg px-3 py-2">
-          <div class="text-[9px] uppercase tracking-[0.3em] text-[#00d4ff]/80 font-mono">Permissions</div>
-          <div id="wifiPermissionState" class="text-xs font-bold text-[#00d4ff] mt-1">Tap Scan To Grant</div>
+        <div class="soft-frost holo-panel-soft rounded-lg px-3 py-2">
+          <div class="text-[9px] uppercase tracking-[0.3em] holo-text-subtle font-mono">Permissions</div>
+          <div id="wifiPermissionState" class="text-xs font-bold holo-text-accent mt-1">Tap Scan To Grant</div>
         </div>
-        <div class="soft-frost border rounded-lg px-3 py-2" style="border-color:color-mix(in srgb, var(--neon-yellow-green) 38%, transparent);">
-          <div class="text-[9px] uppercase tracking-[0.3em] text-[#ff33df]/85 font-mono">Scanner</div>
-          <div id="wifiScanState" class="text-xs font-bold mt-1" style="color:var(--neon-yellow-green);">Standby</div>
+        <div class="soft-frost holo-panel-soft rounded-lg px-3 py-2">
+          <div class="text-[9px] uppercase tracking-[0.3em] holo-title-strong font-mono">Scanner</div>
+          <div id="wifiScanState" class="text-xs font-bold mt-1 holo-text-good">Standby</div>
         </div>
       </div>
     </div>
     <div id="wifiEmptyState" class="w-full px-4 pt-5">
-      <div class="holo-state-card rounded-xl px-4 py-4 text-center">
-        <div id="wifiStateBadge" class="text-[9px] tracking-[0.34em] uppercase text-ethereal-blue/70 font-black" style="font-family:'Orbitron',sans-serif;">STANDBY</div>
-        <div id="wifiStateMessage" class="mt-2 text-[11px] tracking-[0.2em] uppercase text-ethereal-blue/55 font-mono">No networks loaded. Tap Scan for live discovery.</div>
+      <div class="holo-state-card holo-panel rounded-xl px-4 py-4 text-center">
+        <div id="wifiStateBadge" class="text-[9px] tracking-[0.34em] uppercase holo-text-subtle font-black" style="font-family:'Orbitron',sans-serif;">STANDBY</div>
+        <div id="wifiStateMessage" class="mt-2 text-[11px] tracking-[0.2em] uppercase holo-text-dim font-mono">No networks loaded. Tap Scan for live discovery.</div>
       </div>
     </div>
     <div id="wifiDeviceList" class="flex flex-col w-full px-4 py-4 gap-4 overflow-y-auto"></div>
   </section>
 
   <!-- Configuration Screen -->
-  <section id="configScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col bg-black text-slate-100 overflow-y-auto holo-layer holo-scanlines">
+  <section id="configScreen" class="holo-screen hidden relative flex min-h-[100dvh] w-full flex-col overflow-y-auto holo-layer holo-scanlines">
     <!-- Config header -->
-    <div class="w-full border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-md p-4 sm:p-6 flex items-center justify-between">
+    <div class="w-full holo-header p-4 sm:p-6 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-ethereal-blue text-xl sm:text-2xl">settings</span>
-        <h2 class="text-ethereal-blue text-sm sm:text-lg font-bold leading-tight tracking-tight italic">System Configuration</h2>
+        <span class="material-symbols-outlined holo-header-icon text-xl sm:text-2xl">settings</span>
+        <h2 class="holo-title text-sm sm:text-lg font-bold leading-tight tracking-tight italic">System Configuration</h2>
       </div>
     </div>
     <div class="w-full max-w-md mx-auto px-4 sm:px-6 py-6 flex flex-col space-y-6">
       <!-- Toggle settings -->
       <div class="space-y-4">
         <label class="flex items-center justify-between">
-          <span class="text-sm text-ethereal-blue font-mono uppercase">Auto Scan</span>
+          <span class="text-sm holo-text-accent font-mono uppercase">Auto Scan</span>
           <input id="cfgAutoScan" type="checkbox" class="toggle" />
         </label>
         <label class="flex items-center justify-between">
-          <span class="text-sm text-ethereal-blue font-mono uppercase">Holo FX</span>
+          <span class="text-sm holo-text-accent font-mono uppercase">Holo FX</span>
           <input id="cfgHoloFX" type="checkbox" class="toggle" />
         </label>
         <label class="flex items-center justify-between">
-          <span class="text-sm text-ethereal-blue font-mono uppercase">Alerts</span>
+          <span class="text-sm holo-text-accent font-mono uppercase">Alerts</span>
           <input id="cfgAlerts" type="checkbox" class="toggle" />
         </label>
         <label class="flex items-center justify-between">
-          <span class="text-sm text-ethereal-blue font-mono uppercase">Fallback Mode (Disabled)</span>
+          <span class="text-sm holo-text-accent font-mono uppercase">Fallback Mode (Disabled)</span>
           <input id="cfgDemoMode" type="checkbox" class="toggle" />
         </label>
         <label class="flex items-center justify-between">
-          <span class="text-sm text-ethereal-blue font-mono uppercase">Native Bridge</span>
+          <span class="text-sm holo-text-accent font-mono uppercase">Native Bridge</span>
           <input id="cfgBridgeEnabled" type="checkbox" class="toggle" />
         </label>
       </div>
       <!-- Slider settings -->
       <div class="space-y-4">
         <label class="flex flex-col gap-1">
-          <span class="text-sm text-ethereal-blue font-mono uppercase">Neon Intensity</span>
+          <span class="text-sm holo-text-accent font-mono uppercase">Neon Intensity</span>
           <input id="cfgNeonIntensity" type="range" min="0" max="100" value="70" />
         </label>
         <label class="flex flex-col gap-1">
-          <span class="text-sm text-ethereal-blue font-mono uppercase">Scan Speed</span>
+          <span class="text-sm holo-text-accent font-mono uppercase">Scan Speed</span>
           <input id="cfgScanSpeed" type="range" min="0" max="100" value="50" />
         </label>
       </div>
       <!-- Accent mode selector -->
       <div class="flex flex-col gap-1">
-        <span class="text-sm text-ethereal-blue font-mono uppercase">Accent Mode</span>
-        <select id="cfgAccentMode" class="bg-void-black border border-ethereal-blue/30 text-ethereal-blue text-sm p-2 rounded focus:outline-none">
+        <span class="text-sm holo-text-accent font-mono uppercase">Accent Mode</span>
+        <select id="cfgAccentMode" class="holo-input text-sm p-2 rounded focus:outline-none">
           <option value="blue">Blue</option>
           <option value="violet">Violet</option>
           <option value="pink">Pink</option>
@@ -1044,53 +1065,53 @@
       </div>
       <!-- Performance mode selector -->
       <div class="flex flex-col gap-1">
-        <span class="text-sm text-ethereal-blue font-mono uppercase">Performance Mode</span>
-        <select id="cfgPerfMode" class="bg-void-black border border-ethereal-blue/30 text-ethereal-blue text-sm p-2 rounded focus:outline-none">
+        <span class="text-sm holo-text-accent font-mono uppercase">Performance Mode</span>
+        <select id="cfgPerfMode" class="holo-input text-sm p-2 rounded focus:outline-none">
           <option value="high">High FX</option>
           <option value="low">Low FX</option>
         </select>
       </div>
       <!-- Buttons -->
       <div class="flex justify-start gap-4 pt-4">
-        <button id="cfgSaveBtn" class="btn-neon" style="--btn-color:#00d4ff; --btn-glow:rgba(0,212,255,0.3)">💾 Save</button>
-        <button id="cfgResetBtn" class="btn-neon" style="--btn-color:#ff3c00; --btn-glow:rgba(255,60,0,0.3)">♻️ Reset</button>
+        <button id="cfgSaveBtn" class="btn-neon holo-btn holo-btn-primary">💾 Save</button>
+        <button id="cfgResetBtn" class="btn-neon holo-btn holo-btn-warn">♻️ Reset</button>
       </div>
-      <div class="space-y-3 border border-ethereal-blue/20 rounded-lg p-4 soft-frost">
+      <div class="space-y-3 holo-panel rounded-lg p-4 soft-frost">
         <div>
-          <div class="text-[10px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Bridge State</div>
-          <div id="cfgBridgeSummary" class="text-sm text-ethereal-blue mt-1">Checking native layer...</div>
+          <div class="text-[10px] uppercase tracking-[0.3em] holo-text-subtle font-mono">Bridge State</div>
+          <div id="cfgBridgeSummary" class="text-sm holo-text-accent mt-1">Checking native layer...</div>
         </div>
         <div>
-          <div class="text-[10px] uppercase tracking-[0.3em] text-ethereal-blue/60 font-mono">Device Info</div>
-          <div id="cfgDeviceSummary" class="text-sm text-slate-300 mt-1">No device snapshot yet.</div>
+          <div class="text-[10px] uppercase tracking-[0.3em] holo-text-subtle font-mono">Device Info</div>
+          <div id="cfgDeviceSummary" class="text-sm holo-text-dim mt-1">No device snapshot yet.</div>
         </div>
         <div class="flex flex-wrap gap-3 pt-1">
-          <button id="cfgRefreshDeviceBtn" class="btn-neon" style="--btn-color:#00ff9d; --btn-glow:rgba(0,255,157,0.3)">🧠 Refresh Device</button>
-          <button id="cfgExportDiagBtn" class="btn-neon" style="--btn-color:#b7ff00; --btn-glow:rgba(250,255,0,0.3)">🛰️ Export Diag</button>
+          <button id="cfgRefreshDeviceBtn" class="btn-neon holo-btn holo-btn-good">🧠 Refresh Device</button>
+          <button id="cfgExportDiagBtn" class="btn-neon holo-btn holo-btn-secondary">🛰️ Export Diag</button>
         </div>
       </div>
-      <p id="cfgStatusMsg" class="text-[10px] text-cyber-violet uppercase mt-2 hidden">Settings saved.</p>
+      <p id="cfgStatusMsg" class="text-[10px] holo-text-accent-strong uppercase mt-2 hidden">Settings saved.</p>
     </div>
   </section>
 
 
   <!-- WiFi Map Screen -->
-  <section id="wifiMapScreen" class="hidden relative flex min-h-[100dvh] w-full flex-col bg-black text-slate-100 overflow-hidden holo-layer holo-scanlines">
+  <section id="wifiMapScreen" class="holo-screen hidden relative flex min-h-[100dvh] w-full flex-col overflow-hidden holo-layer holo-scanlines">
     <!-- Map header -->
-    <div class="w-full flex items-center justify-between p-4 sm:p-6 border-b border-ethereal-blue/10 bg-void-black/80 backdrop-blur-md">
+    <div class="w-full flex items-center justify-between p-4 sm:p-6 holo-header">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-ethereal-blue text-xl sm:text-2xl">public</span>
-        <h2 class="text-ethereal-blue text-sm sm:text-lg font-bold leading-tight tracking-tight italic glitch-text">*</h2>
-        <h2 class="text-ethereal-blue text-sm sm:text-lg font-bold leading-tight tracking-tight italic glitch-text">LOCAL_NET_CONSTELLATION</h2>
+        <span class="material-symbols-outlined holo-header-icon text-xl sm:text-2xl">public</span>
+        <h2 class="holo-title text-sm sm:text-lg font-bold leading-tight tracking-tight italic glitch-text">*</h2>
+        <h2 class="holo-title text-sm sm:text-lg font-bold leading-tight tracking-tight italic glitch-text">LOCAL_NET_CONSTELLATION</h2>
       </div>
       <div class="flex items-center gap-4">
         <div class="flex flex-col items-end">
-          <span class="text-[9px] text-ethereal-blue/50 uppercase">Sys_Load</span>
-          <div class="h-1 w-16 bg-engine-iron rounded-full overflow-hidden">
-            <div class="h-full bg-ethereal-blue w-2/3"></div>
+          <span class="text-[9px] holo-text-subtle uppercase">Sys_Load</span>
+          <div class="h-1 w-16 rounded-full overflow-hidden holo-panel-soft">
+            <div class="h-full w-2/3" style="background:var(--accent-0);"></div>
           </div>
         </div>
-        <button class="tap-glow size-9 rounded-full bg-ethereal-blue/10 border border-ethereal-blue/30 flex items-center justify-center text-ethereal-blue" type="button">
+        <button class="tap-glow size-9 rounded-full holo-orb-btn flex items-center justify-center" type="button">
           <span class="material-symbols-outlined">computer</span>
         </button>
       </div>
@@ -1102,10 +1123,10 @@
       <div class="absolute inset-0 digital-rain-overlay pointer-events-none"></div>
       <!-- Title and protocol -->
       <div class="p-4 pt-6 z-10">
-        <p class="text-primary italic text-xl sm:text-2xl font-bold leading-tight tracking-tighter uppercase glitch-text">
+        <p class="holo-title italic text-xl sm:text-2xl font-bold leading-tight tracking-tighter uppercase glitch-text">
           *LOCAL_NET_CONSTELLATION*
         </p>
-        <p class="text-[9px] text-ethereal-blue/40 font-mono mt-1 tracking-widest uppercase">
+        <p class="text-[9px] holo-text-subtle font-mono mt-1 tracking-widest uppercase">
           Protocol: Native_Scan_Backend // Active_Nodes: <span id="mapActiveNodes">0</span>
         </p>
       </div>
@@ -1114,11 +1135,11 @@
         <div class="absolute inset-0 flex items-center justify-center">
           <div class="relative w-full h-full p-4">
             <!-- Map container -->
-            <div class="w-full h-full rounded-lg border border-ethereal-blue/10 bg-black/40 relative overflow-hidden flex items-center justify-center">
+            <div class="w-full h-full rounded-lg holo-panel-strong relative overflow-hidden flex items-center justify-center">
               <!-- Top-left control icons -->
-              <div class="absolute top-4 left-4 z-20 flex flex-col gap-2 bg-engine-iron/90 border border-ethereal-blue/30 p-2 rounded">
-                <span class="material-symbols-outlined text-ethereal-blue text-sm">filter_center_focus</span>
-                <span class="material-symbols-outlined text-ethereal-blue text-sm">layers</span>
+              <div class="absolute top-4 left-4 z-20 flex flex-col gap-2 holo-panel-soft p-2 rounded">
+                <span class="material-symbols-outlined holo-text-accent text-sm">filter_center_focus</span>
+                <span class="material-symbols-outlined holo-text-accent text-sm">layers</span>
               </div>
               <!-- Central radar -->
               <div class="relative w-full h-full flex items-center justify-center">
@@ -1127,30 +1148,30 @@
                   <div id="holoMapTooltip" class="holo-map-node-tooltip"></div>
                 </div>
                 <!-- Central numeric indicator -->
-                <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-ethereal-blue shadow-[0_0_30px_rgba(0,212,255,0.5)] overflow-hidden bg-black/80 flex items-center justify-center">
-                  <div class="absolute inset-0 bg-gradient-to-tr from-cyber-violet/30 via-transparent to-ethereal-blue/20"></div>
-                  <div id="mapValue" class="text-ethereal-blue text-5xl sm:text-6xl font-black italic opacity-80 glitch-text">0</div>
-                  <div class="absolute inset-0 border-[6px] sm:border-[8px] border-ethereal-blue/20 border-dotted rounded-full"></div>
+                <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 holo-border-strong overflow-hidden bg-black/80 flex items-center justify-center" style="box-shadow:0 0 30px color-mix(in srgb, var(--accent-0) 40%, transparent);">
+                  <div class="absolute inset-0" style="background:linear-gradient(135deg, color-mix(in srgb, var(--accent-1) 26%, transparent), transparent, color-mix(in srgb, var(--accent-0) 18%, transparent));"></div>
+                  <div id="mapValue" class="holo-text-accent text-5xl sm:text-6xl font-black italic opacity-80 glitch-text">0</div>
+                  <div class="absolute inset-0 border-[6px] sm:border-[8px] rounded-full" style="border-color:color-mix(in srgb, var(--accent-0) 20%, transparent); border-style:dotted;"></div>
                 </div>
               </div>
               <!-- Search & sliders -->
               <div class="absolute bottom-4 left-4 right-4 flex flex-col gap-4">
-                <div class="flex items-center gap-3 bg-engine-iron/80 border border-ethereal-blue/30 p-3 rounded">
-                  <span class="material-symbols-outlined text-ethereal-blue text-sm">search</span>
-                  <input id="mapSearchInput" class="bg-transparent border-none text-ethereal-blue placeholder:text-ethereal-blue/40 text-xs focus:ring-0 w-full uppercase" placeholder="SEARCH SSID OR BSSID..." />
+                <div class="flex items-center gap-3 holo-panel-soft p-3 rounded">
+                  <span class="material-symbols-outlined holo-text-accent text-sm">search</span>
+                  <input id="mapSearchInput" class="holo-input bg-transparent border-none holo-text-accent text-xs focus:ring-0 w-full uppercase" placeholder="SEARCH SSID OR BSSID..." />
                 </div>
                 <div class="flex justify-between items-center px-2">
                   <div class="flex flex-col gap-1 w-24">
-                    <div class="h-1 bg-ethereal-blue/20 rounded-full relative">
-                      <div class="absolute left-1/3 size-3 -top-1 bg-ethereal-blue rounded-full shadow-[0_0_8px_#00d4ff]"></div>
+                    <div class="h-1 rounded-full relative" style="background:color-mix(in srgb, var(--accent-0) 18%, transparent);">
+                      <div class="absolute left-1/3 size-3 -top-1 rounded-full holo-dot"></div>
                     </div>
-                    <span class="text-[8px] text-ethereal-blue/60 uppercase">Zoom_Lvl</span>
+                    <span class="text-[8px] holo-text-subtle uppercase">Zoom_Lvl</span>
                   </div>
                   <div class="flex flex-col gap-1 w-24">
-                    <div class="h-1 bg-ethereal-blue/20 rounded-full relative">
-                      <div class="absolute left-2/3 size-3 -top-1 bg-ethereal-blue rounded-full shadow-[0_0_8px_#00d4ff]"></div>
+                    <div class="h-1 rounded-full relative" style="background:color-mix(in srgb, var(--accent-0) 18%, transparent);">
+                      <div class="absolute left-2/3 size-3 -top-1 rounded-full holo-dot"></div>
                     </div>
-                    <span class="text-[8px] text-ethereal-blue/60 uppercase">Scan_Freq</span>
+                    <span class="text-[8px] holo-text-subtle uppercase">Scan_Freq</span>
                   </div>
                 </div>
               </div>
@@ -1163,23 +1184,23 @@
       <!-- Overdrive and Cloak buttons (adapted from wifi_map.html) -->
       <div class="absolute bottom-32 left-4 flex flex-col gap-3 z-30">
         <!-- Overdrive button -->
-        <button id="mapOverdriveBtn" class="shard-clip-alt bg-cyber-violet/20 border border-ethereal-blue/30 text-ethereal-blue font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
+        <button id="mapOverdriveBtn" class="shard-clip-alt holo-panel-soft holo-text-accent font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
           <span class="material-symbols-outlined text-sm">bolt</span>
           Overdrive
         </button>
         <!-- Cloak button -->
-        <button id="mapCloakBtn" class="shard-clip bg-engine-iron/80 border border-cyber-violet/40 text-ethereal-blue font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
+        <button id="mapCloakBtn" class="shard-clip holo-panel-soft holo-text-accent font-black px-4 py-2 uppercase italic flex items-center gap-1 tap-glow" type="button">
           <span class="material-symbols-outlined text-sm">shield_with_heart</span>
           Cloak
         </button>
       </div>
       <!-- Anomaly detection card -->
-      <div id="mapAlertCard" class="absolute bottom-32 right-4 bg-engine-iron/80 border border-danger/50 p-3 w-44 z-30">
+      <div id="mapAlertCard" class="absolute bottom-32 right-4 holo-panel-soft p-3 w-44 z-30" style="border-color:color-mix(in srgb, var(--warn-0) 46%, transparent);">
         <div class="flex items-center gap-2 mb-1">
-          <div class="size-2 bg-danger rounded-full shadow-[0_0_8px_#ff3c00]"></div>
-          <div id="mapScanStatus" class="text-[10px] text-danger uppercase font-black">Awaiting Live Scan</div>
+          <div class="size-2 rounded-full holo-dot-warn"></div>
+          <div id="mapScanStatus" class="text-[10px] holo-text-warn uppercase font-black">Awaiting Live Scan</div>
         </div>
-        <div id="mapAlertText" class="text-slate-400 font-mono text-[9px] leading-tight">
+        <div id="mapAlertText" class="holo-text-dim font-mono text-[9px] leading-tight">
           Trigger Scan To Populate<br/>
           Last Sync: <span id="mapLastSync">Never</span><br/>
           Source: Native Bridge
@@ -1189,19 +1210,19 @@
     <!-- Pulses bottom center -->
     <div class="absolute inset-x-0 bottom-20 h-12 flex justify-center pointer-events-none">
       <div class="w-full max-w-xs h-full flex items-center justify-around">
-        <div class="size-1 bg-ethereal-blue/40 rounded-full"></div>
-        <div class="size-1.5 bg-ethereal-blue rounded-full shadow-[0_0_5px_#00d4ff]"></div>
-        <div class="size-1 bg-ethereal-blue/40 rounded-full"></div>
+        <div class="size-1 rounded-full" style="background:color-mix(in srgb, var(--accent-0) 40%, transparent);"></div>
+        <div class="size-1.5 rounded-full holo-dot"></div>
+        <div class="size-1 rounded-full" style="background:color-mix(in srgb, var(--accent-0) 40%, transparent);"></div>
       </div>
     </div>
   </section>
 
-  <div id="engineScreen" class="relative flex min-h-[100dvh] w-full flex-col justify-between bg-black holo-layer holo-scanlines">
+  <div id="engineScreen" class="holo-screen relative flex min-h-[100dvh] w-full flex-col justify-between holo-layer holo-scanlines">
 
     <!-- Header video (speed.mp4) -->
     <div class="relative z-30 w-full header-video-frame">
       <div class="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
-        <div class="w-full rounded-xl overflow-hidden border border-white/10 bg-black/50">
+        <div class="w-full rounded-xl overflow-hidden holo-panel-soft">
           <video
             id="headerVid"
             class="w-full max-h-[140px] sm:max-h-[180px] object-contain bg-black"
@@ -1217,8 +1238,8 @@
 
     <header class="relative z-20 flex items-center justify-between p-4 pt-3 sm:p-6 sm:pt-6 bg-gradient-to-b from-void-black/75 to-transparent">
       <div class="flex flex-col">
-        <span class="text-[10px] tracking-[0.3em] text-ethereal-blue/70 font-mono uppercase">SYSTEM STATUS</span>
-        <h2 class="text-sm sm:text-base leading-tight flex items-center gap-2 italic-heavy chromatic-aberration" style="color:#dfff11;">
+        <span class="text-[10px] tracking-[0.3em] holo-text-subtle font-mono uppercase">SYSTEM STATUS</span>
+        <h2 class="text-sm sm:text-base leading-tight flex items-center gap-2 italic-heavy chromatic-aberration holo-text-good">
           <span class="material-symbols-outlined text-base">terminal</span>
           PSYCHO-ENGINE / HOLO MERGE
         </h2>
@@ -1226,15 +1247,15 @@
 
       <div class="flex gap-4 items-center">
         <div class="text-right hidden sm:block">
-          <p class="text-[10px] text-slate-500 uppercase font-mono">Neural Link</p>
-          <p class="text-xs font-bold text-cyber-violet font-mono tracking-widest">ENCRYPTED</p>
+          <p class="text-[10px] holo-text-dim uppercase font-mono">Neural Link</p>
+          <p class="text-xs font-bold holo-text-accent-strong font-mono tracking-widest">ENCRYPTED</p>
         </div>
 
-        <button id="btnTheme" class="tap-glow size-10 rounded-full bg-ethereal-blue/10 border border-ethereal-blue/30 flex items-center justify-center text-ethereal-blue" type="button" aria-label="Speedtest theme picker" aria-haspopup="dialog" aria-controls="speedtestThemeModal" aria-expanded="false">
+        <button id="btnTheme" class="tap-glow size-10 rounded-full holo-orb-btn flex items-center justify-center" type="button" aria-label="Speedtest theme picker" aria-haspopup="dialog" aria-controls="speedtestThemeModal" aria-expanded="false">
           <span class="material-symbols-outlined">palette</span>
         </button>
 
-        <button id="btnSettings" class="tap-glow size-10 rounded-full bg-ethereal-blue/10 border border-ethereal-blue/30 flex items-center justify-center text-ethereal-blue" type="button">
+        <button id="btnSettings" class="tap-glow size-10 rounded-full holo-orb-btn flex items-center justify-center" type="button">
           <span class="material-symbols-outlined">settings_input_component</span>
         </button>
       </div>
@@ -1254,65 +1275,65 @@
       <div class="relative z-10 flex flex-col items-center w-full max-w-sm sm:max-w-md">
 
         <div class="absolute -top-12 left-0 right-0 flex justify-between px-6 opacity-90 rotate-x-25" aria-hidden="true">
-          <div class="flex flex-col items-start border-l-2 border-ethereal-blue/40 pl-2">
-            <span class="text-[9px] text-ethereal-blue uppercase tracking-widest font-mono">Heat Level</span>
-            <span id="heatLabel" class="text-sm font-black text-ethereal-blue">IDLE</span>
+          <div class="flex flex-col items-start border-l-2 holo-border-strong pl-2">
+            <span class="text-[9px] holo-text-accent uppercase tracking-widest font-mono">Heat Level</span>
+            <span id="heatLabel" class="text-sm font-black holo-text-accent">IDLE</span>
           </div>
-          <div class="flex flex-col items-end border-r-2 border-cyber-violet/40 pr-2">
-            <span class="text-[9px] text-cyber-violet uppercase tracking-widest font-mono">Pressure</span>
-            <span id="pressureLabel" class="text-sm font-black text-cyber-violet">STABLE</span>
+          <div class="flex flex-col items-end border-r-2 pr-2" style="border-color:color-mix(in srgb, var(--accent-1) 40%, transparent);">
+            <span class="text-[9px] holo-text-accent-strong uppercase tracking-widest font-mono">Pressure</span>
+            <span id="pressureLabel" class="text-sm font-black holo-text-accent-strong">STABLE</span>
           </div>
         </div>
 
         <div class="relative group w-full flex items-center justify-center">
-          <div id="aura" class="absolute -inset-10 bg-ethereal-blue/10 blur-3xl rounded-full" style="animation: holoPulse 4.5s ease-in-out infinite;"></div>
+          <div id="aura" class="absolute -inset-10 blur-3xl rounded-full" style="animation: holoPulse 4.5s ease-in-out infinite;"></div>
           <!-- Spinning diamond frame around the gauge -->
-          <div class="absolute -inset-6 sm:-inset-8 rounded-3xl rotate-45 opacity-55 border-2 animate-[spin_60s_linear_infinite]" style="border-color:rgba(255,0,255,0.55);"></div>
-          <div class="absolute -inset-10 sm:-inset-12 rounded-3xl rotate-45 opacity-50 border-2 border-dashed animate-[spin_72s_linear_infinite_reverse]" style="border-color:rgba(223,255,17,0.72);"></div>
+          <div class="absolute -inset-6 sm:-inset-8 rounded-3xl rotate-45 opacity-55 border-2 animate-[spin_60s_linear_infinite]" style="border-color:color-mix(in srgb, var(--accent-1) 55%, transparent);"></div>
+          <div class="absolute -inset-10 sm:-inset-12 rounded-3xl rotate-45 opacity-50 border-2 border-dashed animate-[spin_72s_linear_infinite_reverse]" style="border-color:color-mix(in srgb, var(--good-0) 72%, transparent);"></div>
 
           <div class="relative size-64 sm:size-80 flex items-center justify-center transform-gpu holo-gauge-shell">
             <canvas id="gaugeParticlesCanvas" class="holo-gauge-canvas opacity-45"></canvas>
             <canvas id="gaugeCompositeCanvas" class="holo-gauge-canvas opacity-95"></canvas>
 
-            <div class="absolute inset-2 rounded-full border border-ethereal-blue/15"></div>
+            <div class="absolute inset-2 rounded-full border" style="border-color:color-mix(in srgb, var(--accent-0) 15%, transparent);"></div>
             <div class="absolute inset-0 gauge-conic opacity-35"></div>
 
             <div class="absolute inset-0 flex items-center justify-center">
               <div id="needlePivot" class="absolute w-full h-full flex items-center justify-center" style="transform: rotate(140deg); will-change: transform;">
                 <div class="relative w-44 sm:w-52 flex items-center justify-end origin-left">
-                  <div class="w-28 sm:w-32 h-[2px] bg-gradient-to-r from-transparent via-[#7ef5ff] to-white rounded-full shadow-[0_0_18px_rgba(0,212,255,0.78)]"></div>
-                  <div class="absolute -right-1 w-2.5 h-2.5 bg-white rounded-full blur-[1px] shadow-[0_0_12px_rgba(255,255,255,0.95)]"></div>
+                  <div id="needleBeam" class="w-28 sm:w-32 h-[2px] rounded-full"></div>
+                  <div id="needleTipGlow" class="absolute -right-1 w-2.5 h-2.5 rounded-full blur-[1px]"></div>
                 </div>
-                <div class="absolute w-40 h-14 bg-ethereal-blue/10 blur-xl rounded-full -left-16 origin-right"></div>
+                <div id="needleBaseGlow" class="absolute w-40 h-14 blur-xl rounded-full -left-16 origin-right"></div>
               </div>
-              <div class="absolute w-5 h-5 rounded-full bg-[#9bf7ff] shadow-[0_0_18px_rgba(0,212,255,0.8),0_0_30px_rgba(255,255,255,0.5)]"></div>
+              <div id="needleCore" class="absolute w-5 h-5 rounded-full"></div>
             </div>
 
-            <div class="relative z-20 size-48 sm:size-56 bg-panel/70 soft-frost rounded-2xl border-2 border-ethereal-blue/35 glitch-border p-4 flex flex-col items-center justify-center overflow-hidden">
+            <div class="relative z-20 size-48 sm:size-56 holo-panel-strong soft-frost rounded-2xl border-2 glitch-border p-4 flex flex-col items-center justify-center overflow-hidden">
               <div class="absolute inset-0 opacity-15 scanline-mask"></div>
               <div class="holo-scan-sweep opacity-30"></div>
               <div class="absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.26)_0%,rgba(255,255,255,0.03)_33%,transparent_48%)] mix-blend-screen opacity-35 pointer-events-none"></div>
 
               <div class="relative z-10 flex flex-col items-center select-none">
-                <span id="phaseLabel" class="text-[10px] tracking-[0.5em] text-[#b7ff00]/90 font-mono font-bold mb-1 uppercase italic neon-yellow-readout">IDLE</span>
+                <span id="phaseLabel" class="text-[10px] tracking-[0.5em] font-mono font-bold mb-1 uppercase italic neon-yellow-readout">IDLE</span>
 
                 <div class="flex items-baseline gap-1 chromatic-aberration">
-                  <span id="mainInt" class="text-6xl sm:text-7xl font-black italic text-[#b7ff00] tracking-tighter leading-none neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif; letter-spacing:-0.03em;">0</span>
-                  <span id="mainFrac" class="text-xl font-black italic text-[#b7ff00] neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif;">.0</span>
+                  <span id="mainInt" class="text-6xl sm:text-7xl font-black italic tracking-tighter leading-none neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif; letter-spacing:-0.03em;">0</span>
+                  <span id="mainFrac" class="text-xl font-black italic neon-yellow-readout digital-shimmer" style="font-family:'Orbitron', sans-serif;">.0</span>
                 </div>
 
-                <span id="unitLabel" class="text-lg font-bold text-[#b7ff00] tracking-widest mt-2 neon-yellow-readout">Mbps</span>
+                <span id="unitLabel" class="text-lg font-bold tracking-widest mt-2 neon-yellow-readout">Mbps</span>
 
-                <div class="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] font-mono uppercase tracking-wider text-white/75 digital-shimmer">
-                  <span class="micro-metric">Up <span id="microUpVal" class="text-cyber-violet">0.0</span></span>
-                  <span class="micro-metric">Ping <span id="microPingVal" class="text-ethereal-blue">--</span></span>
-                  <span class="micro-metric">Jit <span id="microJitterVal" class="text-ethereal-blue">--</span></span>
-                  <span class="micro-metric">Loss <span id="microLossVal" class="text-danger">--</span></span>
+                <div class="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[9px] font-mono uppercase tracking-wider holo-telemetry digital-shimmer">
+                  <span class="micro-metric">Up <span id="microUpVal" class="holo-text-accent-strong">0.0</span></span>
+                  <span class="micro-metric">Ping <span id="microPingVal" class="holo-text-accent">--</span></span>
+                  <span class="micro-metric">Jit <span id="microJitterVal" class="holo-text-accent">--</span></span>
+                  <span class="micro-metric">Loss <span id="microLossVal" class="holo-text-warn">--</span></span>
                 </div>
 
-                <div class="mt-3 flex items-center gap-2 font-mono text-[10px] text-white/60">
+                <div class="mt-3 flex items-center gap-2 font-mono text-[10px] holo-telemetry">
                   <span class="inline-flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-ethereal-blue shadow-[0_0_8px_#00d4ff]"></span>
+                    <span class="w-1.5 h-1.5 rounded-full holo-dot"></span>
                     <span id="statusText">READY</span>
                   </span>
                   <span class="opacity-50">|</span>
@@ -1321,7 +1342,7 @@
               </div>
 
               <div class="absolute bottom-0 left-0 right-0 h-16 opacity-25 data-heart-glow">
-                <svg class="w-full h-full text-ethereal-blue" viewBox="0 0 200 100" preserveAspectRatio="none">
+                <svg class="w-full h-full holo-text-accent" viewBox="0 0 200 100" preserveAspectRatio="none">
                   <path id="wavePath" d="M0 100 L20 40 L40 80 L60 20 L80 90 L100 10 L120 70 L140 30 L160 85 L180 45 L200 100 Z" fill="currentColor"></path>
                 </svg>
               </div>
@@ -1329,41 +1350,41 @@
               <div id="scanJitter" class="absolute inset-0 pointer-events-none opacity-0"></div>
             </div>
 
-            <div class="absolute -top-4 -right-4 size-12 bg-cyber-violet/20 border border-cyber-violet/50 nitro-shard flex items-center justify-center">
-              <span class="material-symbols-outlined text-cyber-violet text-sm">bolt</span>
+            <div class="absolute -top-4 -right-4 size-12 nitro-shard holo-panel-soft flex items-center justify-center">
+              <span class="material-symbols-outlined holo-text-accent-strong text-sm">bolt</span>
             </div>
           </div>
         </div>
 
         <div class="mt-10 sm:mt-12 grid grid-cols-3 gap-3 w-full px-2">
-          <div class="bg-engine-iron/55 border-l border-ethereal-blue/40 p-3 rounded-sm">
-            <p class="text-[8px] text-slate-500 uppercase font-bold tracking-widest font-mono">Latency</p>
-            <p class="text-lg font-black text-slate-100">
-              <span id="latencyVal">--</span><span class="text-[10px] text-ethereal-blue ml-1 font-mono">MS</span>
+          <div class="holo-metric-panel p-3 rounded-sm">
+            <p class="text-[8px] holo-metric-label uppercase font-bold tracking-widest font-mono">Latency</p>
+            <p class="text-lg font-black">
+              <span id="latencyVal">--</span><span class="text-[10px] holo-metric-unit ml-1 font-mono">MS</span>
             </p>
           </div>
-          <div class="bg-engine-iron/55 border-l border-ethereal-blue/40 p-3 rounded-sm">
-            <p class="text-[8px] text-slate-500 uppercase font-bold tracking-widest font-mono">Jitter</p>
-            <p class="text-lg font-black text-slate-100">
-              <span id="jitterVal">--</span><span class="text-[10px] text-ethereal-blue ml-1 font-mono">MS</span>
+          <div class="holo-metric-panel p-3 rounded-sm">
+            <p class="text-[8px] holo-metric-label uppercase font-bold tracking-widest font-mono">Jitter</p>
+            <p class="text-lg font-black">
+              <span id="jitterVal">--</span><span class="text-[10px] holo-metric-unit ml-1 font-mono">MS</span>
             </p>
           </div>
-          <div class="bg-engine-iron/55 border-l border-ethereal-blue/40 p-3 rounded-sm">
-            <p class="text-[8px] text-slate-500 uppercase font-bold tracking-widest font-mono">Loss</p>
-            <p class="text-lg font-black text-slate-100">
-              <span id="lossVal">--</span><span class="text-[10px] text-ethereal-blue ml-1 font-mono">%</span>
+          <div class="holo-metric-panel p-3 rounded-sm">
+            <p class="text-[8px] holo-metric-label uppercase font-bold tracking-widest font-mono">Loss</p>
+            <p class="text-lg font-black">
+              <span id="lossVal">--</span><span class="text-[10px] holo-metric-unit ml-1 font-mono">%</span>
             </p>
           </div>
         </div>
 
         <div class="mt-4 grid grid-cols-2 gap-3 w-full px-2">
-          <div class="bg-panel/35 border border-white/5 p-3 rounded-md">
-            <p class="text-[9px] text-slate-500 uppercase font-mono tracking-widest">Downlink</p>
-            <p class="text-sm font-mono text-white"><span id="downVal">0.0</span> <span class="text-ethereal-blue">Mbps</span></p>
+          <div class="holo-panel-soft p-3 rounded-md">
+            <p class="text-[9px] holo-metric-label uppercase font-mono tracking-widest">Downlink</p>
+            <p class="text-sm font-mono"><span id="downVal">0.0</span> <span class="holo-text-accent">Mbps</span></p>
           </div>
-          <div class="bg-panel/35 border border-white/5 p-3 rounded-md">
-            <p class="text-[9px] text-slate-500 uppercase font-mono tracking-widest">Uplink</p>
-            <p class="text-sm font-mono text-white"><span id="upVal">0.0</span> <span class="text-cyber-violet">Mbps</span></p>
+          <div class="holo-panel-soft p-3 rounded-md">
+            <p class="text-[9px] holo-metric-label uppercase font-mono tracking-widest">Uplink</p>
+            <p class="text-sm font-mono"><span id="upVal">0.0</span> <span class="holo-text-accent-strong">Mbps</span></p>
           </div>
         </div>
 
@@ -1373,17 +1394,17 @@
     <footer class="relative z-30 shrink-0 p-6 pb-10 sm:px-8 sm:pb-12 flex flex-col gap-6">
       
 <div class="grid grid-cols-3 gap-3">
-        <button id="btnStart" class="cybr-btn cybr-green tap-glow" type="button" aria-label="Engage">
+        <button id="btnStart" class="cybr-btn holo-btn holo-btn-good tap-glow" type="button" aria-label="Engage">
           <span class="cybr-btn__glitch" aria-hidden="true">ENGAGE</span>
           ENGAGE
         </button>
 
-        <button id="btnAbort" class="cybr-btn cybr-pink tap-glow" type="button" aria-label="Abort">
+        <button id="btnAbort" class="cybr-btn holo-btn holo-btn-warn tap-glow" type="button" aria-label="Abort">
           <span class="cybr-btn__glitch" aria-hidden="true">ABORT</span>
           ABORT
         </button>
 
-        <button id="btnReset" class="cybr-btn cybr-violet tap-glow" type="button" aria-label="Reset">
+        <button id="btnReset" class="cybr-btn holo-btn holo-btn-secondary tap-glow" type="button" aria-label="Reset">
           <span class="cybr-btn__glitch" aria-hidden="true">RESET</span>
           RESET
         </button>
@@ -1398,14 +1419,14 @@
 
     <!-- Vertical accent bars for engine screen -->
     <div id="barsLeft" class="absolute top-1/2 left-4 -translate-y-1/2 flex flex-col gap-1 z-0">
-      <div class="h-12 w-0.5 bg-ethereal-blue/30"></div>
-      <div class="h-2 w-0.5 bg-cyber-violet"></div>
-      <div class="h-20 w-0.5 bg-ethereal-blue/10"></div>
+      <div class="h-12 w-0.5" style="background:color-mix(in srgb, var(--accent-0) 30%, transparent);"></div>
+      <div class="h-2 w-0.5" style="background:var(--accent-1);"></div>
+      <div class="h-20 w-0.5" style="background:color-mix(in srgb, var(--accent-0) 10%, transparent);"></div>
     </div>
     <div id="barsRight" class="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col gap-1 z-0 items-end">
-      <div class="h-20 w-0.5 bg-ethereal-blue/10"></div>
-      <div class="h-2 w-0.5 bg-ethereal-blue"></div>
-      <div class="h-12 w-0.5 bg-cyber-violet/30"></div>
+      <div class="h-20 w-0.5" style="background:color-mix(in srgb, var(--accent-0) 10%, transparent);"></div>
+      <div class="h-2 w-0.5" style="background:var(--accent-0);"></div>
+      <div class="h-12 w-0.5" style="background:color-mix(in srgb, var(--accent-1) 30%, transparent);"></div>
     </div>
 
   </div>
@@ -1480,6 +1501,10 @@
         microLossVal: $("microLossVal"),
 
         needlePivot: $("needlePivot"),
+        needleBeam: $("needleBeam"),
+        needleTipGlow: $("needleTipGlow"),
+        needleBaseGlow: $("needleBaseGlow"),
+        needleCore: $("needleCore"),
         gaugeParticlesCanvas: $("gaugeParticlesCanvas"),
         gaugeCompositeCanvas: $("gaugeCompositeCanvas"),
         aura: $("aura"),
@@ -1642,9 +1667,14 @@
           const h = this.particlesCanvas.getBoundingClientRect().height;
           const t = now * 0.001;
           const intensity = clamp(valueMbps / 1000, 0, 1);
+          const ring0 = getVar("--ring-0", "#00d4ff");
+          const ring1 = getVar("--ring-1", "#a855f7");
+          const warn0 = getVar("--warn-0", "#ff5a1f");
+          const beam0 = getVar("--beam-0", "#00f2ff");
+          const beam1 = getVar("--beam-1", "#ffffff");
 
           p.clearRect(0, 0, w, h);
-          p.fillStyle = "#000";
+          p.fillStyle = getVar("--bg-0", "#000000");
           p.fillRect(0, 0, w, h);
           for (const dot of this.particles) {
             dot.y += dot.v;
@@ -1664,7 +1694,7 @@
           c.save();
           c.translate(this.cx, this.cy);
 
-          c.strokeStyle = themeRgba("--ring-0", 0.35, "#00d4ff");
+          c.strokeStyle = themeRgba("--ring-0", 0.35, ring0);
           c.lineWidth = 1.4;
           c.beginPath();
           c.arc(0, 0, this.radius, 0, Math.PI * 2);
@@ -1675,7 +1705,7 @@
             const isMajor = i % 5 === 0;
             const r1 = this.radius - (isMajor ? 16 : 10);
             const highWarn = i >= 66;
-            c.strokeStyle = highWarn ? themeRgba("--warn-0", 0.2 + intensity * 0.65, "#ff5a1f") : themeRgba("--ring-0", 0.28, "#00d4ff");
+            c.strokeStyle = highWarn ? themeRgba("--warn-0", 0.2 + intensity * 0.65, warn0) : themeRgba("--ring-0", 0.28, ring0);
             c.lineWidth = isMajor ? 2.1 : 1;
             c.beginPath();
             c.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
@@ -1684,12 +1714,12 @@
           }
 
           c.globalCompositeOperation = "lighter";
-          c.strokeStyle = themeRgba("--ring-0", 0.25, "#00d4ff");
+          c.strokeStyle = themeRgba("--ring-0", 0.25, ring0);
           c.lineWidth = 2;
           c.beginPath();
           c.arc(0, 0, this.radius * 0.72, t * 0.8, t * 0.8 + Math.PI * 1.35);
           c.stroke();
-          c.strokeStyle = themeRgba("--ring-1", 0.3, "#a855f7");
+          c.strokeStyle = themeRgba("--ring-1", 0.3, ring1);
           c.beginPath();
           c.arc(0, 0, this.radius * 0.58, -t * 1.2, -t * 1.2 + Math.PI * 1.18);
           c.stroke();
@@ -1697,8 +1727,8 @@
           c.rotate((needleDeg - 90) * (Math.PI / 180));
           const beamGrad = c.createLinearGradient(0, 0, this.radius * 0.86, 0);
           beamGrad.addColorStop(0, "rgba(255,255,255,0)");
-          beamGrad.addColorStop(0.45, themeRgba("--beam-0", 0.5, "#00f2ff"));
-          beamGrad.addColorStop(1, themeRgba("--beam-1", 0.95, "#ffffff"));
+          beamGrad.addColorStop(0.45, themeRgba("--beam-0", 0.5, beam0));
+          beamGrad.addColorStop(1, themeRgba("--beam-1", 0.95, beam1));
           c.strokeStyle = beamGrad;
           c.lineWidth = 2.6;
           c.beginPath();
@@ -1711,6 +1741,31 @@
       }
 
       const gaugeRenderer = new HoloGaugeRenderer(ui.gaugeParticlesCanvas, ui.gaugeCompositeCanvas);
+
+      const syncNeedleThemeStyles = (speedValue = 0) => {
+        const beam0 = getVar("--beam-0", "#00f2ff");
+        const beam1 = getVar("--beam-1", "#ffffff");
+        const accent0 = getVar("--accent-0", "#00d4ff");
+        const good0 = getVar("--good-0", "#b7ff2a");
+        const warn0 = getVar("--warn-0", "#ff5a1f");
+        const liveCore = speedValue > 780 ? warn0 : speedValue > 120 ? accent0 : good0;
+
+        if (ui.needleBeam) {
+          ui.needleBeam.style.background = `linear-gradient(90deg, transparent, ${beam0}, ${beam1})`;
+          ui.needleBeam.style.boxShadow = `0 0 18px ${themeRgba("--beam-0", 0.78, beam0)}`;
+        }
+        if (ui.needleTipGlow) {
+          ui.needleTipGlow.style.background = beam1;
+          ui.needleTipGlow.style.boxShadow = `0 0 12px ${themeRgba("--beam-1", 0.95, beam1)}`;
+        }
+        if (ui.needleBaseGlow) {
+          ui.needleBaseGlow.style.background = themeRgba("--accent-0", 0.14, accent0);
+        }
+        if (ui.needleCore) {
+          ui.needleCore.style.background = liveCore;
+          ui.needleCore.style.boxShadow = `0 0 18px ${themeRgba("--accent-0", 0.8, accent0)}, 0 0 30px ${themeRgba("--beam-1", 0.45, beam1)}`;
+        }
+      };
 
       const fmt1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
       const fmtIntFrac = (v) => {
@@ -1759,6 +1814,7 @@
         const danger = clamp((value - 780) / 220, 0, 1);
         const yellowGlow = 0.35 + intensity * 0.45;
         const magentaGlow = 0.12 + intensity * 0.25;
+        syncNeedleThemeStyles(value);
         ui.aura.style.background = `radial-gradient(circle, ${themeRgba("--good-0", Number(yellowGlow.toFixed(3)), "#b7ff2a")} 0%, ${themeRgba("--accent-0", Number((0.18 + intensity * 0.25).toFixed(3)), "#00d4ff")} 36%, ${themeRgba("--accent-1", Number(magentaGlow.toFixed(3)), "#a855f7")} 58%, ${themeRgba("--warn-0", Number((danger * 0.45).toFixed(3)), "#ff5a1f")} 72%, rgba(0,0,0,0) 84%)`;
         ui.wavePath.style.color = value > 780 ? getThemeColor("--warn-0", "#ff5a1f") : value > 350 ? getThemeColor("--accent-1", "#a855f7") : value > 120 ? getThemeColor("--accent-0", "#00d4ff") : getThemeColor("--good-0", "#b7ff2a");
         ui.scanJitter.style.background = `radial-gradient(circle at 50% 50%, ${themeRgba("--good-0", Number((0.10 + intensity * 0.24).toFixed(3)), "#b7ff2a")} 0%, ${themeRgba("--accent-1", Number((0.06 + intensity * 0.18).toFixed(3)), "#a855f7")} 45%, rgba(0,0,0,0) 80%)`;
@@ -1903,6 +1959,8 @@
           raf = 0;
         }
       };
+
+      const getVar = (varName, fallback = "") => getThemeColor(varName, fallback);
 
       const ensureSpeedtestLoop = () => {
         if (!speedtestRendererActive || !isSpeedtestRunning() || raf) return;
@@ -2144,6 +2202,8 @@
           if (!window.HoloThemeManager) return;
           const selected = window.HoloThemeManager.setThemeIdForScreen("speedtest", theme.id);
           window.HoloThemeManager.applyTheme(selected);
+          updateGaugeColorProfile(cur.display);
+          gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
           renderThemeList();
           closeThemeModal();
         });
@@ -2327,10 +2387,10 @@
         .replaceAll("'", "&#39;");
 
       const signalAccent = (level) => {
-        if (level >= -50) return { color: "#00ff9d", glow: "rgba(0,255,157,0.4)" };
-        if (level >= -65) return { color: "#00f3ff", glow: "rgba(0,243,255,0.4)" };
-        if (level >= -75) return { color: "#ffaa00", glow: "rgba(255,170,0,0.4)" };
-        return { color: "#a855f7", glow: "rgba(168,85,247,0.4)" };
+        if (level >= -50) return { color: getVar("--good-0", "#b7ff2a"), glow: themeRgba("--good-0", 0.4, "#b7ff2a") };
+        if (level >= -65) return { color: getVar("--accent-0", "#00d4ff"), glow: themeRgba("--accent-0", 0.4, "#00d4ff") };
+        if (level >= -75) return { color: getVar("--warn-0", "#ff8a47"), glow: themeRgba("--warn-0", 0.4, "#ff8a47") };
+        return { color: getVar("--accent-1", "#a855f7"), glow: themeRgba("--accent-1", 0.4, "#a855f7") };
       };
 
       const formatSecurity = (capabilities) => {
@@ -2472,14 +2532,14 @@
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                      <h3 class="text-base sm:text-lg uppercase tracking-[0.12em] truncate font-black" style="font-family:'Orbitron',sans-serif;color:#ff7cea;text-shadow:0 0 8px rgba(255,51,223,0.35);">${ssid}</h3>
-                      <p class="text-[10px] uppercase tracking-[0.19em] mt-1" style="color:rgba(250,255,0,0.78);">IP: -- // MAC: ${bssid}</p>
-                      <p class="text-[10px] uppercase tracking-[0.17em] mt-1" style="color:rgba(106,236,255,0.72);">VENDOR: ${security} // ${freq}</p>
+                      <h3 class="text-base sm:text-lg uppercase tracking-[0.12em] truncate font-black holo-title-strong" style="font-family:'Orbitron',sans-serif;">${ssid}</h3>
+                      <p class="text-[10px] uppercase tracking-[0.19em] mt-1 holo-text-good">IP: -- // MAC: ${bssid}</p>
+                      <p class="text-[10px] uppercase tracking-[0.17em] mt-1 holo-text-subtle">VENDOR: ${security} // ${freq}</p>
                     </div>
                     <div class="shrink-0 text-right">
-                      <span class="text-[9px] font-black tracking-[0.3em] px-2 py-1 rounded-full border" style="font-family:'Orbitron',sans-serif;color:${accent.color}; border-color:${accent.color};">${badge}</span>
+                      <span class="text-[9px] font-black tracking-[0.3em] px-2 py-1 rounded-full border holo-chip" style="font-family:'Orbitron',sans-serif;color:${accent.color}; border-color:${accent.color};">${badge}</span>
                       <div class="mt-2 w-20">
-                        <div class="text-[8px] tracking-[0.28em] uppercase mb-1" style="font-family:'Orbitron',sans-serif;color:#b7ff00;">LATENCY</div>
+                        <div class="text-[8px] tracking-[0.28em] uppercase mb-1 holo-text-good" style="font-family:'Orbitron',sans-serif;">LATENCY</div>
                         <div class="holo-meter-track"><div class="holo-meter-fill" style="width:${meterPct}%; --edge-color:${accent.color};"></div></div>
                         <div class="text-[9px] mt-1 font-mono" style="color:${accent.color};">${latency} ms</div>
                       </div>
@@ -2490,7 +2550,7 @@
                       <div class="liquid-bar-fill" style="width:${signalPct}%; --bar-start:${accent.color}; --bar-mid:${accent.color}; --bar-end:#ffffff;"></div>
                     </div>
                     <div class="flex items-center gap-2 whitespace-nowrap">
-                      ${active ? '<span class="signal-pulse" aria-label="active-device"></span>' : '<span class="size-2 rounded-full bg-ethereal-blue/30"></span>'}
+                      ${active ? '<span class="signal-pulse" aria-label="active-device"></span>' : '<span class="size-2 rounded-full" style="background:color-mix(in srgb, var(--accent-0) 30%, transparent);"></span>'}
                       <span class="text-[10px] font-bold tracking-[0.16em]" style="color:${accent.color};">${level}</span>
                     </div>
                   </div>
@@ -3126,14 +3186,14 @@
           const freq = escapeHtml(network.frequency ? `${network.frequency} MHz` : "Unknown band");
           return `
             <div class="relative group holo-interactive">
-              <div class="bg-engine-iron/80 border rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative holo-bloom" style="border-color:${accent.color}66; box-shadow:0 0 12px ${accent.glow};">
+              <div class="holo-panel-soft border rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative holo-bloom" style="border-color:${accent.color}66; box-shadow:0 0 12px ${accent.glow};">
                 <div class="absolute inset-0 opacity-10" style="background:${accent.color};"></div>
                 <div class="flex justify-between items-start">
                   <span class="text-[10px] font-mono uppercase" style="color:${accent.color};">Node_${index + 1}</span>
-                  <span class="material-symbols-outlined text-xs text-cyber-violet">wifi</span>
+                  <span class="material-symbols-outlined text-xs holo-text-accent-strong">wifi</span>
                 </div>
-                <p class="text-ethereal-blue text-[11px] font-bold leading-none tracking-tight truncate">${ssid}</p>
-                <p class="text-[9px] text-slate-400 font-mono">${freq} // ${sec}</p>
+                <p class="holo-text-accent text-[11px] font-bold leading-none tracking-tight truncate">${ssid}</p>
+                <p class="text-[9px] holo-text-dim font-mono">${freq} // ${sec}</p>
               </div>
             </div>
           `;
@@ -3353,6 +3413,25 @@
         }
       }
 
+      function applyMapModeButtonStyles() {
+        if (nativeUi.mapOverdriveBtn) {
+          nativeUi.mapOverdriveBtn.style.background = runtime.mapOverdriveEnabled
+            ? "color-mix(in srgb, var(--accent-0) 24%, transparent)"
+            : "color-mix(in srgb, var(--panel-1) 78%, black)";
+          nativeUi.mapOverdriveBtn.style.borderColor = runtime.mapOverdriveEnabled
+            ? "color-mix(in srgb, var(--accent-0) 56%, transparent)"
+            : "color-mix(in srgb, var(--accent-0) 30%, transparent)";
+        }
+        if (nativeUi.mapCloakBtn) {
+          nativeUi.mapCloakBtn.style.background = runtime.mapCloakEnabled
+            ? "color-mix(in srgb, var(--accent-1) 22%, transparent)"
+            : "color-mix(in srgb, var(--panel-1) 78%, black)";
+          nativeUi.mapCloakBtn.style.borderColor = runtime.mapCloakEnabled
+            ? "color-mix(in srgb, var(--accent-1) 54%, transparent)"
+            : "color-mix(in srgb, var(--accent-1) 30%, transparent)";
+        }
+      }
+
       nativeUi.mapSearchInput?.addEventListener("input", (event) => {
         runtime.mapFilterText = String(event.target?.value || "");
         renderMapFromScan();
@@ -3360,14 +3439,14 @@
 
       nativeUi.mapOverdriveBtn?.addEventListener("click", () => {
         runtime.mapOverdriveEnabled = !runtime.mapOverdriveEnabled;
-        nativeUi.mapOverdriveBtn.classList.toggle("bg-cyber-violet/20", !runtime.mapOverdriveEnabled);
-        nativeUi.mapOverdriveBtn.classList.toggle("bg-ethereal-blue/25", runtime.mapOverdriveEnabled);
+        applyMapModeButtonStyles();
         showCfgStatus(runtime.mapOverdriveEnabled ? "Map Overdrive enabled." : "Map Overdrive disabled.");
       });
 
       nativeUi.mapCloakBtn?.addEventListener("click", () => {
         runtime.mapCloakEnabled = !runtime.mapCloakEnabled;
         nativeUi.mapCloakBtn.classList.toggle("opacity-55", runtime.mapCloakEnabled);
+        applyMapModeButtonStyles();
         holoMapRenderer.setCloakState(runtime.mapCloakEnabled);
         showCfgStatus(runtime.mapCloakEnabled ? "Map Cloak enabled." : "Map Cloak disabled.");
       });
@@ -3382,6 +3461,8 @@
         if (!window.HoloThemeManager) return;
         const defaultTheme = window.HoloThemeManager.resetThemeForScreen("speedtest");
         window.HoloThemeManager.applyTheme(defaultTheme);
+        updateGaugeColorProfile(cur.display);
+        gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
         renderThemeList();
         closeThemeModal();
       });
@@ -3406,6 +3487,7 @@
       nativeUi.cfgExportDiagBtn?.addEventListener("click", exportDiagnostics);
       window.addEventListener("beforeunload", () => rendererRegistry?.stopAll?.(), { once: true });
       loadConfig();
+      applyMapModeButtonStyles();
       syncBridgeState(true);
       updateDeviceUi();
       const initialScan = nativeBridge.call("getLastWifiScan");
