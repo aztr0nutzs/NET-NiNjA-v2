@@ -1310,8 +1310,9 @@
           <p class="text-xs font-bold holo-text-accent-strong font-mono tracking-widest">ENCRYPTED</p>
         </div>
 
-        <button id="btnTheme" class="tap-glow size-10 rounded-full holo-orb-btn flex items-center justify-center" type="button" aria-label="Speedtest theme picker" aria-haspopup="dialog" aria-controls="speedtestThemeModal" aria-expanded="false">
-          <span class="material-symbols-outlined">palette</span>
+        <button id="btnTheme" class="theme-launch tap-glow holo-orb-btn holo-focus-ring" type="button" aria-label="Open speedtest theme picker" aria-haspopup="dialog" aria-controls="speedtestThemeModal" aria-expanded="false">
+          <span class="material-symbols-outlined theme-launch__icon" aria-hidden="true">palette</span>
+          <span>Theme</span>
         </button>
 
         <button id="btnSettings" class="tap-glow size-10 rounded-full holo-orb-btn flex items-center justify-center" type="button">
@@ -1518,11 +1519,12 @@
     <div class="theme-modal__sheet" role="document">
       <div class="theme-modal__header">
         <h3 id="speedtestThemeTitle" class="theme-modal__title">Speedtest Theme</h3>
-        <button id="themeModalClose" class="theme-modal__close" type="button" aria-label="Close theme picker">✕</button>
+        <button id="themeClose" class="theme-modal__close" type="button" aria-label="Close theme picker">✕</button>
       </div>
       <p class="theme-modal__subtitle">Theme applies to Speedtest screen only.</p>
       <div id="themeList" class="theme-modal__list" role="listbox" aria-label="Speedtest themes"></div>
-      <button id="themeResetBtn" class="theme-modal__reset" type="button">Reset to Default</button>
+      <p id="themeDebugLine" class="theme-debug-line" data-debug="off"></p>
+      <button id="themeReset" class="theme-modal__reset" type="button">Reset to Default</button>
     </div>
   </div>
 
@@ -1622,9 +1624,10 @@
         deviceDetailJson: $("deviceDetailJson"),
         speedtestThemeModal: $("speedtestThemeModal"),
         speedtestThemeBackdrop: $("speedtestThemeBackdrop"),
-        themeModalClose: $("themeModalClose"),
+        themeClose: $("themeClose"),
         themeList: $("themeList"),
-        themeResetBtn: $("themeResetBtn"),
+        themeReset: $("themeReset"),
+        themeDebugLine: $("themeDebugLine"),
       };
 
       const State = Object.freeze({
@@ -2240,6 +2243,15 @@
       };
 
       let themeModalRestoreFocus = null;
+      const THEME_DEBUG_ENABLED =
+        new URLSearchParams(window.location.search).get("debugThemes") === "1" ||
+        localStorage.getItem("netninja.debug.themes") === "1";
+
+      function setThemeDebugLine(message) {
+        if (!nativeUi.themeDebugLine) return;
+        nativeUi.themeDebugLine.dataset.debug = THEME_DEBUG_ENABLED ? "on" : "off";
+        nativeUi.themeDebugLine.textContent = THEME_DEBUG_ENABLED ? message : "";
+      }
 
       function currentThemeIdForSpeedtest() {
         if (!window.HoloThemeManager) return "holo_cyan";
@@ -2282,16 +2294,24 @@
 
       function renderThemeList() {
         if (!nativeUi.themeList) return;
-        const registry = window.HoloThemeRegistry;
+        const registry = window.HoloThemeManager?.getThemeRegistry?.() || window.HoloThemeRegistry || window.HoloThemes;
         if (!registry || typeof registry.getAllThemes !== "function") {
-          nativeUi.themeList.innerHTML = "";
+          nativeUi.themeList.innerHTML = `<div class="theme-modal__empty">No themes loaded.</div>`;
+          setThemeDebugLine("theme scripts missing / 0 themes");
+          return;
+        }
+        const themes = registry.getAllThemes();
+        if (!Array.isArray(themes) || themes.length === 0) {
+          nativeUi.themeList.innerHTML = `<div class="theme-modal__empty">No themes loaded.</div>`;
+          setThemeDebugLine("theme registry empty / 0 themes");
           return;
         }
         const activeThemeId = currentThemeIdForSpeedtest();
         nativeUi.themeList.innerHTML = "";
-        registry.getAllThemes().forEach((theme) => {
+        themes.forEach((theme) => {
           nativeUi.themeList.appendChild(buildThemeOption(theme, activeThemeId));
         });
+        setThemeDebugLine(`themes loaded / ${themes.length} found / active ${activeThemeId}`);
       }
 
       function openThemeModal() {
@@ -2312,6 +2332,11 @@
         if (themeModalRestoreFocus && typeof themeModalRestoreFocus.focus === "function") {
           themeModalRestoreFocus.focus();
         }
+      }
+      if (window.HoloThemeManager) {
+        setThemeDebugLine(`theme manager ready / active ${window.HoloThemeManager.getThemeIdForScreen("speedtest")}`);
+      } else {
+        setThemeDebugLine("theme manager missing");
       }
       const RENDER_DEBUG_ENABLED =
         new URLSearchParams(window.location.search).get("debugRenderers") === "1" ||
@@ -3846,9 +3871,9 @@
       nativeUi.deviceDetailBackdrop?.addEventListener("click", closeDeviceDetail);
       nativeUi.deviceDetailClose?.addEventListener("click", closeDeviceDetail);
       ui.btnTheme?.addEventListener("click", openThemeModal);
-      nativeUi.themeModalClose?.addEventListener("click", closeThemeModal);
+      nativeUi.themeClose?.addEventListener("click", closeThemeModal);
       nativeUi.speedtestThemeBackdrop?.addEventListener("click", closeThemeModal);
-      nativeUi.themeResetBtn?.addEventListener("click", () => {
+      nativeUi.themeReset?.addEventListener("click", () => {
         if (!window.HoloThemeManager) return;
         const defaultTheme = window.HoloThemeManager.resetThemeForScreen("speedtest");
         window.HoloThemeManager.applyTheme(defaultTheme);

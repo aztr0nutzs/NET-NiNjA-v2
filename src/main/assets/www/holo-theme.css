@@ -358,7 +358,7 @@ pre,
 .theme-modal {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: 120;
 }
 
 .theme-modal__backdrop {
@@ -372,6 +372,8 @@ pre,
   left: 0;
   right: 0;
   bottom: 0;
+  width: min(100%, 560px);
+  margin-inline: auto;
   max-height: min(72dvh, 560px);
   border-top: 1px solid color-mix(in srgb, var(--accent-0) 45%, transparent);
   border-radius: 18px 18px 0 0;
@@ -461,6 +463,53 @@ pre,
   gap: 6px;
 }
 
+.theme-launch {
+  position: relative;
+  z-index: 40;
+  min-width: 0;
+  padding: 0 12px;
+  height: 40px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 900;
+  font-family: "Orbitron", "Space Grotesk", sans-serif;
+  white-space: nowrap;
+}
+
+.theme-launch__icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.theme-modal__empty {
+  border: 1px dashed color-mix(in srgb, var(--warn-0) 45%, transparent);
+  border-radius: 12px;
+  padding: 14px 12px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  background: color-mix(in srgb, var(--panel-0) 92%, black);
+}
+
+.theme-debug-line {
+  min-height: 1.1rem;
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.theme-debug-line[data-debug="off"] {
+  display: none;
+}
+
 .theme-option__swatch {
   width: 12px;
   height: 12px;
@@ -477,4 +526,19 @@ pre,
   letter-spacing: 0.08em;
   font-size: 0.75rem;
   color: var(--warn-0);
+}
+
+@media (max-width: 420px) {
+  .theme-launch {
+    padding-inline: 10px;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .theme-modal__sheet {
+    width: 100%;
+    max-height: min(78dvh, 520px);
+    border-radius: 16px 16px 0 0;
+  }
 }

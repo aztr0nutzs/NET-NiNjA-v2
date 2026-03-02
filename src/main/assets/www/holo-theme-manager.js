@@ -1,6 +1,18 @@
 (function attachThemeManager(global) {
   const STORAGE_PREFIX = "theme.screen.";
   const DEFAULT_THEME_ID = "holo_cyan";
+  const DEBUG_ENABLED =
+    new URLSearchParams(global.location?.search || "").get("debugThemes") === "1" ||
+    global.localStorage?.getItem("netninja.debug.themes") === "1";
+
+  function debugLog(message, extra) {
+    if (!DEBUG_ENABLED) return;
+    if (typeof extra === "undefined") {
+      console.debug(`[theme] ${message}`);
+    } else {
+      console.debug(`[theme] ${message}`, extra);
+    }
+  }
 
   function hasBridgeStorage() {
     const bridge = global.NetNinjaBridge;
@@ -68,9 +80,15 @@
   }
 
   function resolveTheme(themeId) {
-    const registry = global.HoloThemeRegistry;
+    const registry = global.HoloThemeRegistry || global.HoloThemes;
     if (!registry || typeof registry.getTheme !== "function") return null;
     return registry.getTheme(themeId || DEFAULT_THEME_ID);
+  }
+
+  function getThemeRegistry() {
+    const registry = global.HoloThemeRegistry || global.HoloThemes;
+    if (!registry || typeof registry.getAllThemes !== "function") return null;
+    return registry;
   }
 
   function applyEffects(theme) {
@@ -90,7 +108,10 @@
 
   function applyTheme(themeId) {
     const theme = resolveTheme(themeId);
-    if (!theme) return DEFAULT_THEME_ID;
+    if (!theme) {
+      debugLog("applyTheme fallback", { requested: themeId, resolved: DEFAULT_THEME_ID, reason: "missing-registry" });
+      return DEFAULT_THEME_ID;
+    }
     let styleTag = document.getElementById("theme-vars");
     if (!styleTag) {
       styleTag = document.createElement("style");
@@ -103,6 +124,7 @@
     styleTag.textContent = `:root{${vars}}`;
     document.documentElement.dataset.themeId = theme.id;
     applyEffects(theme);
+    debugLog("applied", { themeId: theme.id, themeCount: getThemeRegistry()?.getAllThemes?.().length || 0 });
     return theme.id;
   }
 
@@ -131,6 +153,7 @@
 
   global.HoloThemeManager = {
     DEFAULT_THEME_ID,
+    getThemeRegistry,
     getThemeIdForScreen,
     setThemeIdForScreen,
     resetThemeForScreen,

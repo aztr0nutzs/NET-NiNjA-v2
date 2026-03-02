@@ -292,4 +292,5 @@
       return this.order.map((id) => registry[id]);
     }
   };
+  global.HoloThemes = global.HoloThemeRegistry;
 })(window);
