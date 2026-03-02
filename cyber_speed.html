@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no"/>
+<meta name="color-scheme" content="dark"/>
+<title>Holo Command Core v3.5 • Speed Probe</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Chakra+Petch:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300..700&display=swap" rel="stylesheet"/>
+
+<style>
+  :root{
+    --bg:#000;
+    --cyan:#00eaff;
+    --pink:#ff00e5;
+    --g:#b6ff00;
+    --y:#fff200;
+    --text:rgba(231,251,255,.92);
+
+    --cGlow: 0 0 10px rgba(0,234,255,.65), 0 0 28px rgba(0,234,255,.30);
+    --pGlow: 0 0 10px rgba(255,0,229,.60), 0 0 28px rgba(255,0,229,.28);
+    --gGlow: 0 0 10px rgba(182,255,0,.45), 0 0 24px rgba(182,255,0,.22);
+    --yGlow: 0 0 10px rgba(255,242,0,.50), 0 0 26px rgba(255,242,0,.22);
+
+    --display:"Orbitron", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    --mono:"Rajdhani", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    --cond:"Chakra Petch", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+    --safeTop: env(safe-area-inset-top, 0px);
+    --safeBottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--mono);
+    overflow:hidden;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .material-symbols-outlined{
+    font-variation-settings:'FILL' 0, 'wght' 420, 'GRAD' 0, 'opsz' 24;
+  }
+
+  /* --- Global overlays --- */
+  .scanlines{
+    position:fixed; inset:0; pointer-events:none; z-index:99;
+    background:
+      linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.28) 50%),
+      linear-gradient(90deg, rgba(255,0,229,0.06), rgba(0,234,255,0.03), rgba(182,255,0,0.03), rgba(255,242,0,0.06));
+    background-size:100% 2px, 4px 100%;
+    opacity:.35;
+    mix-blend-mode: screen;
+  }
+  .vignette{
+    position:fixed; inset:-20%;
+    pointer-events:none; z-index:98;
+    background:radial-gradient(closest-side, rgba(0,0,0,0) 40%, rgba(0,0,0,.55) 85%, rgba(0,0,0,.95) 100%);
+  }
+  .noise{
+    position:fixed; inset:0; pointer-events:none; z-index:97;
+    opacity:.06;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+    background-size:160px 160px;
+    mix-blend-mode: overlay;
+  }
+
+  /* --- Layout --- */
+  .app{
+    position:relative;
+    height:100dvh;
+    min-height:max(884px, 100dvh);
+    display:flex;
+    flex-direction:column;
+    padding-top:var(--safeTop);
+    padding-bottom:var(--safeBottom);
+  }
+
+  header{
+    height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 14px;
+    border-bottom:1px solid rgba(0,234,255,.20);
+    background:rgba(0,0,0,.55);
+    backdrop-filter: blur(10px);
+    z-index:20;
+  }
+
+  .brand small{
+    display:block;
+    font-size:10px;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    font-weight:800;
+    color:var(--cyan);
+    opacity:.80;
+  }
+  .brand h1{
+    margin:2px 0 0 0;
+    font-family:var(--display);
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--y);
+    filter: drop-shadow(0 0 10px rgba(255,242,0,.35));
+  }
+  .glitch{
+    text-shadow: 2px 0 var(--pink), -2px 0 var(--cyan);
+  }
+
+  .header-right{ display:flex; align-items:center; gap:12px; }
+  .sig{
+    display:flex; flex-direction:column; align-items:flex-end;
+    gap:6px;
+  }
+  .sig span{
+    font-size:9px;
+    opacity:.55;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  .bars{ display:flex; gap:2px; }
+  .bar{ width:4px; height:12px; background:rgba(255,255,255,.09); }
+  .bar.on{ background:var(--cyan); box-shadow: 0 0 8px rgba(0,234,255,.85); }
+
+  .iconbtn{
+    width:36px; height:36px;
+    border-radius:999px;
+    display:grid; place-items:center;
+    border:1px solid rgba(0,234,255,.28);
+    background:rgba(0,234,255,.06);
+    cursor:pointer;
+  }
+  .iconbtn:active{ transform:scale(.96); filter:brightness(1.15); }
+
+  main{
+    position:relative;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:18px 14px 14px;
+    overflow:hidden;
+  }
+
+  /* --- Panels / buttons --- */
+  .panel{
+    background: linear-gradient(135deg, rgba(0,234,255,0.06) 0%, rgba(0,0,0,0.72) 55%, rgba(255,0,229,0.04) 100%);
+    border:1px solid rgba(0,234,255,.15);
+    backdrop-filter: blur(10px);
+    border-radius:18px;
+  }
+  .panel.edgeC{ border-left:2px solid rgba(0,234,255,.95); }
+  .panel.edgeP{ border-right:2px solid rgba(255,0,229,.95); }
+
+  .cpbtn{
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.10);
+    background:rgba(255,255,255,.03);
+    cursor:pointer;
+    user-select:none;
+    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+  }
+  .cpbtn:active{ transform:scale(.97); filter:brightness(1.15); }
+  .cpbtn:disabled{ opacity:.35; cursor:not-allowed; }
+  .btnrow{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  .btn-override{
+    background:rgba(255,0,229,.08);
+    border:1px solid rgba(255,0,229,.55);
+    color:var(--pink);
+    box-shadow: var(--pGlow);
+    font-family:var(--display);
+    font-weight:900;
+    font-style:italic;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .btn-exec{
+    background:linear-gradient(135deg, rgba(0,234,255,.98), rgba(0,234,255,.62));
+    border:1px solid rgba(0,234,255,.65);
+    color:#000;
+    box-shadow: var(--cGlow);
+    font-family:var(--display);
+    font-weight:900;
+    font-style:italic;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+
+  /* --- Orbital gauge stage --- */
+  .stage{
+    width:min(92vw, 368px);
+    aspect-ratio:1 / 1;
+    position:relative;
+    display:grid;
+    place-items:center;
+    perspective: 1000px;
+    margin-top:8px;
+  }
+
+  .ring{
+    position:absolute; inset:0;
+    border-radius:999px;
+    border:1px solid rgba(0,234,255,.10);
+    opacity:.35;
+    animation: spin 24s linear infinite;
+  }
+  .ring.dash{
+    inset:26px;
+    border-style:dashed;
+    border-color: rgba(255,0,229,.18);
+    animation: spinR 18s linear infinite;
+    opacity:.45;
+  }
+  .ring.arc{
+    inset:14px;
+    border:1px solid rgba(182,255,0,.12);
+    opacity:.25;
+    animation: breathe 2.8s ease-in-out infinite;
+  }
+
+  @keyframes spin { from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+  @keyframes spinR { from{ transform:rotate(360deg);} to{ transform:rotate(0deg);} }
+  @keyframes breathe { 0%,100%{ transform:scale(1); opacity:.20;} 50%{ transform:scale(1.02); opacity:.42;} }
+
+  canvas{ display:block; }
+  #fxCanvas{ position:absolute; inset:0; pointer-events:none; z-index:10; }
+  #gaugeCanvas{ position:absolute; inset:0; pointer-events:none; z-index:12; }
+  #hudCanvas{ position:absolute; inset:0; pointer-events:none; z-index:9; filter: blur(.2px); opacity:.75; }
+
+  .readout{
+    position:relative;
+    z-index:20;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    transform: translateZ(0);
+  }
+  .status{
+    font-family:var(--display);
+    font-weight:900;
+    font-style:italic;
+    letter-spacing:.40em;
+    text-transform:uppercase;
+    font-size:10px;
+    color:var(--pink);
+    text-shadow: var(--pGlow);
+    opacity:.95;
+    animation: microglitch 4.2s infinite;
+    margin-bottom:6px;
+  }
+  @keyframes microglitch{
+    0%, 91%, 100%{ transform:translate(0,0); filter:none; }
+    92%{ transform:translate(-2px,1px); filter:brightness(1.1); }
+    93%{ transform:translate(2px,-1px); }
+    94%{ transform:translate(0,0); }
+  }
+
+  .big{
+    font-family:var(--display);
+    font-weight:900;
+    font-style:italic;
+    font-size:68px;
+    line-height:1;
+    letter-spacing:-.05em;
+    color:var(--y);
+    filter: drop-shadow(0 0 16px rgba(255,242,0,.35));
+    position:relative;
+    user-select:none;
+  }
+  .big .shadow{
+    position:absolute;
+    inset:0;
+    color:var(--pink);
+    opacity:.28;
+    transform: translateX(2px);
+    filter: blur(1px);
+    pointer-events:none;
+  }
+  .unit{
+    margin-top:10px;
+    font-family:var(--display);
+    font-weight:800;
+    letter-spacing:.55em;
+    font-size:18px;
+    color:var(--cyan);
+    text-shadow: var(--cGlow);
+    opacity:.90;
+  }
+  .minirow{
+    margin-top:18px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .pill{
+    padding:8px 12px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.10);
+    background:rgba(0,0,0,.42);
+    backdrop-filter: blur(8px);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .pill b{
+    font-family:var(--display);
+    font-size:9px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+  }
+  .pill span{
+    font-family:var(--cond);
+    font-weight:800;
+    font-size:12px;
+    color:#fff;
+    opacity:.92;
+  }
+  .pill.dl b{ color:var(--cyan); text-shadow: var(--cGlow); }
+  .pill.ul b{ color:var(--pink); text-shadow: var(--pGlow); }
+  .pill.ping b{ color:var(--g); text-shadow: var(--gGlow); }
+  .pill.jit b{ color:var(--y); text-shadow: var(--yGlow); }
+
+  /* --- Phase progress bar --- */
+  .phasewrap{
+    width:min(92vw, 520px);
+    margin-top:16px;
+    padding:12px 12px 10px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(0,0,0,.50);
+    backdrop-filter: blur(10px);
+    z-index:18;
+  }
+  .phases{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:8px;
+  }
+  .phase{
+    position:relative;
+    height:16px;
+    border-radius:10px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.07);
+    background:rgba(255,255,255,.04);
+  }
+  .phase::after{
+    content:"";
+    position:absolute; inset:-40% -30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.22), rgba(255,255,255,0));
+    transform: translateX(-60%) rotate(10deg);
+    animation: sheen 2.3s linear infinite;
+    opacity:.55;
+    pointer-events:none;
+  }
+  @keyframes sheen { to { transform: translateX(120%) rotate(10deg);} }
+
+  .fill{
+    height:100%;
+    width:0%;
+    border-radius:10px;
+    transition: width .18s ease;
+  }
+  .fill.ping{ background: linear-gradient(90deg, rgba(182,255,0,.14), rgba(182,255,0,.92), rgba(255,242,0,.35)); box-shadow: var(--gGlow); }
+  .fill.dl{ background: linear-gradient(90deg, rgba(0,234,255,.14), rgba(0,234,255,.95), rgba(255,242,0,.25)); box-shadow: var(--cGlow); }
+  .fill.ul{ background: linear-gradient(90deg, rgba(255,0,229,.12), rgba(255,0,229,.92), rgba(255,242,0,.20)); box-shadow: var(--pGlow); }
+  .fill.sum{ background: linear-gradient(90deg, rgba(255,242,0,.12), rgba(255,242,0,.90), rgba(0,234,255,.25)); box-shadow: var(--yGlow); }
+
+  .phaselabels{
+    margin-top:8px;
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:8px;
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.20em;
+    font-weight:900;
+    font-family:var(--display);
+    opacity:.86;
+  }
+  .phaselabels .a{ color:var(--g); }
+  .phaselabels .b{ color:var(--cyan); }
+  .phaselabels .c{ color:var(--pink); }
+  .phaselabels .d{ color:var(--y); }
+
+  /* --- Bottom cards --- */
+  .cards{
+    width:min(92vw, 520px);
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:auto;
+    z-index:18;
+  }
+  .card{
+    padding:12px 12px 10px;
+    border-radius:18px;
+  }
+  .card .top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+  }
+  .card .top b{
+    font-family:var(--display);
+    font-size:9px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-weight:900;
+  }
+  .card .value{
+    margin-top:8px;
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+  }
+  .card .value strong{
+    font-family:var(--display);
+    font-weight:900;
+    font-style:italic;
+    font-size:28px;
+    color:#fff;
+  }
+  .card .value i{
+    font-style:normal;
+    font-size:10px;
+    opacity:.62;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-family:var(--cond);
+    font-weight:700;
+  }
+  .sparkbar{
+    margin-top:10px;
+    height:10px;
+    border-radius:999px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.04);
+    position:relative;
+  }
+  .sparkbar .spark{
+    position:absolute; inset:-100% -35%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.65), rgba(255,255,255,0));
+    transform: translateX(-80%) rotate(12deg);
+    animation: sheen 1.6s linear infinite;
+    opacity:.65;
+    mix-blend-mode: screen;
+  }
+  .sparkbar .lvl{
+    position:absolute; inset:0;
+    width:60%;
+    border-radius:999px;
+    opacity:.95;
+  }
+  .lvl.c{ background: linear-gradient(90deg, rgba(0,234,255,.10), rgba(0,234,255,.92)); box-shadow: var(--cGlow); }
+  .lvl.p{ background: linear-gradient(90deg, rgba(255,0,229,.08), rgba(255,0,229,.92)); box-shadow: var(--pGlow); }
+
+  /* --- Telemetry log --- */
+  .log{
+    width:min(92vw, 520px);
+    margin-top:12px;
+    padding:10px 12px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(0,0,0,.50);
+    backdrop-filter: blur(10px);
+    z-index:18;
+  }
+  .loghead{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .loghead b{
+    font-family:var(--display);
+    font-size:9px;
+    letter-spacing:.20em;
+    text-transform:uppercase;
+    font-weight:900;
+    color:var(--y);
+    text-shadow: var(--yGlow);
+  }
+  .loghead span{
+    font-family:var(--cond);
+    font-size:10px;
+    opacity:.70;
+    color:var(--cyan);
+  }
+  .loglines{
+    height:84px;
+    overflow:hidden;
+    font-family:var(--cond);
+    font-size:11px;
+    line-height:1.25;
+    opacity:.92;
+  }
+  .logline{
+    display:flex;
+    gap:8px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .ts{ color:rgba(255,255,255,.55); min-width:60px; }
+  .tag{ min-width:56px; font-weight:900; letter-spacing:.10em; font-size:10px; text-transform:uppercase; }
+  .tag.c{ color:var(--cyan); text-shadow: var(--cGlow); }
+  .tag.p{ color:var(--pink); text-shadow: var(--pGlow); }
+  .tag.g{ color:var(--g); text-shadow: var(--gGlow); }
+  .tag.y{ color:var(--y); text-shadow: var(--yGlow); }
+  .msg{ opacity:.92; }
+
+  /* --- Footer controls --- */
+  footer{
+    padding:14px;
+    background:rgba(0,0,0,.62);
+    backdrop-filter: blur(14px);
+    border-top:1px solid rgba(255,255,255,.06);
+    z-index:20;
+  }
+  .footer-top{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .probe{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .probe small{
+    font-family:var(--display);
+    font-size:9px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    font-weight:900;
+    color:rgba(255,255,255,.52);
+  }
+  .probe strong{
+    font-family:var(--display);
+    font-size:10px;
+    letter-spacing:.10em;
+    text-transform:uppercase;
+    font-weight:900;
+    color:var(--g);
+    text-shadow: var(--gGlow);
+  }
+
+  .tog{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .tog label{
+    font-family:var(--display);
+    font-size:9px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-weight:900;
+    color:rgba(255,255,255,.45);
+  }
+  .switch{
+    width:52px; height:26px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:999px;
+    position:relative;
+    padding:3px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .knob{
+    width:20px; height:20px;
+    border-radius:999px;
+    background:rgba(255,255,255,.15);
+    transform: translateX(0px);
+    transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+  .switch.on .knob{
+    transform: translateX(26px);
+    background: var(--cyan);
+    box-shadow: var(--cGlow);
+  }
+
+  /* --- Tiny nav (visual only) --- */
+  nav{
+    height:64px;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    border-top:1px solid rgba(255,255,255,.06);
+    background:#000;
+    z-index:20;
+  }
+  .tab{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    padding:0 12px;
+    color:rgba(255,255,255,.40);
+    user-select:none;
+  }
+  .tab .material-symbols-outlined{ font-size:22px; }
+  .tab b{
+    font-family:var(--display);
+    font-size:9px;
+    letter-spacing:.20em;
+    text-transform:uppercase;
+    font-weight:900;
+  }
+  .tab.active{
+    color:var(--cyan);
+    text-shadow: var(--cGlow);
+    border-bottom:2px solid rgba(0,234,255,.95);
+    padding-bottom:6px;
+  }
+
+  /* --- Orbital particles (CSS) --- */
+  .spark{
+    position:absolute;
+    width:6px; height:6px;
+    border-radius:999px;
+    background:var(--cyan);
+    box-shadow: 0 0 10px rgba(0,234,255,.85);
+    opacity:.85;
+    z-index:11;
+  }
+  .spark.p{ background:var(--pink); box-shadow: 0 0 10px rgba(255,0,229,.85); }
+  .spark.g{ background:var(--g); box-shadow: 0 0 10px rgba(182,255,0,.70); }
+  .spark.y{ background:var(--y); box-shadow: 0 0 10px rgba(255,242,0,.75); }
+
+  .orbit{
+    position:absolute; inset:0;
+    border-radius:999px;
+    z-index:11;
+    animation: spin 6.5s linear infinite;
+    pointer-events:none;
+  }
+  .orbit.o2{ animation-duration: 8.8s; animation-direction: reverse; }
+  .orbit.o3{ animation-duration: 11.2s; }
+  .orbit .spark{ top:12px; left:50%; transform:translateX(-50%); }
+  .orbit.o2 .spark{ top:auto; bottom:16px; left:50%; transform:translateX(-50%); }
+  .orbit.o3 .spark{ top:50%; left:14px; transform:translateY(-50%); }
+
+  /* --- Responsiveness --- */
+  @media (max-width: 380px){
+    .big{ font-size:60px; }
+    .stage{ width:min(92vw, 330px); }
+  }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="noise"></div>
+<div class="vignette"></div>
+
+<div class="app" id="parallax">
+
+  <header>
+    <div class="brand">
+      <small>NETWORK_GATEWAY_V3 • SPEED_PROBE</small>
+      <h1 class="glitch">Holo Command Core</h1>
+    </div>
+
+    <div class="header-right">
+      <div class="sig">
+        <span id="sigLabel">Signal: calibrating</span>
+        <div class="bars" aria-hidden="true">
+          <div class="bar on"></div><div class="bar on"></div><div class="bar on"></div><div class="bar"></div>
+        </div>
+      </div>
+      <button class="iconbtn" id="btnSettings" title="Settings">
+        <span class="material-symbols-outlined" style="color:var(--cyan); font-size:18px;">settings</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="stage" id="stage">
+      <div class="ring"></div>
+      <div class="ring dash"></div>
+      <div class="ring arc"></div>
+
+      <div class="orbit o1"><div class="spark"></div></div>
+      <div class="orbit o2"><div class="spark p"></div></div>
+      <div class="orbit o3"><div class="spark g"></div></div>
+
+      <canvas id="hudCanvas"></canvas>
+      <canvas id="fxCanvas"></canvas>
+      <canvas id="gaugeCanvas"></canvas>
+
+      <div class="readout">
+        <div class="status" id="status">IDLE_STANDBY</div>
+
+        <div class="big" aria-label="Current speed">
+          <span id="mainValue">0.0</span>
+          <span class="shadow" aria-hidden="true" id="mainValueShadow">0.0</span>
+        </div>
+
+        <div class="unit">MBPS</div>
+
+        <div class="minirow">
+          <div class="pill ping">
+            <b>PING</b><span><span id="pingVal">--</span> ms</span>
+          </div>
+          <div class="pill jit">
+            <b>JITTER</b><span><span id="jitterVal">--</span> ms</span>
+          </div>
+          <div class="pill dl">
+            <b>DL</b><span><span id="dlVal">--</span> Mbps</span>
+          </div>
+          <div class="pill ul">
+            <b>UL</b><span><span id="ulVal">--</span> Mbps</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phasewrap" aria-label="Test progress">
+      <div class="phases">
+        <div class="phase"><div class="fill ping" id="pPing"></div></div>
+        <div class="phase"><div class="fill dl" id="pDl"></div></div>
+        <div class="phase"><div class="fill ul" id="pUl"></div></div>
+        <div class="phase"><div class="fill sum" id="pSum"></div></div>
+      </div>
+      <div class="phaselabels">
+        <div class="a">LATENCY</div>
+        <div class="b">DOWNLOAD</div>
+        <div class="c">UPLOAD</div>
+        <div class="d">SUMMARY</div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="panel card edgeC">
+        <div class="top">
+          <b style="color:var(--cyan); text-shadow:var(--cGlow);">THROUGHPUT</b>
+          <span class="material-symbols-outlined" style="font-size:14px; color:var(--cyan);">speed</span>
+        </div>
+        <div class="value">
+          <strong id="throughputVal">--</strong>
+          <i id="throughputUnit">Mbps (avg)</i>
+        </div>
+        <div class="sparkbar">
+          <div class="lvl c" id="throughputBar" style="width:0%"></div>
+          <div class="spark"></div>
+        </div>
+      </div>
+
+      <div class="panel card edgeP">
+        <div class="top">
+          <b style="color:var(--pink); text-shadow:var(--pGlow);">LINK HEALTH</b>
+          <span class="material-symbols-outlined" style="font-size:14px; color:var(--pink);">monitoring</span>
+        </div>
+        <div class="value">
+          <strong id="healthVal">--</strong>
+          <i id="healthHint">loss / stability</i>
+        </div>
+        <div class="sparkbar">
+          <div class="lvl p" id="healthBar" style="width:0%"></div>
+          <div class="spark"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="log">
+      <div class="loghead">
+        <b>TELEMETRY FEED</b>
+        <span id="serverLabel">server: cloudflare • proto: fetch</span>
+      </div>
+      <div class="loglines" id="loglines" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-top">
+      <div class="probe">
+        <small>PROBE STATUS</small>
+        <strong id="probeStatus">ACTIVE_OPERATIONAL</strong>
+      </div>
+
+      <div class="tog">
+        <label>SAFE_MODE</label>
+        <div class="switch on" id="safeSwitch" role="switch" aria-checked="true" tabindex="0">
+          <div class="knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btnrow">
+      <button class="cpbtn btn-override" id="btnAbort">
+        <span class="material-symbols-outlined" style="font-size:18px;">terminal</span>
+        OVERRIDE
+      </button>
+      <button class="cpbtn btn-exec" id="btnStart">
+        <span class="material-symbols-outlined" style="font-size:18px;">rocket_launch</span>
+        EXECUTE
+      </button>
+    </div>
+  </footer>
+
+  <nav>
+    <div class="tab active">
+      <span class="material-symbols-outlined">grid_view</span>
+      <b>HUD</b>
+    </div>
+    <div class="tab">
+      <span class="material-symbols-outlined">monitoring</span>
+      <b>ANALYTICS</b>
+    </div>
+    <div class="tab">
+      <span class="material-symbols-outlined">account_tree</span>
+      <b>NODES</b>
+    </div>
+    <div class="tab">
+      <span class="material-symbols-outlined">database</span>
+      <b>ARCHIVES</b>
+    </div>
+  </nav>
+</div>
+
+<script>
+/*  Holo Command Core v3.5
+    "Extremely accurate" on the public internet is a cute fantasy.
+    This tries to be *as accurate as the browser allows*:
+      - latency: multiple requests, median + jitter + loss
+      - download: streamed bytes over time (Cloudflare speed endpoint) with warmup discard
+      - upload: timed POSTs with controlled payload sizes (median of trials)
+*/
+
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  // --- UI refs
+  const statusEl = $('status');
+  const mainValEl = $('mainValue');
+  const mainShadowEl = $('mainValueShadow');
+  const pingEl = $('pingVal');
+  const jitEl = $('jitterVal');
+  const dlEl = $('dlVal');
+  const ulEl = $('ulVal');
+  const serverLabel = $('serverLabel');
+
+  const pPing = $('pPing');
+  const pDl = $('pDl');
+  const pUl = $('pUl');
+  const pSum = $('pSum');
+
+  const throughputVal = $('throughputVal');
+  const throughputUnit = $('throughputUnit');
+  const throughputBar = $('throughputBar');
+
+  const healthVal = $('healthVal');
+  const healthHint = $('healthHint');
+  const healthBar = $('healthBar');
+
+  const btnStart = $('btnStart');
+  const btnAbort = $('btnAbort');
+  const btnSettings = $('btnSettings');
+  const sigLabel = $('sigLabel');
+
+  const safeSwitch = $('safeSwitch');
+  const probeStatus = $('probeStatus');
+  const logLines = $('loglines');
+
+  // --- Canvases
+  const stage = $('stage');
+  const hudCanvas = $('hudCanvas');
+  const fxCanvas = $('fxCanvas');
+  const gaugeCanvas = $('gaugeCanvas');
+  const hudCtx = hudCanvas.getContext('2d');
+  const fxCtx = fxCanvas.getContext('2d');
+  const gCtx = gaugeCanvas.getContext('2d');
+
+  // --- State
+  const state = {
+    running: false,
+    aborted: false,
+    safeMode: true,
+    phase: 'idle',
+    currentMbps: 0,
+    targetMbps: 0,
+    pingMs: null,
+    jitterMs: null,
+    lossPct: 0,
+    dlMbps: null,
+    ulMbps: null,
+    dlP95: null,
+    ulMed: null,
+    ip: null,
+    city: null,
+    country: null,
+    isp: null,
+    conn: null,
+    server: {
+      name: 'Cloudflare',
+      down: 'https://speed.cloudflare.com/__down',
+      up: 'https://speed.cloudflare.com/__up',
+      ping: 'https://speed.cloudflare.com/__down?bytes=1'
+    },
+    samples: [],
+    lastFrame: performance.now(),
+    fps: 0
+  };
+
+  // --- Helpers
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a,b,t)=> a + (b-a)*t;
+
+  function nowTS(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function log(tag, color, msg){
+    const line = document.createElement('div');
+    line.className = 'logline';
+    line.innerHTML = `<span class="ts">${nowTS()}</span><span class="tag ${color}">${tag}</span><span class="msg">${msg}</span>`;
+    logLines.prepend(line);
+    while(logLines.childNodes.length > 12) logLines.removeChild(logLines.lastChild);
+  }
+
+  function setStatus(text, color){
+    statusEl.textContent = text;
+    // color coded via CSS vars, without introducing new colors
+    statusEl.style.color = color;
+  }
+
+  function setProgress(el, pct){ el.style.width = `${clamp(pct,0,100).toFixed(0)}%`; }
+
+  function fmt(n, d=1){
+    if(n === null || n === undefined || Number.isNaN(n)) return '--';
+    return Number(n).toFixed(d);
+  }
+
+  function percentile(arr, p){
+    if(!arr.length) return null;
+    const s = [...arr].sort((a,b)=>a-b);
+    const idx = (s.length-1)*p;
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if(lo === hi) return s[lo];
+    return s[lo] + (s[hi]-s[lo])*(idx-lo);
+  }
+
+  function mean(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null; }
+  function stdev(arr){
+    if(arr.length < 2) return 0;
+    const m = mean(arr);
+    const v = arr.reduce((acc,x)=>acc + (x-m)*(x-m),0)/(arr.length-1);
+    return Math.sqrt(v);
+  }
+
+  function connectionInfo(){
+    const n = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if(!n) return 'unknown';
+    const parts = [];
+    if(n.effectiveType) parts.push(n.effectiveType);
+    if(typeof n.downlink === 'number') parts.push(`${n.downlink.toFixed(1)}Mb downlink-hint`);
+    if(typeof n.rtt === 'number') parts.push(`${n.rtt}ms rtt-hint`);
+    if(n.saveData) parts.push('saveData');
+    return parts.length ? parts.join(' • ') : 'unknown';
+  }
+
+  async function tryJSON(url, opt){
+    const r = await fetch(url, opt);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  }
+
+  // --- Telemetry enrichment (best effort; CORS + privacy can block)
+  async function hydrateNetworkIdentity(){
+    try{
+      // ipify supports CORS
+      const ipj = await tryJSON('https://api.ipify.org?format=json', { cache:'no-store' });
+      state.ip = ipj.ip;
+      log('ID', 'y', `public ip: ${state.ip}`);
+
+      // ipapi supports CORS for simple requests (rate-limited sometimes)
+      try{
+        const geo = await tryJSON(`https://ipapi.co/${encodeURIComponent(state.ip)}/json/`, { cache:'no-store' });
+        state.city = geo.city || null;
+        state.country = geo.country_name || geo.country || null;
+        state.isp = geo.org || geo.asn || null;
+        const place = [state.city, state.country].filter(Boolean).join(', ');
+        log('GEO', 'g', place ? `approx location: ${place}` : `geo: unavailable`);
+        if(state.isp) log('ISP', 'c', `network: ${state.isp}`);
+      }catch(_){
+        log('GEO', 'g', 'geo/isp blocked or rate-limited (privacy wins this round)');
+      }
+    }catch(_){
+      log('ID', 'y', 'public ip lookup blocked (CORS/privacy). still can run test.');
+    }
+  }
+
+  // --- Latency test: median RTT via repeated tiny downloads
+  async function testPing({ attempts=12, timeoutMs=1800 } = {}){
+    setStatus('PROBING_LATENCY', 'var(--g)');
+    log('PING','g','warming up the link (and your patience).');
+    setProgress(pPing, 5);
+
+    const times = [];
+    let loss = 0;
+
+    for(let i=0;i<attempts;i++){
+      if(state.aborted) break;
+
+      const ctrl = new AbortController();
+      const t0 = performance.now();
+      const to = setTimeout(()=> ctrl.abort(), timeoutMs);
+
+      try{
+        // bytes=1 for minimal transfer, still goes through edge + CORS
+        await fetch(`${state.server.ping}&t=${Date.now()}-${i}`, {
+          cache:'no-store',
+          mode:'cors',
+          signal: ctrl.signal
+        });
+        const t1 = performance.now();
+        times.push(t1 - t0);
+      }catch(e){
+        loss++;
+      }finally{
+        clearTimeout(to);
+      }
+
+      const pct = 5 + (i+1)/attempts*95;
+      setProgress(pPing, pct);
+
+      // make UI feel alive, not clinically dead
+      const liveMed = percentile(times, 0.5);
+      pingEl.textContent = fmt(liveMed, 0);
+      jitEl.textContent = fmt(stdev(times), 0);
+      await sleep(state.safeMode ? 80 : 40);
+    }
+
+    const med = percentile(times, 0.5);
+    const jit = stdev(times);
+    const lossPct = attempts ? (loss/attempts)*100 : 0;
+
+    state.pingMs = med;
+    state.jitterMs = jit;
+    state.lossPct = lossPct;
+
+    pingEl.textContent = fmt(med, 0);
+    jitEl.textContent = fmt(jit, 0);
+
+    log('PING','g', `median ${fmt(med,0)}ms • jitter ${fmt(jit,0)}ms • loss ${lossPct.toFixed(0)}%`);
+    return { median: med, jitter: jit, lossPct };
+  }
+
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+  // --- Download test: stream bytes from CF speed endpoint
+  async function testDownload({
+    durationMs = 9000,
+    warmupMs = 900,
+    streams = 4
+  } = {}){
+    setStatus('SATURATING_DOWNLINK', 'var(--cyan)');
+    log('DL','c', `opening ${streams} parallel streams. your router is about to get judged.`);
+    setProgress(pDl, 2);
+
+    const controller = new AbortController();
+    const startT = performance.now();
+    const endT = startT + durationMs;
+
+    let totalBytes = 0;
+    const samples = []; // {t, mbps}
+    const perStream = new Array(streams).fill(0);
+
+    function bytesToMbps(bytes, dtMs){
+      const bits = bytes * 8;
+      return (bits / (dtMs/1000)) / 1e6;
+    }
+
+    async function oneStream(idx){
+      // keep requesting moderate chunks; using huge file can get cached or throttled weirdly
+      while(!state.aborted && performance.now() < endT){
+        const bytes = 12_000_000; // 12MB
+        const url = `${state.server.down}?bytes=${bytes}&t=${Date.now()}-${idx}-${Math.random().toString(16).slice(2)}`;
+        const r = await fetch(url, { cache:'no-store', mode:'cors', signal: controller.signal });
+        if(!r.body) {
+          // fallback if streaming not supported (rare now)
+          const buf = await r.arrayBuffer();
+          perStream[idx] += buf.byteLength;
+          totalBytes += buf.byteLength;
+          continue;
+        }
+        const reader = r.body.getReader();
+        while(true){
+          const { value, done } = await reader.read();
+          if(done) break;
+          const n = value.byteLength;
+          perStream[idx] += n;
+          totalBytes += n;
+        }
+      }
+    }
+
+    // sampling loop
+    let lastBytes = 0;
+    let lastT = performance.now();
+
+    const streamPromises = Array.from({length: streams}, (_,i)=>oneStream(i).catch(()=>{}));
+    while(!state.aborted && performance.now() < endT){
+      const t = performance.now();
+      const dt = t - lastT;
+      const db = totalBytes - lastBytes;
+
+      // discard warmup
+      const elapsed = t - startT;
+      if(elapsed > warmupMs && dt > 0){
+        const mbps = bytesToMbps(db, dt);
+        samples.push(mbps);
+        state.currentMbps = mbps;
+        state.targetMbps = mbps;
+
+        mainValEl.textContent = fmt(mbps, 1);
+        mainShadowEl.textContent = mainValEl.textContent;
+
+        const dlAvg = mean(samples);
+        dlEl.textContent = fmt(dlAvg, 1);
+        throughputVal.textContent = fmt(dlAvg, 1);
+        throughputUnit.textContent = 'Mbps (avg DL)';
+        throughputBar.style.width = `${clamp((dlAvg/1200)*100, 0, 100).toFixed(0)}%`; // scale to 1.2Gbps
+      }
+
+      const pct = (elapsed/durationMs)*100;
+      setProgress(pDl, pct);
+
+      lastBytes = totalBytes;
+      lastT = t;
+
+      await sleep(state.safeMode ? 140 : 90);
+    }
+
+    controller.abort(); // stop streams
+    await Promise.allSettled(streamPromises);
+
+    const dlAvg = mean(samples);
+    const dlP95 = percentile(samples, 0.95);
+
+    state.dlMbps = dlAvg;
+    state.dlP95 = dlP95;
+
+    dlEl.textContent = fmt(dlAvg, 1);
+    log('DL','c', `avg ${fmt(dlAvg,1)} Mbps • p95 ${fmt(dlP95,1)} Mbps • transferred ${(totalBytes/1e6).toFixed(1)} MB`);
+    return { avg: dlAvg, p95: dlP95, mb: totalBytes/1e6 };
+  }
+
+  // --- Upload test: time controlled payload sizes, median rate
+  async function testUpload({
+    trials = 5,
+    sizes = [1_500_000, 4_000_000, 8_000_000], // bytes
+    timeoutMs = 16000
+  } = {}){
+    setStatus('EJECTING_UPLINK', 'var(--pink)');
+    log('UL','p', 'throwing packets uphill. gravity is optional.');
+    setProgress(pUl, 2);
+
+    const results = [];
+
+    // pre-gen random-ish buffer for less GC churn
+    const maxSize = Math.max(...sizes);
+    const pool = new Uint8Array(maxSize);
+    crypto.getRandomValues(pool);
+
+    for(let i=0;i<trials;i++){
+      if(state.aborted) break;
+
+      const size = sizes[i % sizes.length];
+      const body = new Blob([pool.slice(0, size)], { type:'application/octet-stream' });
+
+      const ctrl = new AbortController();
+      const to = setTimeout(()=>ctrl.abort(), timeoutMs);
+
+      const t0 = performance.now();
+      try{
+        await fetch(`${state.server.up}?t=${Date.now()}-${i}`, {
+          method:'POST',
+          mode:'cors',
+          cache:'no-store',
+          body,
+          signal: ctrl.signal
+        });
+        const t1 = performance.now();
+        const dt = t1 - t0;
+        const mbps = (size * 8 / (dt/1000)) / 1e6;
+        results.push(mbps);
+
+        state.currentMbps = mbps;
+        state.targetMbps = mbps;
+        mainValEl.textContent = fmt(mbps, 1);
+        mainShadowEl.textContent = mainValEl.textContent;
+
+        const med = percentile(results, 0.5);
+        ulEl.textContent = fmt(med, 1);
+
+        const pct = (i+1)/trials*100;
+        setProgress(pUl, pct);
+
+        log('UL','p', `trial ${i+1}/${trials}: ${fmt(mbps,1)} Mbps (payload ${(size/1e6).toFixed(1)}MB)`);
+      }catch(_){
+        log('UL','p', `trial ${i+1}/${trials}: aborted/blocked (CORS or network)`);
+        setProgress(pUl, (i+1)/trials*100);
+      }finally{
+        clearTimeout(to);
+      }
+
+      await sleep(state.safeMode ? 220 : 140);
+    }
+
+    const ulMed = percentile(results, 0.5);
+    state.ulMbps = ulMed;
+    ulEl.textContent = fmt(ulMed, 1);
+
+    log('UL','p', `median ${fmt(ulMed,1)} Mbps (timed uploads)`);
+    return { median: ulMed, raw: results };
+  }
+
+  // --- Summary + "useful informal" rating
+  function healthScore(){
+    const loss = state.lossPct || 0;
+    const ping = state.pingMs || 999;
+    const jit = state.jitterMs || 999;
+    // crude "link health": penalize loss heavily, then jitter, then latency
+    let score = 100;
+    score -= loss * 7;
+    score -= Math.min(jit, 60) * 0.9;
+    score -= Math.min(ping, 200) * 0.18;
+    score = clamp(score, 0, 100);
+    return score;
+  }
+
+  function ratingText(score){
+    if(score >= 92) return 'ELITE';
+    if(score >= 82) return 'CLEAN';
+    if(score >= 70) return 'OK-ish';
+    if(score >= 55) return 'FLAKY';
+    if(score >= 40) return 'SUS';
+    return 'CHAOS';
+  }
+
+  function applySummary(){
+    setStatus('COMPILING_SUMMARY', 'var(--y)');
+    setProgress(pSum, 30);
+
+    const dl = state.dlMbps || 0;
+    const ul = state.ulMbps || 0;
+    const score = healthScore();
+    const tag = ratingText(score);
+
+    throughputVal.textContent = fmt(dl, 1);
+    throughputUnit.textContent = `Mbps (avg DL) • p95 ${fmt(state.dlP95,1)}`;
+    throughputBar.style.width = `${clamp((dl/1200)*100,0,100).toFixed(0)}%`;
+
+    healthVal.textContent = `${tag}`;
+    healthHint.textContent = `loss ${state.lossPct.toFixed(0)}% • ping ${fmt(state.pingMs,0)}ms • jitter ${fmt(state.jitterMs,0)}ms`;
+    healthBar.style.width = `${score.toFixed(0)}%`;
+
+    log('SUM','y', `DL ${fmt(dl,1)} Mbps • UL ${fmt(ul,1)} Mbps • ${tag} (score ${score.toFixed(0)})`);
+    setProgress(pSum, 100);
+
+    setStatus('DONE', 'var(--y)');
+    probeStatus.textContent = 'STANDBY_COMPLETE';
+  }
+
+  function resetUI(){
+    state.phase = 'idle';
+    state.currentMbps = 0;
+    state.targetMbps = 0;
+    state.pingMs = null;
+    state.jitterMs = null;
+    state.lossPct = 0;
+    state.dlMbps = null;
+    state.ulMbps = null;
+    state.dlP95 = null;
+
+    mainValEl.textContent = '0.0';
+    mainShadowEl.textContent = '0.0';
+    pingEl.textContent = '--';
+    jitEl.textContent = '--';
+    dlEl.textContent = '--';
+    ulEl.textContent = '--';
+
+    throughputVal.textContent = '--';
+    throughputUnit.textContent = 'Mbps (avg)';
+    throughputBar.style.width = '0%';
+
+    healthVal.textContent = '--';
+    healthHint.textContent = 'loss / stability';
+    healthBar.style.width = '0%';
+
+    setProgress(pPing, 0);
+    setProgress(pDl, 0);
+    setProgress(pUl, 0);
+    setProgress(pSum, 0);
+
+    setStatus('IDLE_STANDBY', 'var(--pink)');
+    probeStatus.textContent = 'ACTIVE_OPERATIONAL';
+
+    log('SYS','y', 'reset complete. ready when you are.');
+  }
+
+  // --- Parallax (kept subtle, because humans love motion sickness)
+  const par = $('parallax');
+  par.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 10;
+    const y = (e.clientY / window.innerHeight - 0.5) * -10;
+    stage.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+  });
+  par.addEventListener('mouseleave', () => stage.style.transform = 'rotateY(0deg) rotateX(0deg)');
+
+  // --- Canvas sizing
+  function resize(){
+    const box = stage.getBoundingClientRect();
+    const dpr = Math.max(1, Math.min(2.25, window.devicePixelRatio || 1));
+    for(const c of [hudCanvas, fxCanvas, gaugeCanvas]){
+      c.width = Math.floor(box.width * dpr);
+      c.height = Math.floor(box.height * dpr);
+      c.style.width = box.width + 'px';
+      c.style.height = box.height + 'px';
+    }
+    hudCtx.setTransform(1,0,0,1,0,0);
+    fxCtx.setTransform(1,0,0,1,0,0);
+    gCtx.setTransform(1,0,0,1,0,0);
+    hudCtx.scale(dpr,dpr);
+    fxCtx.scale(dpr,dpr);
+    gCtx.scale(dpr,dpr);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // --- Futuristic gauge rendering
+  function drawGauge(w,h){
+    const cx = w/2, cy = h/2;
+    const radius = Math.min(w,h) * 0.40;
+    const startA = Math.PI * 1.05;
+    const endA = Math.PI * 1.95;
+    const span = endA - startA;
+
+    gCtx.clearRect(0,0,w,h);
+
+    // base arc
+    gCtx.lineWidth = 2;
+    gCtx.strokeStyle = 'rgba(0,234,255,0.18)';
+    gCtx.beginPath();
+    gCtx.arc(cx, cy, radius, startA, endA);
+    gCtx.stroke();
+
+    // ticks
+    const ticks = [
+      {v:0,  label:'0'},
+      {v:1,  label:'1M'},
+      {v:5,  label:'5M'},
+      {v:10, label:'10M'},
+      {v:20, label:'20M'},
+      {v:30, label:'30M'},
+      {v:50, label:'50M'},
+      {v:100,label:'100M'},
+      {v:200,label:'200M'},
+      {v:500,label:'500M'},
+      {v:1000,label:'1G'}
+    ];
+
+    // Map Mbps to gauge using a log-like curve (makes low values visible and high values possible)
+    const max = 1000;
+    const map = (mbps) => {
+      const x = clamp(mbps, 0.05, max);
+      const t = Math.log10(1 + x) / Math.log10(1 + max);
+      return t;
+    };
+
+    for(const t of ticks){
+      const a = startA + span * map(t.v);
+      const inner = radius - 12;
+      const outer = radius + 10;
+      const x1 = cx + Math.cos(a)*inner;
+      const y1 = cy + Math.sin(a)*inner;
+      const x2 = cx + Math.cos(a)*outer;
+      const y2 = cy + Math.sin(a)*outer;
+
+      const hot = t.v >= 500;
+      gCtx.strokeStyle = hot ? 'rgba(255,242,0,0.65)' : 'rgba(0,234,255,0.42)';
+      gCtx.lineWidth = hot ? 2 : 1.5;
+      gCtx.beginPath(); gCtx.moveTo(x1,y1); gCtx.lineTo(x2,y2); gCtx.stroke();
+
+      // labels
+      gCtx.font = `900 11px ${getComputedStyle(document.documentElement).getPropertyValue('--cond')}`;
+      gCtx.fillStyle = hot ? 'rgba(255,242,0,0.80)' : 'rgba(0,234,255,0.65)';
+      gCtx.textAlign = 'center';
+      gCtx.textBaseline = 'middle';
+      const lx = cx + Math.cos(a) * (radius + 26);
+      const ly = cy + Math.sin(a) * (radius + 26);
+      gCtx.fillText(t.label, lx, ly);
+    }
+
+    // progress arc (current speed)
+    const tCur = map(Math.max(0, state.currentMbps));
+    const aCur = startA + span * tCur;
+
+    gCtx.save();
+    gCtx.lineWidth = 6;
+    gCtx.lineCap = 'round';
+    // gradient along arc (cyan -> green -> yellow -> pink-ish)
+    const grad = gCtx.createLinearGradient(cx-radius, cy, cx+radius, cy);
+    grad.addColorStop(0, 'rgba(0,234,255,0.20)');
+    grad.addColorStop(0.45, 'rgba(182,255,0,0.65)');
+    grad.addColorStop(0.70, 'rgba(255,242,0,0.85)');
+    grad.addColorStop(1, 'rgba(255,0,229,0.45)');
+    gCtx.strokeStyle = grad;
+    gCtx.shadowBlur = 18;
+    gCtx.shadowColor = 'rgba(0,234,255,0.50)';
+    gCtx.beginPath();
+    gCtx.arc(cx, cy, radius, startA, aCur);
+    gCtx.stroke();
+    gCtx.restore();
+
+    // needle
+    const needleLen = radius - 18;
+    const nx = cx + Math.cos(aCur) * needleLen;
+    const ny = cy + Math.sin(aCur) * needleLen;
+
+    gCtx.save();
+    gCtx.strokeStyle = 'rgba(255,242,0,0.95)';
+    gCtx.lineWidth = 3.2;
+    gCtx.shadowBlur = 22;
+    gCtx.shadowColor = 'rgba(255,242,0,0.55)';
+    gCtx.beginPath();
+    gCtx.moveTo(cx, cy);
+    gCtx.lineTo(nx, ny);
+    gCtx.stroke();
+    gCtx.restore();
+
+    // pivot
+    gCtx.save();
+    gCtx.fillStyle = 'rgba(255,0,229,0.90)';
+    gCtx.shadowBlur = 18;
+    gCtx.shadowColor = 'rgba(255,0,229,0.55)';
+    gCtx.beginPath(); gCtx.arc(cx, cy, 7, 0, Math.PI*2); gCtx.fill();
+    gCtx.fillStyle = 'rgba(0,234,255,0.95)';
+    gCtx.shadowBlur = 18;
+    gCtx.shadowColor = 'rgba(0,234,255,0.55)';
+    gCtx.beginPath(); gCtx.arc(cx, cy, 3.6, 0, Math.PI*2); gCtx.fill();
+    gCtx.restore();
+
+    // footer text inside gauge
+    gCtx.font = `900 11px ${getComputedStyle(document.documentElement).getPropertyValue('--display')}`;
+    gCtx.fillStyle = 'rgba(255,255,255,0.55)';
+    gCtx.textAlign = 'center';
+    gCtx.fillText('LIVE THROUGHPUT', cx, cy + radius*0.78);
+  }
+
+  // --- HUD FX: waveform + particles + scanning arcs
+  const particles = Array.from({length: 26}, (_,i)=>({
+    a: Math.random()*Math.PI*2,
+    r: 0.34 + Math.random()*0.18,
+    s: 0.3 + Math.random()*1.3,
+    p: Math.random(),
+    k: i % 4
+  }));
+
+  function drawFX(w,h, t){
+    fxCtx.clearRect(0,0,w,h);
+    const cx=w/2, cy=h/2;
+    const R = Math.min(w,h)*0.43;
+
+    // scanning arc
+    const scanA = (t/900) % (Math.PI*2);
+    fxCtx.save();
+    fxCtx.translate(cx, cy);
+    fxCtx.rotate(scanA);
+    fxCtx.globalAlpha = 0.75;
+    fxCtx.strokeStyle = 'rgba(0,234,255,0.25)';
+    fxCtx.lineWidth = 2;
+    fxCtx.shadowBlur = 18;
+    fxCtx.shadowColor = 'rgba(0,234,255,0.35)';
+    fxCtx.beginPath();
+    fxCtx.arc(0,0,R, -0.25, 0.25);
+    fxCtx.stroke();
+    fxCtx.restore();
+
+    // oscillating waveform strip
+    fxCtx.save();
+    fxCtx.globalAlpha = 0.55;
+    fxCtx.strokeStyle = 'rgba(255,0,229,0.30)';
+    fxCtx.lineWidth = 1.5;
+    fxCtx.shadowBlur = 14;
+    fxCtx.shadowColor = 'rgba(255,0,229,0.25)';
+    fxCtx.beginPath();
+    const y0 = cy + R*0.55;
+    for(let x=0;x<=w;x+=6){
+      const n = Math.sin((x*0.02)+(t*0.007)) * (6 + Math.sin(t*0.004)*2);
+      fxCtx.lineTo(x, y0 + n);
+    }
+    fxCtx.stroke();
+    fxCtx.restore();
+
+    // particles around gauge
+    fxCtx.save();
+    for(const p of particles){
+      p.a += 0.008 * p.s * (state.running ? 1.4 : 0.8);
+      const rr = R * p.r;
+      const x = cx + Math.cos(p.a) * rr;
+      const y = cy + Math.sin(p.a) * rr;
+      const glow = 8 + (state.running ? 10 : 6) * Math.abs(Math.sin(t*0.003 + p.p*6));
+      let col = 'rgba(0,234,255,0.85)';
+      if(p.k===1) col = 'rgba(255,0,229,0.85)';
+      if(p.k===2) col = 'rgba(182,255,0,0.75)';
+      if(p.k===3) col = 'rgba(255,242,0,0.78)';
+
+      fxCtx.fillStyle = col;
+      fxCtx.shadowBlur = glow;
+      fxCtx.shadowColor = col;
+      fxCtx.beginPath();
+      fxCtx.arc(x,y, 1.2 + (p.k===3?0.5:0), 0, Math.PI*2);
+      fxCtx.fill();
+    }
+    fxCtx.restore();
+  }
+
+  // --- HUD backdrop: thin grid + corner markers
+  function drawHUD(w,h,t){
+    hudCtx.clearRect(0,0,w,h);
+    const cx=w/2, cy=h/2;
+
+    // subtle grid
+    hudCtx.save();
+    hudCtx.globalAlpha = 0.18;
+    hudCtx.strokeStyle = 'rgba(0,234,255,0.22)';
+    hudCtx.lineWidth = 1;
+    for(let i=0;i<10;i++){
+      const y = (h/10)*i;
+      hudCtx.beginPath(); hudCtx.moveTo(0,y); hudCtx.lineTo(w,y); hudCtx.stroke();
+    }
+    for(let i=0;i<10;i++){
+      const x = (w/10)*i;
+      hudCtx.beginPath(); hudCtx.moveTo(x,0); hudCtx.lineTo(x,h); hudCtx.stroke();
+    }
+    hudCtx.restore();
+
+    // corner markers
+    const mk = (x,y, col) => {
+      hudCtx.save();
+      hudCtx.strokeStyle = col;
+      hudCtx.lineWidth = 2;
+      hudCtx.shadowBlur = 14;
+      hudCtx.shadowColor = col;
+      hudCtx.beginPath();
+      hudCtx.moveTo(x,y+18); hudCtx.lineTo(x,y); hudCtx.lineTo(x+18,y);
+      hudCtx.stroke();
+      hudCtx.restore();
+    };
+    mk(18,18,'rgba(255,0,229,0.45)');
+    mk(w-36,18,'rgba(0,234,255,0.45)');
+    mk(18,h-36,'rgba(182,255,0,0.35)');
+    mk(w-36,h-36,'rgba(255,242,0,0.35)');
+
+    // live data ribbon
+    hudCtx.save();
+    hudCtx.globalAlpha = 0.85;
+    hudCtx.font = `900 11px ${getComputedStyle(document.documentElement).getPropertyValue('--cond')}`;
+    hudCtx.fillStyle = 'rgba(255,242,0,0.55)';
+    hudCtx.fillText(`fps:${state.fps.toFixed(0)} • conn:${state.conn || 'unknown'}`, 18, h-18);
+    hudCtx.restore();
+  }
+
+  // --- Animation loop
+  function loop(t){
+    const w = stage.clientWidth;
+    const h = stage.clientHeight;
+
+    // fps
+    const dt = t - state.lastFrame;
+    state.lastFrame = t;
+    if(dt > 0) state.fps = lerp(state.fps, 1000/dt, 0.12);
+
+    // ease displayed Mbps (needle and readout feel nicer)
+    state.currentMbps = lerp(state.currentMbps, state.targetMbps, state.running ? 0.18 : 0.10);
+
+    drawHUD(w,h,t);
+    drawFX(w,h,t);
+    drawGauge(w,h);
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // --- UI wiring
+  safeSwitch.addEventListener('click', ()=>{
+    state.safeMode = !state.safeMode;
+    safeSwitch.classList.toggle('on', state.safeMode);
+    safeSwitch.setAttribute('aria-checked', String(state.safeMode));
+    log('SYS','y', `safe_mode: ${state.safeMode ? 'on (gentler)' : 'off (spicier)'}`);
+  });
+  safeSwitch.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); safeSwitch.click(); }
+  });
+
+  btnSettings.addEventListener('click', ()=>{
+    const msg = [
+      `connection: ${connectionInfo()}`,
+      `browser: ${navigator.userAgent}`,
+      `note: tests can vary due to wifi contention, VPNs, bufferbloat, and your neighbor's microwave.`
+    ].join('\n');
+    alert(msg);
+  });
+
+  btnAbort.addEventListener('click', ()=>{
+    if(!state.running){
+      resetUI();
+      return;
+    }
+    state.aborted = true;
+    state.running = false;
+    setStatus('ABORTED', 'var(--pink)');
+    probeStatus.textContent = 'OVERRIDE_ENGAGED';
+    log('SYS','p','override triggered. stopping test.');
+    btnStart.disabled = false;
+  });
+
+  btnStart.addEventListener('click', async ()=>{
+    if(state.running) return;
+
+    // reset
+    state.running = true;
+    state.aborted = false;
+    state.conn = connectionInfo();
+    sigLabel.textContent = `Signal: ${state.conn}`;
+    logLines.innerHTML = '';
+    log('SYS','y','boot sequence initiated.');
+    probeStatus.textContent = 'RUNNING_DIAGNOSTICS';
+
+    btnStart.disabled = true;
+
+    // server label
+    const place = [state.city, state.country].filter(Boolean).join(', ');
+    const idBits = [];
+    if(state.ip) idBits.push(state.ip);
+    if(place) idBits.push(place);
+    serverLabel.textContent = `server: ${state.server.name.toLowerCase()} • conn: ${state.conn}${idBits.length ? ' • ' + idBits.join(' • ') : ''}`;
+
+    // enrich identity in background (won't block test)
+    hydrateNetworkIdentity().finally(()=>{
+      const place2 = [state.city, state.country].filter(Boolean).join(', ');
+      const idBits2 = [];
+      if(state.ip) idBits2.push(state.ip);
+      if(place2) idBits2.push(place2);
+      serverLabel.textContent = `server: ${state.server.name.toLowerCase()} • conn: ${state.conn}${idBits2.length ? ' • ' + idBits2.join(' • ') : ''}`;
+    });
+
+    try{
+      // Phase 1: ping
+      state.phase = 'ping';
+      setProgress(pDl,0); setProgress(pUl,0); setProgress(pSum,0);
+      await testPing({ attempts: state.safeMode ? 12 : 16, timeoutMs: state.safeMode ? 1800 : 1400 });
+      if(state.aborted) throw new Error('aborted');
+
+      // Phase 2: download
+      state.phase = 'dl';
+      setProgress(pPing,100);
+      await sleep(250);
+      await testDownload({ durationMs: state.safeMode ? 9000 : 11000, warmupMs: 900, streams: state.safeMode ? 4 : 6 });
+      if(state.aborted) throw new Error('aborted');
+
+      // Phase 3: upload
+      state.phase = 'ul';
+      setProgress(pDl,100);
+      await sleep(250);
+      await testUpload({ trials: state.safeMode ? 5 : 7 });
+      if(state.aborted) throw new Error('aborted');
+
+      // Phase 4: summary
+      state.phase = 'sum';
+      setProgress(pUl,100);
+      await sleep(250);
+      applySummary();
+
+      state.running = false;
+      btnStart.disabled = false;
+    }catch(e){
+      state.running = false;
+      btnStart.disabled = false;
+      if(state.aborted){
+        log('SYS','p','test stopped. no hard feelings (i lied).');
+      }else{
+        log('ERR','p','test failed. likely CORS/network restrictions. try a different network or disable VPN.');
+      }
+      probeStatus.textContent = 'STANDBY_READY';
+    }
+  });
+
+  // initial boot logs
+  resetUI();
+  log('SYS','y','core online. waiting for EXECUTE.');
+  log('TIP','c','best accuracy: close other downloads, avoid VPN, and do 2-3 runs.');
+})();
+</script>
+</body>
+</html>
