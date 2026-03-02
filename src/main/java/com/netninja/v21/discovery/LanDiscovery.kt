@@ -22,17 +22,22 @@ import kotlinx.coroutines.sync.withPermit
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.net.ConnectException
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.NetworkInterface
+import java.net.NoRouteToHostException
 import java.net.Socket
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Collections
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 private fun round1(value: Double): Double = ((value * 10.0).roundToInt()) / 10.0
@@ -41,12 +46,12 @@ class LanDiscovery(
   context: Context,
 ) {
   data class ScanConfig(
-    val maxConcurrency: Int = 48,
-    val probeTimeoutMs: Int = 450,
+    val maxConcurrency: Int = 64,
+    val probeTimeoutMs: Int = 325,
     val maxTargets: Int = 254,
     val maxSubnetPrefix: Int = 24,
     val allowPortFallback: Boolean = true,
-    val fallbackPorts: List<Int> = listOf(443, 80),
+    val fallbackPorts: List<Int> = listOf(443, 80, 53, 22, 554),
   )
 
   data class LanDevice(
@@ -99,6 +104,17 @@ class LanDiscovery(
     val prefixLength: Int,
   )
 
+  private data class DhcpSnapshot(
+    val localIp: String?,
+    val gatewayIp: String?,
+    val prefixLength: Int?,
+  )
+
+  private data class TcpProbeResult(
+    val reachable: Boolean,
+    val method: String,
+  )
+
   private val appContext = context.applicationContext
   private val connectivityManager =
     appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -126,6 +142,7 @@ class LanDiscovery(
       stopInternal()
       activeJob = launch {
         runCatching {
+          deviceCache.clear()
           val networkContext = resolveNetworkContext(config)
           callback(
             Event.Status(
@@ -185,20 +202,20 @@ class LanDiscovery(
   ) = coroutineScope {
     val semaphore = Semaphore(config.maxConcurrency.coerceIn(8, 64))
     val totalTargets = networkContext.targets.size
-    var processed = 0
+    val processed = AtomicInteger(0)
 
     networkContext.targets.map { ip ->
       async {
         semaphore.withPermit {
           currentCoroutineContext().ensureActive()
           val device = probeHost(ip, networkContext, config)
-          processed += 1
+          val scanned = processed.incrementAndGet()
           callback(
             Event.Status(
               JSONObject()
                 .put("status", "progress")
-                .put("progress", processed.toDouble() / max(1, totalTargets).toDouble())
-                .put("scanned", processed)
+                .put("progress", scanned.toDouble() / max(1, totalTargets).toDouble())
+                .put("scanned", scanned)
                 .put("totalTargets", totalTargets)
                 .put("count", deviceCache.size)
                 .put("subnet", networkContext.subnetCidr),
@@ -292,14 +309,16 @@ class LanDiscovery(
     val linkProperties = connectivityManager.getLinkProperties(activeNetwork)
       ?: error("No link properties for active network.")
     val linkAddress = linkProperties.linkAddresses.firstOrNull(::isUsableIpv4LinkAddress)
+    val dhcpSnapshot = dhcpSnapshot()
     val fallbackAddress = if (linkAddress == null) fallbackIpv4Address() else null
-    val localIp = linkAddress?.address?.hostAddress ?: fallbackAddress?.hostAddress
+    val localIp = linkAddress?.address?.hostAddress ?: dhcpSnapshot.localIp ?: fallbackAddress?.hostAddress
       ?: error("No usable IPv4 address found on the active network.")
     val routeGateway = linkProperties.routes.firstOrNull { it.isDefaultGatewayV4() }?.gateway?.hostAddress
-    val wifiGateway = dhcpGatewayIp()
-    val gatewayIp = routeGateway ?: wifiGateway
+    val gatewayIp = routeGateway ?: dhcpSnapshot.gatewayIp
 
-    val originalPrefix = (linkAddress?.prefixLength ?: fallbackAddress?.prefixLength ?: 24).coerceIn(8, 30)
+    val originalPrefix =
+      (linkAddress?.prefixLength ?: dhcpSnapshot.prefixLength ?: fallbackAddress?.prefixLength ?: 24)
+        .coerceIn(8, 30)
     val effectivePrefix = max(originalPrefix, config.maxSubnetPrefix.coerceIn(16, 30))
     val capped = originalPrefix < effectivePrefix
     val hostTargets = buildTargetIps(localIp, effectivePrefix)
@@ -331,12 +350,12 @@ class LanDiscovery(
     var rttMs = if (reachable) (System.nanoTime() - startedAt) / 1_000_000.0 else null
 
     if (!reachable && config.allowPortFallback) {
-      for (port in config.fallbackPorts.take(3)) {
+      for (port in config.fallbackPorts.take(5)) {
         val portStartedAt = System.nanoTime()
-        val connected = tcpReachable(ip, port, config.probeTimeoutMs)
-        if (connected) {
+        val tcpResult = tcpReachable(ip, port, config.probeTimeoutMs)
+        if (tcpResult.reachable) {
           reachable = true
-          method = "tcp:$port"
+          method = tcpResult.method
           rttMs = (System.nanoTime() - portStartedAt) / 1_000_000.0
           break
         }
@@ -371,14 +390,27 @@ class LanDiscovery(
     ip: String,
     port: Int,
     timeoutMs: Int,
-  ): Boolean {
+  ): TcpProbeResult {
     val socket = Socket()
     activeSockets += socket
     return try {
-      socket.connect(java.net.InetSocketAddress(ip, port), timeoutMs.coerceAtLeast(120))
-      true
+      socket.connect(InetSocketAddress(ip, port), timeoutMs.coerceAtLeast(120))
+      TcpProbeResult(reachable = true, method = "tcp:$port")
+    } catch (_: ConnectException) {
+      TcpProbeResult(reachable = true, method = "tcp-rst:$port")
+    } catch (_: SocketTimeoutException) {
+      TcpProbeResult(reachable = false, method = "tcp-timeout:$port")
+    } catch (_: NoRouteToHostException) {
+      TcpProbeResult(reachable = false, method = "tcp-unroutable:$port")
+    } catch (error: SocketException) {
+      val message = error.message?.lowercase(Locale.US).orEmpty()
+      if ("connection refused" in message) {
+        TcpProbeResult(reachable = true, method = "tcp-rst:$port")
+      } else {
+        TcpProbeResult(reachable = false, method = "tcp-error:$port")
+      }
     } catch (_: Exception) {
-      false
+      TcpProbeResult(reachable = false, method = "tcp-error:$port")
     } finally {
       activeSockets -= socket
       runCatching { socket.close() }
@@ -488,11 +520,14 @@ class LanDiscovery(
   private fun RouteInfo.isDefaultGatewayV4(): Boolean =
     isDefaultRoute && gateway is Inet4Address
 
-  private fun dhcpGatewayIp(): String? =
+  private fun dhcpSnapshot(): DhcpSnapshot =
     runCatching {
-      val gateway = wifiManager.dhcpInfo?.gateway ?: 0
-      if (gateway == 0) null else intToIpv4(gateway)
-    }.getOrNull()
+      val dhcpInfo = wifiManager.dhcpInfo
+      val localIp = dhcpInfo?.ipAddress?.takeIf { it != 0 }?.let(::intToIpv4)
+      val gatewayIp = dhcpInfo?.gateway?.takeIf { it != 0 }?.let(::intToIpv4)
+      val prefixLength = dhcpInfo?.netmask?.takeIf { it != 0 }?.let(::netmaskToPrefixLength)
+      DhcpSnapshot(localIp = localIp, gatewayIp = gatewayIp, prefixLength = prefixLength)
+    }.getOrDefault(DhcpSnapshot(localIp = null, gatewayIp = null, prefixLength = null))
 
   private fun buildTargetIps(
     localIp: String,
@@ -540,6 +575,11 @@ class LanDiscovery(
     return bytes.joinToString(".") { (it.toInt() and 0xFF).toString() }
   }
 
+  private fun netmaskToPrefixLength(netmask: Int): Int {
+    val mask = netmask.toLong() and 0xFFFF_FFFFL
+    return java.lang.Long.bitCount(mask).coerceIn(0, 32)
+  }
+
   companion object {
     fun configFromJson(rawJson: String?): ScanConfig {
       val json = rawJson?.trim()?.takeIf { it.isNotEmpty() }?.let { JSONObject(it) } ?: JSONObject()
@@ -553,11 +593,11 @@ class LanDiscovery(
           }
         }
         ?.take(5)
-        ?.ifEmpty { listOf(443, 80) }
-        ?: listOf(443, 80)
+        ?.ifEmpty { listOf(443, 80, 53, 22, 554) }
+        ?: listOf(443, 80, 53, 22, 554)
       return ScanConfig(
-        maxConcurrency = json.optInt("maxConcurrency", 48).coerceIn(8, 64),
-        probeTimeoutMs = json.optInt("probeTimeoutMs", 450).coerceIn(120, 1500),
+        maxConcurrency = json.optInt("maxConcurrency", 64).coerceIn(8, 64),
+        probeTimeoutMs = json.optInt("probeTimeoutMs", 325).coerceIn(120, 1500),
         maxTargets = json.optInt("maxTargets", 254).coerceIn(32, 512),
         maxSubnetPrefix = json.optInt("maxSubnetPrefix", 24).coerceIn(16, 30),
         allowPortFallback = json.optBoolean("allowPortFallback", true),

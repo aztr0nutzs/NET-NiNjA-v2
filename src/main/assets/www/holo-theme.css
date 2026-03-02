@@ -37,12 +37,20 @@
 
 html,
 body {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
   background: var(--bg-0) !important;
   color: var(--text-0);
   font-family: var(--font-ui);
 }
 
 .holo-screen {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   background: var(--bg-0) !important;
   color: var(--text-0);
 }
