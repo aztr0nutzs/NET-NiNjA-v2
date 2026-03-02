@@ -1,20 +1,13 @@
 package com.netninja.v21
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.provider.Settings
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -22,7 +15,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import com.netninja.v21.discovery.LanDiscovery
 import com.netninja.v21.speedtest.SpeedtestEngine
 import org.json.JSONArray
 import org.json.JSONObject
@@ -32,35 +25,18 @@ import java.time.Instant
 class MainActivity : AppCompatActivity() {
   private lateinit var webView: WebView
   private lateinit var wifiManager: WifiManager
+  private lateinit var connectivityManager: ConnectivityManager
   private lateinit var prefs: SharedPreferences
+
   private val speedtestEngine = SpeedtestEngine()
+  private lateinit var lanDiscovery: LanDiscovery
 
   private var bridgeEnabled = false
   private var pendingDiagnosticsJson: String? = null
-  private var activeScanRequestId = 0
-  private var pendingScanAfterPermission = false
-  private var lastScanResults = JSONArray()
-  private var lastScanSource = "none"
-  private var lastScanAtEpochMs = 0L
-  private val handler = Handler(Looper.getMainLooper())
-
-  private val permissionLauncher =
-    registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grantResults ->
-      val granted = grantResults.values.all { it }
-      emitBridgeState()
-      if (granted && pendingScanAfterPermission) {
-        pendingScanAfterPermission = false
-        performWifiScan(origin = "permission_granted")
-      } else {
-        pendingScanAfterPermission = false
-        emitNativeEvent(
-          type = "scan_status",
-          payload = JSONObject()
-            .put("status", "permission_denied")
-            .put("missingPermissions", JSONArray(missingRuntimeScanPermissions())),
-        )
-      }
-    }
+  private var lastLanSnapshot = JSONObject()
+    .put("capturedAt", 0L)
+    .put("count", 0)
+    .put("devices", JSONArray())
 
   private val exportLauncher =
     registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -97,24 +73,19 @@ class MainActivity : AppCompatActivity() {
       }
     }
 
-  private val wifiScanReceiver = object : BroadcastReceiver() {
-    override fun onReceive(context: Context?, intent: Intent?) {
-      if (activeScanRequestId == 0) return
-      val resultsUpdated = intent?.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false) ?: false
-      deliverLatestScanResults(
-        requestId = activeScanRequestId,
-        source = if (resultsUpdated) "real" else "cached",
-      )
-    }
-  }
-
-  @SuppressLint("SetJavaScriptEnabled")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
     prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
     bridgeEnabled = prefs.getBoolean(KEY_BRIDGE_ENABLED, true)
+    prefs.getString(KEY_LAST_LAN_SNAPSHOT, null)?.let { raw ->
+      runCatching { JSONObject(raw) }.getOrNull()?.let { snapshot ->
+        lastLanSnapshot = snapshot
+      }
+    }
     wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    connectivityManager = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    lanDiscovery = LanDiscovery(applicationContext)
 
     webView = WebView(this)
     setContentView(webView)
@@ -141,31 +112,24 @@ class MainActivity : AppCompatActivity() {
       override fun onPageFinished(view: WebView, url: String?) {
         super.onPageFinished(view, url)
         emitBridgeState()
-        if (lastScanResults.length() > 0) {
-          emitNativeEvent(
-            type = "wifi_scan_results",
-            payload = JSONObject()
-              .put("source", lastScanSource)
-              .put("capturedAt", lastScanAtEpochMs)
-              .put("results", JSONArray(lastScanResults.toString()))
-              .put("count", lastScanResults.length()),
-          )
+        if (lastLanSnapshot.optInt("count", 0) > 0) {
+          emitNativeEvent(type = "lan_scan_done", payload = JSONObject(lastLanSnapshot.toString()))
         }
       }
     }
 
-    registerWifiReceiver()
     webView.loadUrl("file:///android_asset/www/index.html")
   }
 
   override fun onDestroy() {
     speedtestEngine.abort()
-    unregisterReceiver(wifiScanReceiver)
+    lanDiscovery.stopScan()
     super.onDestroy()
   }
 
   override fun onStop() {
     speedtestEngine.abort()
+    lanDiscovery.stopScan()
     super.onStop()
   }
 
@@ -204,67 +168,65 @@ class MainActivity : AppCompatActivity() {
       .toString()
   }
 
-  fun requestWifiScanFromJs(): String {
-    if (!bridgeEnabled) {
-      return errorJson("bridge_disabled", "Enable native bridge before starting a Wi-Fi scan.")
-    }
-
-    if (!packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI)) {
-      emitNativeEvent(
-        type = "scan_status",
-        payload = JSONObject()
-          .put("status", "wifi_unavailable")
-          .put("message", "This device does not report Wi-Fi scanning support."),
-      )
-      return errorJson("wifi_unavailable", "Wi-Fi scanning is not available on this device.")
-    }
-
-    if (!isLocationServicesEnabled()) {
-      emitNativeEvent(
-        type = "scan_status",
-        payload = JSONObject()
-          .put("status", "location_services_disabled")
-          .put("message", "Turn on location services before scanning for nearby networks."),
-      )
-      return errorJson("location_services_disabled", "Location services are disabled.")
-    }
-
-    val missingPermissions = missingRuntimeScanPermissions()
-    if (missingPermissions.isNotEmpty()) {
-      pendingScanAfterPermission = true
-      permissionLauncher.launch(missingPermissions.toTypedArray())
-      emitNativeEvent(
-        type = "scan_status",
-        payload = JSONObject()
-          .put("status", "permission_requested")
-          .put("missingPermissions", JSONArray(missingPermissions)),
-      )
-      return JSONObject()
-        .put("ok", true)
-        .put("status", "permission_requested")
-        .toString()
-    }
-
-    return performWifiScan(origin = "user")
-  }
+  fun requestWifiScanFromJs(): String = startLanScanFromJs(null)
 
   fun getLastWifiScanJson(requireEnabled: Boolean): String {
     if (requireEnabled && !bridgeEnabled) {
       return errorJson("bridge_disabled", "Enable native bridge before requesting scan data.")
     }
+    return getLastLanScanJson()
+  }
+
+  fun startLanScanFromJs(jsonConfig: String?): String {
+    if (!bridgeEnabled) {
+      return errorJson("bridge_disabled", "Enable native bridge before starting LAN discovery.")
+    }
+
+    val config = runCatching { LanDiscovery.configFromJson(jsonConfig) }
+      .getOrElse { error ->
+        emitNativeEvent(
+          type = "lan_scan_error",
+          payload = JSONObject()
+            .put("status", "error")
+            .put("message", error.message ?: "Invalid LAN discovery configuration."),
+        )
+        return errorJson("invalid_config", error.message ?: "Invalid LAN discovery configuration.")
+      }
+
+    lanDiscovery.startScan(config) { event ->
+      when (event) {
+        is LanDiscovery.Event.Status -> emitNativeEvent(type = "lan_scan_status", payload = event.payload)
+        is LanDiscovery.Event.Device -> emitNativeEvent(type = "lan_scan_device", payload = event.payload)
+        is LanDiscovery.Event.Done -> {
+          lastLanSnapshot = JSONObject(event.payload.toString())
+          prefs.edit().putString(KEY_LAST_LAN_SNAPSHOT, lastLanSnapshot.toString()).apply()
+          emitNativeEvent(type = "lan_scan_done", payload = event.payload)
+        }
+        is LanDiscovery.Event.Error -> emitNativeEvent(type = "lan_scan_error", payload = event.payload)
+      }
+    }
 
     return JSONObject()
       .put("ok", true)
-      .put(
-        "scan",
-        JSONObject()
-          .put("source", lastScanSource)
-          .put("capturedAt", lastScanAtEpochMs)
-          .put("count", lastScanResults.length())
-          .put("results", JSONArray(lastScanResults.toString())),
-      )
+      .put("status", "started")
       .toString()
   }
+
+  fun stopLanScanFromJs() {
+    lanDiscovery.stopScan()
+    emitNativeEvent(
+      type = "lan_scan_status",
+      payload = JSONObject()
+        .put("status", "stopped")
+        .put("message", "LAN discovery stopped."),
+    )
+  }
+
+  fun getLastLanScanJson(): String =
+    JSONObject()
+      .put("ok", true)
+      .put("scan", JSONObject(lastLanSnapshot.toString()))
+      .toString()
 
   fun exportDiagnosticsFromJs(payload: String?): String {
     if (!bridgeEnabled) {
@@ -283,12 +245,7 @@ class MainActivity : AppCompatActivity() {
       .put("bridge", bridgeStateObject())
       .put("deviceInfo", deviceInfoObject())
       .put("speedtestDefaults", SpeedtestEngine.defaultConfigJson())
-      .put(
-        "lastWifiScan",
-        JSONObject()
-          .put("count", lastScanResults.length())
-          .put("results", JSONArray(lastScanResults.toString())),
-      )
+      .put("lastLanScan", JSONObject(lastLanSnapshot.toString()))
 
     parseOptionalJson(payload)?.let { exportJson.put("hudPayload", it) }
 
@@ -306,15 +263,17 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun bridgeStateObject(): JSONObject {
-    val missingPermissions = missingRuntimeScanPermissions()
+    val activeNetwork = connectivityManager.activeNetwork
+    val linkProperties = activeNetwork?.let { connectivityManager.getLinkProperties(it) }
+    val canDiscoverLan = linkProperties?.linkAddresses?.any { it.address.hostAddress?.contains(".") == true } == true
     return JSONObject()
       .put("available", true)
       .put("enabled", bridgeEnabled)
       .put("debugBuild", isDebugBuild())
-      .put("canScan", packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI))
-      .put("locationServicesEnabled", isLocationServicesEnabled())
-      .put("scanPermissionGranted", missingPermissions.isEmpty())
-      .put("missingPermissions", JSONArray(missingPermissions))
+      .put("canScan", canDiscoverLan)
+      .put("locationServicesEnabled", true)
+      .put("scanPermissionGranted", true)
+      .put("missingPermissions", JSONArray())
   }
 
   fun startSpeedtestFromJs(jsonConfig: String?) {
@@ -363,6 +322,8 @@ class MainActivity : AppCompatActivity() {
       .put("appVersion", appVersionName())
       .put("bridgeEnabled", bridgeEnabled)
       .put("wifiSupported", packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI))
+      .put("activeNetwork", connectivityManager.activeNetwork != null)
+      .put("dhcpGateway", runCatching { wifiManager.dhcpInfo?.gateway ?: 0 }.getOrDefault(0))
 
   private fun emitBridgeState() {
     emitNativeEvent(type = "bridge_state", payload = bridgeStateObject())
@@ -387,101 +348,6 @@ class MainActivity : AppCompatActivity() {
       )
     }
   }
-
-  @SuppressLint("MissingPermission")
-  private fun performWifiScan(origin: String): String {
-    val requestId = ++activeScanRequestId
-    return runCatching {
-      val started = wifiManager.startScan()
-      emitNativeEvent(
-        type = "scan_status",
-        payload = JSONObject()
-          .put("status", if (started) "started" else "cached_results")
-          .put("origin", origin),
-      )
-
-      if (started) {
-        handler.postDelayed(
-          {
-            deliverLatestScanResults(
-              requestId = requestId,
-              source = "real",
-            )
-          },
-          SCAN_TIMEOUT_MS,
-        )
-      } else {
-        deliverLatestScanResults(
-          requestId = requestId,
-          source = "cached",
-        )
-      }
-
-      JSONObject()
-        .put("ok", true)
-        .put("status", if (started) "started" else "cached_results")
-        .toString()
-    }.getOrElse { error ->
-      emitNativeEvent(
-        type = "scan_status",
-        payload = JSONObject()
-          .put("status", "error")
-          .put("message", error.message ?: "Wi-Fi scan failed"),
-      )
-      errorJson("scan_failed", error.message ?: "Wi-Fi scan failed")
-    }
-  }
-
-  @SuppressLint("MissingPermission")
-  private fun deliverLatestScanResults(requestId: Int, source: String) {
-    if (requestId != activeScanRequestId) return
-    activeScanRequestId = 0
-
-    val results = wifiManager.scanResults
-      .sortedByDescending { it.level }
-      .distinctBy { it.BSSID }
-
-    val payloadResults = JSONArray()
-    results.forEach { result ->
-      payloadResults.put(
-        JSONObject()
-          .put("ssid", result.SSID?.takeIf { it.isNotBlank() } ?: "Hidden Network")
-          .put("bssid", result.BSSID)
-          .put("signalLevel", result.level)
-          .put("frequency", result.frequency)
-          .put("capabilities", result.capabilities)
-          .put("timestamp", result.timestamp),
-      )
-    }
-
-    lastScanResults = payloadResults
-    lastScanSource = source
-    lastScanAtEpochMs = System.currentTimeMillis()
-
-    emitNativeEvent(
-      type = "wifi_scan_results",
-      payload = JSONObject()
-        .put("source", source)
-        .put("capturedAt", lastScanAtEpochMs)
-        .put("count", payloadResults.length())
-        .put("results", JSONArray(payloadResults.toString())),
-    )
-  }
-
-  private fun missingRuntimeScanPermissions(): List<String> {
-    val required = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      required += Manifest.permission.NEARBY_WIFI_DEVICES
-    }
-    return required.filter { permission ->
-      ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
-    }
-  }
-
-  private fun isLocationServicesEnabled(): Boolean =
-    runCatching {
-      Settings.Secure.getInt(contentResolver, Settings.Secure.LOCATION_MODE) != Settings.Secure.LOCATION_MODE_OFF
-    }.getOrDefault(false)
 
   private fun parseOptionalJson(payload: String?): Any? {
     val trimmed = payload?.trim()?.takeIf { it.isNotEmpty() }?.take(MAX_BRIDGE_PAYLOAD_CHARS) ?: return null
@@ -517,20 +383,11 @@ class MainActivity : AppCompatActivity() {
   private fun isDebugBuild(): Boolean =
     (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
-  private fun registerWifiReceiver() {
-    val filter = IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      registerReceiver(wifiScanReceiver, filter, RECEIVER_NOT_EXPORTED)
-    } else {
-      registerReceiver(wifiScanReceiver, filter)
-    }
-  }
-
   companion object {
     private const val BRIDGE_NAME = "NetNinjaBridge"
     private const val PREFS_NAME = "netninja_prefs"
     private const val KEY_BRIDGE_ENABLED = "bridge_enabled"
+    private const val KEY_LAST_LAN_SNAPSHOT = "last_lan_snapshot"
     private const val MAX_BRIDGE_PAYLOAD_CHARS = 32_000
-    private const val SCAN_TIMEOUT_MS = 2_000L
   }
 }

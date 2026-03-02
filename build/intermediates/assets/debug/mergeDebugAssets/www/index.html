@@ -945,12 +945,12 @@
                 <span id="wifiIntelCount" class="holo-center-value">0</span>
               </div>
               <div class="holo-center-cell">
-                <span class="holo-center-label">Strongest</span>
-                <span id="wifiIntelSignal" class="holo-center-value warn">-- dBm</span>
+                <span class="holo-center-label">Gateway</span>
+                <span id="wifiIntelSignal" class="holo-center-value warn">--</span>
               </div>
               <div class="holo-center-cell">
-                <span class="holo-center-label">Band</span>
-                <span id="wifiIntelBand" class="holo-center-value">-- MHz</span>
+                <span class="holo-center-label">Local IP</span>
+                <span id="wifiIntelBand" class="holo-center-value">--</span>
               </div>
               <div class="holo-center-cell">
                 <span class="holo-center-label">Status</span>
@@ -977,11 +977,11 @@
     <div class="w-full px-4 py-3 flex flex-col gap-3 border-b holo-border">
       <div class="flex items-end justify-between gap-4">
         <div class="flex flex-col">
-          <h3 class="holo-title-strong text-xs sm:text-sm font-black leading-tight tracking-[0.18em] uppercase" style="font-family:'Orbitron',sans-serif;">Nearby_SSIDs_Scan</h3>
-          <span id="wifiScanMeta" class="text-[9px] sm:text-[10px] font-mono holo-text-good">Waiting for live scan data</span>
+          <h3 class="holo-title-strong text-xs sm:text-sm font-black leading-tight tracking-[0.18em] uppercase" style="font-family:'Orbitron',sans-serif;">Local_LAN_Discovery</h3>
+          <span id="wifiScanMeta" class="text-[9px] sm:text-[10px] font-mono holo-text-good">Waiting for LAN device data</span>
         </div>
         <div class="flex flex-wrap justify-end gap-2">
-          <button id="wifiScanBtn" class="btn-neon holo-btn holo-btn-secondary">⚡ Scan</button>
+          <button id="wifiScanBtn" class="btn-neon holo-btn holo-btn-secondary">⚡ Scan LAN</button>
           <button id="wifiExportBtn" class="btn-neon holo-btn holo-btn-good">📤 Export</button>
         </div>
       </div>
@@ -992,7 +992,7 @@
         </div>
         <div class="soft-frost holo-panel-soft rounded-lg px-3 py-2">
           <div class="text-[9px] uppercase tracking-[0.3em] holo-text-subtle font-mono">Permissions</div>
-          <div id="wifiPermissionState" class="text-xs font-bold holo-text-accent mt-1">Tap Scan To Grant</div>
+          <div id="wifiPermissionState" class="text-xs font-bold holo-text-accent mt-1">No Runtime Prompt</div>
         </div>
         <div class="soft-frost holo-panel-soft rounded-lg px-3 py-2">
           <div class="text-[9px] uppercase tracking-[0.3em] holo-title-strong font-mono">Scanner</div>
@@ -1003,7 +1003,7 @@
     <div id="wifiEmptyState" class="w-full px-4 pt-5">
       <div class="holo-state-card holo-panel rounded-xl px-4 py-4 text-center">
         <div id="wifiStateBadge" class="text-[9px] tracking-[0.34em] uppercase holo-text-subtle font-black" style="font-family:'Orbitron',sans-serif;">STANDBY</div>
-        <div id="wifiStateMessage" class="mt-2 text-[11px] tracking-[0.2em] uppercase holo-text-dim font-mono">No networks loaded. Tap Scan for live discovery.</div>
+        <div id="wifiStateMessage" class="mt-2 text-[11px] tracking-[0.2em] uppercase holo-text-dim font-mono">No LAN devices loaded. Tap Scan for local discovery.</div>
       </div>
     </div>
     <div id="wifiDeviceList" class="flex flex-col w-full px-4 py-4 gap-4 overflow-y-auto"></div>
@@ -1150,7 +1150,10 @@
                 <!-- Central numeric indicator -->
                 <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 holo-border-strong overflow-hidden bg-black/80 flex items-center justify-center" style="box-shadow:0 0 30px color-mix(in srgb, var(--accent-0) 40%, transparent);">
                   <div class="absolute inset-0" style="background:linear-gradient(135deg, color-mix(in srgb, var(--accent-1) 26%, transparent), transparent, color-mix(in srgb, var(--accent-0) 18%, transparent));"></div>
-                  <div id="mapValue" class="holo-text-accent text-5xl sm:text-6xl font-black italic opacity-80 glitch-text">0</div>
+                  <div class="relative z-10 flex flex-col items-center justify-center">
+                    <div id="mapValue" class="holo-text-accent text-5xl sm:text-6xl font-black italic opacity-80 glitch-text">0</div>
+                    <div id="mapGatewayLabel" class="text-[8px] uppercase tracking-[0.2em] holo-text-good font-mono max-w-[88px] truncate text-center">Gateway</div>
+                  </div>
                   <div class="absolute inset-0 border-[6px] sm:border-[8px] rounded-full" style="border-color:color-mix(in srgb, var(--accent-0) 20%, transparent); border-style:dotted;"></div>
                 </div>
               </div>
@@ -1158,7 +1161,7 @@
               <div class="absolute bottom-4 left-4 right-4 flex flex-col gap-4">
                 <div class="flex items-center gap-3 holo-panel-soft p-3 rounded">
                   <span class="material-symbols-outlined holo-text-accent text-sm">search</span>
-                  <input id="mapSearchInput" class="holo-input bg-transparent border-none holo-text-accent text-xs focus:ring-0 w-full uppercase" placeholder="SEARCH SSID OR BSSID..." />
+                  <input id="mapSearchInput" class="holo-input bg-transparent border-none holo-text-accent text-xs focus:ring-0 w-full uppercase" placeholder="SEARCH HOSTNAME IP OR MAC..." />
                 </div>
                 <div class="flex justify-between items-center px-2">
                   <div class="flex flex-col gap-1 w-24">
@@ -1467,6 +1470,18 @@
     </div>
   </div>
 
+  <div id="deviceDetailModal" class="theme-modal hidden" role="dialog" aria-modal="true" aria-labelledby="deviceDetailTitle" tabindex="-1">
+    <div id="deviceDetailBackdrop" class="theme-modal__backdrop"></div>
+    <div class="theme-modal__sheet" role="document">
+      <div class="theme-modal__header">
+        <h3 id="deviceDetailTitle" class="theme-modal__title">LAN Device Detail</h3>
+        <button id="deviceDetailClose" class="theme-modal__close" type="button" aria-label="Close device detail">✕</button>
+      </div>
+      <p id="deviceDetailSummary" class="theme-modal__subtitle">No device selected.</p>
+      <pre id="deviceDetailJson" class="theme-modal__list" style="white-space:pre-wrap; font-size:11px; line-height:1.45; max-height:50vh; overflow:auto;"></pre>
+    </div>
+  </div>
+
   <script src="holo-renderers.js"></script>
   <script src="holo-motion.js"></script>
   <script>
@@ -1534,6 +1549,7 @@
         mapSearchInput: $("mapSearchInput"),
         mapActiveNodes: $("mapActiveNodes"),
         mapValue: $("mapValue"),
+        mapGatewayLabel: $("mapGatewayLabel"),
         mapScanStatus: $("mapScanStatus"),
         mapAlertText: $("mapAlertText"),
         mapLastSync: $("mapLastSync"),
@@ -1543,6 +1559,11 @@
         cfgDeviceSummary: $("cfgDeviceSummary"),
         cfgRefreshDeviceBtn: $("cfgRefreshDeviceBtn"),
         cfgExportDiagBtn: $("cfgExportDiagBtn"),
+        deviceDetailModal: $("deviceDetailModal"),
+        deviceDetailBackdrop: $("deviceDetailBackdrop"),
+        deviceDetailClose: $("deviceDetailClose"),
+        deviceDetailSummary: $("deviceDetailSummary"),
+        deviceDetailJson: $("deviceDetailJson"),
         speedtestThemeModal: $("speedtestThemeModal"),
         speedtestThemeBackdrop: $("speedtestThemeBackdrop"),
         themeModalClose: $("themeModalClose"),
@@ -2240,9 +2261,14 @@
         const nextScreenId = tab === "engine" ? "speedtest" : tab;
         const prevScreenId = rendererRegistry?.getActiveScreenId?.() || null;
         const screenChanged = prevScreenId !== nextScreenId;
+        const leavingLanScreens = (!screens.list?.classList.contains("hidden") || !screens.map?.classList.contains("hidden")) && tab !== "list" && tab !== "map";
 
         if (screenChanged && prevScreenId === "speedtest" && nextScreenId !== "speedtest" && isSpeedtestRunning()) {
           abortRun(true);
+        }
+        if (leavingLanScreens && runtime.mapScanInProgress) {
+          nativeBridge.invoke("lanScanStop");
+          runtime.mapScanInProgress = false;
         }
 
         // Hide all screens
@@ -2353,10 +2379,14 @@
         lastScanResults: [],
         lastScanSource: "none",
         lastScanCapturedAt: 0,
+        lastGatewayIp: "",
+        lastLocalIp: "",
+        lastSubnet: "",
         mapFilterText: "",
         mapOverdriveEnabled: false,
         mapCloakEnabled: false,
         mapScanInProgress: false,
+        selectedLanDevice: null,
       };
       const defaultConfig = () => ({
         autoScan: false,
@@ -2392,21 +2422,37 @@
         .replaceAll("\"", "&quot;")
         .replaceAll("'", "&#39;");
 
-      const signalAccent = (level) => {
-        if (level >= -50) return { color: getVar("--good-0", "#b7ff2a"), glow: themeRgba("--good-0", 0.4, "#b7ff2a") };
-        if (level >= -65) return { color: getVar("--accent-0", "#00d4ff"), glow: themeRgba("--accent-0", 0.4, "#00d4ff") };
-        if (level >= -75) return { color: getVar("--warn-0", "#ff8a47"), glow: themeRgba("--warn-0", 0.4, "#ff8a47") };
+      const deviceAccent = (device) => {
+        if (device?.isGateway) return { color: getVar("--good-0", "#b7ff2a"), glow: themeRgba("--good-0", 0.4, "#b7ff2a") };
+        if (device?.isLocalDevice) return { color: getVar("--accent-1", "#a855f7"), glow: themeRgba("--accent-1", 0.4, "#a855f7") };
+        const rtt = Number(device?.rttMs ?? 999);
+        if (device?.reachable === false) return { color: getVar("--warn-0", "#ff8a47"), glow: themeRgba("--warn-0", 0.4, "#ff8a47") };
+        if (rtt <= 10) return { color: getVar("--good-0", "#b7ff2a"), glow: themeRgba("--good-0", 0.4, "#b7ff2a") };
+        if (rtt <= 45) return { color: getVar("--accent-0", "#00d4ff"), glow: themeRgba("--accent-0", 0.4, "#00d4ff") };
+        if (rtt <= 120) return { color: getVar("--warn-0", "#ff8a47"), glow: themeRgba("--warn-0", 0.4, "#ff8a47") };
         return { color: getVar("--accent-1", "#a855f7"), glow: themeRgba("--accent-1", 0.4, "#a855f7") };
       };
 
-      const formatSecurity = (capabilities) => {
-        const label = String(capabilities || "").trim();
-        if (!label) return "OPEN";
-        if (label.includes("WPA3")) return "WPA3";
-        if (label.includes("WPA2")) return "WPA2";
-        if (label.includes("WEP")) return "WEP";
-        return label.replaceAll("[", "").replaceAll("]", "") || "SECURED";
-      };
+      const formatLatency = (value) => Number.isFinite(Number(value)) ? `${fmt1(Number(value))} ms` : "N/A";
+      const formatVendor = (device) => String(device?.vendor || "Unknown Vendor");
+      const formatHostname = (device, fallback = "Unknown Device") => String(device?.hostname || "").trim() || fallback;
+      const formatMac = (device) => String(device?.macAddress || "N/A");
+      const formatType = (device) => String(device?.deviceType || "device").replaceAll("-", " ").toUpperCase();
+      function openDeviceDetail(device) {
+        if (!device || !nativeUi.deviceDetailModal) return;
+        runtime.selectedLanDevice = device;
+        nativeUi.deviceDetailSummary.textContent = `${formatHostname(device)} // ${device.ipAddress || "Unknown IP"}`;
+        nativeUi.deviceDetailJson.textContent = JSON.stringify(device, null, 2);
+        nativeUi.deviceDetailModal.classList.remove("hidden");
+        nativeUi.deviceDetailModal.classList.add("is-open");
+        nativeUi.deviceDetailModal.focus();
+      }
+
+      function closeDeviceDetail() {
+        if (!nativeUi.deviceDetailModal) return;
+        nativeUi.deviceDetailModal.classList.remove("is-open");
+        nativeUi.deviceDetailModal.classList.add("hidden");
+      }
 
       function getCurrentConfig() {
         return {
@@ -2445,12 +2491,12 @@
       function updateBridgeUi() {
         const bridge = runtime.bridgeState;
         nativeUi.wifiBridgeState.textContent = !bridge.available ? "Unavailable" : bridge.enabled ? "Armed" : "Disabled";
-        nativeUi.wifiPermissionState.textContent = !bridge.available ? "N/A" : !bridge.locationServicesEnabled ? "Location Services Off" : bridge.scanPermissionGranted ? "Granted" : "Tap Scan To Grant";
-        nativeUi.wifiScanState.textContent = !bridge.canScan ? "Hardware Offline" : bridge.enabled ? "Ready" : "Standby";
+        nativeUi.wifiPermissionState.textContent = !bridge.available ? "N/A" : "No Prompt";
+        nativeUi.wifiScanState.textContent = !bridge.canScan ? "No IPv4 Link" : bridge.enabled ? "Ready" : "Standby";
         nativeUi.cfgBridgeSummary.textContent = !bridge.available
           ? "Native bridge unavailable in this shell."
           : bridge.enabled
-            ? (bridge.scanPermissionGranted ? "Bridge enabled. Scan permissions ready." : "Bridge enabled. Scan will request permissions on tap.")
+            ? (bridge.canScan ? "Bridge enabled. LAN discovery ready." : "Bridge enabled. Connect to a local network to scan.")
             : "Bridge loaded but disabled by config.";
       }
 
@@ -2464,23 +2510,23 @@
       function updateWifiListState(networks, source, meta) {
         const lowerMeta = String(meta || "").toLowerCase();
         let badge = "STANDBY";
-        let message = "No networks loaded. Tap Scan for live discovery.";
+        let message = "No LAN devices loaded. Tap Scan for local discovery.";
 
-        if (lowerMeta.includes("request sent") || lowerMeta.includes("scanning") || lowerMeta.includes("await")) {
+        if (lowerMeta.includes("started") || lowerMeta.includes("progress") || lowerMeta.includes("scanning")) {
           badge = "SCANNING";
-          message = "Sensor sweep in progress. Awaiting uplink packets.";
+          message = "Subnet sweep in progress. Streaming live hosts.";
         }
-        if (lowerMeta.includes("grant") || lowerMeta.includes("permission")) {
-          badge = "AUTH";
-          message = "Permission gate is blocking active discovery.";
+        if (lowerMeta.includes("stopped")) {
+          badge = "STOP";
+          message = "LAN discovery stopped.";
         }
         if (lowerMeta.includes("error") || lowerMeta.includes("failed")) {
           badge = "ERROR";
-          message = "Scan feed interrupted. Retry when bridge is stable.";
+          message = "Discovery interrupted. Retry when the local link is stable.";
         }
         if (networks.length > 0) {
           badge = source === "cached" ? "CACHED" : "LIVE";
-          message = `${networks.length} targets synchronized in matrix.`;
+          message = `${networks.length} LAN devices synchronized in matrix.`;
         }
 
         if (nativeUi.wifiStateBadge) nativeUi.wifiStateBadge.textContent = badge;
@@ -2495,69 +2541,82 @@
         if (nativeUi.wifiIntelCount) {
           nativeUi.wifiIntelCount.textContent = String(list.length);
         }
-        if (list.length === 0) {
-          if (nativeUi.wifiIntelSignal) nativeUi.wifiIntelSignal.textContent = "-- dBm";
-          if (nativeUi.wifiIntelBand) nativeUi.wifiIntelBand.textContent = "-- MHz";
-          return;
-        }
-        const strongest = list.reduce((best, curr) => Number(curr.signalLevel ?? -120) > Number(best.signalLevel ?? -120) ? curr : best, list[0]);
-        if (nativeUi.wifiIntelSignal) {
-          nativeUi.wifiIntelSignal.textContent = `${strongest.signalLevel ?? "--"} dBm`;
-        }
-        if (nativeUi.wifiIntelBand) {
-          nativeUi.wifiIntelBand.textContent = strongest.frequency ? `${strongest.frequency} MHz` : "Unknown";
-        }
+        if (nativeUi.wifiIntelSignal) nativeUi.wifiIntelSignal.textContent = runtime.lastGatewayIp || "--";
+        if (nativeUi.wifiIntelBand) nativeUi.wifiIntelBand.textContent = runtime.lastLocalIp || "--";
+      }
+
+      function bindDeviceListClicks() {
+        nativeUi.wifiDeviceList.querySelectorAll("[data-device-ip]").forEach((node) => {
+          node.addEventListener("click", () => {
+            const ip = node.getAttribute("data-device-ip");
+            const device = runtime.lastScanResults.find((item) => item.ipAddress === ip);
+            if (device) openDeviceDetail(device);
+          });
+        });
+        nativeUi.mapNodesList.querySelectorAll("[data-device-ip]").forEach((node) => {
+          node.addEventListener("click", () => {
+            const ip = node.getAttribute("data-device-ip");
+            const device = runtime.lastScanResults.find((item) => item.ipAddress === ip);
+            if (device) openDeviceDetail(device);
+          });
+        });
       }
 
       function renderWifiNetworks(networks, source, meta) {
-        runtime.lastScanResults = networks;
+        runtime.lastScanResults = [...networks].sort((a, b) => {
+          if (!!a.isGateway !== !!b.isGateway) return a.isGateway ? -1 : 1;
+          if (!!a.isLocalDevice !== !!b.isLocalDevice) return a.isLocalDevice ? -1 : 1;
+          return String(a.ipAddress || "").localeCompare(String(b.ipAddress || ""));
+        });
         runtime.lastScanSource = source;
         nativeUi.wifiScanMeta.textContent = meta;
-        updateWifiListState(networks, source, meta);
-        updateWifiCenterIntel(networks);
-        nativeUi.wifiEmptyState.classList.toggle("hidden", networks.length > 0);
-        nativeUi.wifiDeviceList.innerHTML = networks.map((network, index) => {
-          const signalLevel = Number(network.signalLevel ?? -90);
-          const accent = signalAccent(signalLevel);
-          const signalPct = Math.max(9, Math.min(100, 120 + signalLevel));
-          const meterPct = Math.max(8, Math.min(100, 100 - Math.max(0, (Math.abs(signalLevel) - 34))));
-          const ssid = escapeHtml(network.ssid || `Hidden-${index + 1}`);
-          const bssid = escapeHtml(network.bssid || "N/A");
-          const level = escapeHtml(`${network.signalLevel ?? "--"} dBm`);
-          const freq = escapeHtml(network.frequency ? `${network.frequency} MHz` : "Unknown band");
-          const security = escapeHtml(formatSecurity(network.capabilities));
-          const latency = Math.max(8, Math.min(220, Math.round(220 - (meterPct * 1.8))));
-          const badge = source === "cached" ? "CACHED" : "LIVE";
-          const active = source === "real" && signalLevel > -72;
+        updateWifiListState(runtime.lastScanResults, source, meta);
+        updateWifiCenterIntel(runtime.lastScanResults);
+        nativeUi.wifiEmptyState.classList.toggle("hidden", runtime.lastScanResults.length > 0);
+        nativeUi.wifiDeviceList.innerHTML = runtime.lastScanResults.map((network, index) => {
+          const accent = deviceAccent(network);
+          const latencyValue = Number(network.rttMs ?? 0);
+          const meterPct = Number.isFinite(latencyValue) && latencyValue > 0
+            ? Math.max(10, Math.min(100, 100 - Math.round(Math.min(latencyValue, 180) / 1.8)))
+            : (network.reachable === false ? 12 : 55);
+          const badge = network.isGateway ? "GATEWAY" : network.isLocalDevice ? "LOCAL" : source === "cached" ? "CACHED" : "LIVE";
+          const active = network.reachable !== false;
+          const title = escapeHtml(formatHostname(network, `Device_${index + 1}`));
+          const ip = escapeHtml(network.ipAddress || "Unknown IP");
+          const mac = escapeHtml(formatMac(network));
+          const vendor = escapeHtml(formatVendor(network));
+          const latency = escapeHtml(formatLatency(network.rttMs));
+          const method = escapeHtml(String(network.method || "unknown").toUpperCase());
+          const type = escapeHtml(formatType(network));
           return `
-            <div class="shard-card p-4 group holo-interactive" style="--edge-color:${accent.color}; --glow-color:${accent.glow};">
+            <div class="shard-card p-4 group holo-interactive cursor-pointer" data-device-ip="${escapeHtml(network.ipAddress)}" style="--edge-color:${accent.color}; --glow-color:${accent.glow};">
               <div class="flex items-center gap-3">
                 <div class="w-12 h-12 flex items-center justify-center rounded-xl device-rim-icon" data-depth="0.7">
-                  <span class="material-symbols-outlined" style="color:${accent.color};">router</span>
+                  <span class="material-symbols-outlined" style="color:${accent.color};">${network.isGateway ? "router" : network.isLocalDevice ? "smartphone" : "lan"}</span>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                      <h3 class="text-base sm:text-lg uppercase tracking-[0.12em] truncate font-black holo-title-strong" style="font-family:'Orbitron',sans-serif;">${ssid}</h3>
-                      <p class="text-[10px] uppercase tracking-[0.19em] mt-1 holo-text-good">IP: -- // MAC: ${bssid}</p>
-                      <p class="text-[10px] uppercase tracking-[0.17em] mt-1 holo-text-subtle">VENDOR: ${security} // ${freq}</p>
+                      <h3 class="text-base sm:text-lg uppercase tracking-[0.12em] truncate font-black holo-title-strong" style="font-family:'Orbitron',sans-serif;">${title}</h3>
+                      <p class="text-[10px] uppercase tracking-[0.19em] mt-1 holo-text-good">IP: ${ip} // MAC: ${mac}</p>
+                      <p class="text-[10px] uppercase tracking-[0.17em] mt-1 holo-text-subtle">VENDOR: ${vendor} // TYPE: ${type}</p>
                     </div>
                     <div class="shrink-0 text-right">
                       <span class="text-[9px] font-black tracking-[0.3em] px-2 py-1 rounded-full border holo-chip" style="font-family:'Orbitron',sans-serif;color:${accent.color}; border-color:${accent.color};">${badge}</span>
                       <div class="mt-2 w-20">
-                        <div class="text-[8px] tracking-[0.28em] uppercase mb-1 holo-text-good" style="font-family:'Orbitron',sans-serif;">LATENCY</div>
+                        <div class="text-[8px] tracking-[0.28em] uppercase mb-1 holo-text-good" style="font-family:'Orbitron',sans-serif;">RTT</div>
                         <div class="holo-meter-track"><div class="holo-meter-fill" style="width:${meterPct}%; --edge-color:${accent.color};"></div></div>
-                        <div class="text-[9px] mt-1 font-mono" style="color:${accent.color};">${latency} ms</div>
+                        <div class="text-[9px] mt-1 font-mono" style="color:${accent.color};">${latency}</div>
                       </div>
                     </div>
                   </div>
                   <div class="mt-3 flex items-center justify-between gap-3">
                     <div class="relative h-2.5 w-full liquid-bar-container">
-                      <div class="liquid-bar-fill" style="width:${signalPct}%; --bar-start:${accent.color}; --bar-mid:${accent.color}; --bar-end:#ffffff;"></div>
+                      <div class="liquid-bar-fill" style="width:${meterPct}%; --bar-start:${accent.color}; --bar-mid:${accent.color}; --bar-end:#ffffff;"></div>
                     </div>
                     <div class="flex items-center gap-2 whitespace-nowrap">
                       ${active ? '<span class="signal-pulse" aria-label="active-device"></span>' : '<span class="size-2 rounded-full" style="background:color-mix(in srgb, var(--accent-0) 30%, transparent);"></span>'}
-                      <span class="text-[10px] font-bold tracking-[0.16em]" style="color:${accent.color};">${level}</span>
+                      <span class="text-[10px] font-bold tracking-[0.16em]" style="color:${accent.color};">${method}</span>
                     </div>
                   </div>
                 </div>
@@ -2566,6 +2625,7 @@
           `;
         }).join("");
         renderMapFromScan();
+        bindDeviceListClicks();
       }
 
       function formatScanTime(epochMs) {
@@ -2592,25 +2652,30 @@
         const query = runtime.mapFilterText.trim().toLowerCase();
         if (!query) return runtime.lastScanResults;
         return runtime.lastScanResults.filter((network) => {
-          const ssid = String(network.ssid || "").toLowerCase();
-          const bssid = String(network.bssid || "").toLowerCase();
-          return ssid.includes(query) || bssid.includes(query);
+          const hostname = String(network.hostname || "").toLowerCase();
+          const ip = String(network.ipAddress || "").toLowerCase();
+          const mac = String(network.macAddress || "").toLowerCase();
+          const vendor = String(network.vendor || "").toLowerCase();
+          return hostname.includes(query) || ip.includes(query) || mac.includes(query) || vendor.includes(query);
         });
       }
 
       function updateMapStatus(networks) {
         const live = runtime.lastScanSource !== "none";
         const scanLabel = runtime.mapScanInProgress
-          ? "SCANNING LIVE TOPOLOGY"
+          ? "SCANNING LAN TOPOLOGY"
           : live
-            ? `${runtime.lastScanSource.toUpperCase()} SCAN ACTIVE`
-            : "Awaiting Live Scan";
+            ? `${runtime.lastScanSource.toUpperCase()} DEVICE SNAPSHOT`
+            : "Awaiting LAN Scan";
         nativeUi.mapActiveNodes.textContent = `${networks.length}`;
         nativeUi.mapValue.textContent = `${networks.length}`;
+        if (nativeUi.mapGatewayLabel) {
+          nativeUi.mapGatewayLabel.textContent = runtime.lastGatewayIp ? String(runtime.lastGatewayIp).slice(-12) : "Gateway";
+        }
         nativeUi.mapLastSync.textContent = formatScanTime(runtime.lastScanCapturedAt);
         nativeUi.mapScanStatus.textContent = scanLabel;
         nativeUi.mapAlertText.innerHTML = live
-          ? `Nodes Loaded: ${networks.length}<br/>Last Sync: ${escapeHtml(formatScanTime(runtime.lastScanCapturedAt))}<br/>Source: ${escapeHtml(runtime.lastScanSource.toUpperCase())}`
+          ? `Gateway: ${escapeHtml(runtime.lastGatewayIp || "Unknown")}<br/>Last Sync: ${escapeHtml(formatScanTime(runtime.lastScanCapturedAt))}<br/>Source: ${escapeHtml(runtime.lastScanSource.toUpperCase())}`
           : "Trigger Scan To Populate<br/>Last Sync: Never<br/>Source: Native Bridge";
       }
 
@@ -2784,7 +2849,7 @@
 
         const setTooltip = (clientX, clientY, node) => {
           if (!nativeUi.holoMapTooltip || !node) return;
-          nativeUi.holoMapTooltip.innerHTML = `${escapeHtml(node.network.ssid || `Hidden-${node.index + 1}`)}<br/><span style="opacity:.65">${escapeHtml(node.network.bssid || "N/A")}</span>`;
+          nativeUi.holoMapTooltip.innerHTML = `${escapeHtml(formatHostname(node.network, `Device_${node.index + 1}`))}<br/><span style="opacity:.65">${escapeHtml(node.network.ipAddress || "N/A")} // ${escapeHtml(formatMac(node.network))}</span>`;
           const rect = viewport.getBoundingClientRect();
           nativeUi.holoMapTooltip.style.left = `${clientX - rect.left}px`;
           nativeUi.holoMapTooltip.style.top = `${clientY - rect.top}px`;
@@ -2815,8 +2880,8 @@
           mapState.links.length = targetCount;
           for (let i = 0; i < targetCount; i += 1) {
             const link = mapState.links[i];
-            link.from = i;
-            link.to = (i + 1) % nodeCount;
+            link.from = -1;
+            link.to = i;
             link.hot = false;
             link.activity = 0;
             link.dashOffset = 0;
@@ -2837,16 +2902,16 @@
             activeCount += 1;
           }
           if (!runtime.mapScanInProgress && runtime.lastScanSource === "none") return;
-          if (linkCount < 2) return;
+          if (linkCount < 1) return;
           const desired = Math.min(mapState.maxPackets, Math.max(4, Math.floor(linkCount * (runtime.mapScanInProgress ? 0.45 : 0.16))));
           if (activeCount >= desired) return;
           for (let i = 0; i < packetPool.length && activeCount < desired; i += 1) {
             const packet = packetPool[i];
             if (packet.active) continue;
-            const from = Math.floor((ts * 0.001 + i * 1.7) % linkCount);
+            const from = Math.floor((ts * 0.001 + i * 1.7) % Math.max(1, linkCount));
             packet.active = true;
             packet.from = from;
-            packet.to = (from + 1 + (i % 3)) % linkCount;
+            packet.to = from;
             packet.t = (i % 7) / 7;
             packet.speed = runtime.mapScanInProgress ? 0.022 + ((i % 5) * 0.003) : 0.009 + ((i % 4) * 0.002);
             packet.hueBias = i % 2;
@@ -2950,15 +3015,14 @@
           // links + animated beams pass
           for (let i = 0; i < linkCount; i += 1) {
             const link = mapState.links[i];
-            const curr = mapState.drawNodes[link.from];
             const next = mapState.drawNodes[link.to];
-            if (!next || linkCount < 2) break;
+            if (!next) break;
 
-            const currX = curr.screen.x + mapState.cameraX * curr.screen.scale * 0.2;
-            const currY = curr.screen.y + mapState.cameraY * curr.screen.scale * 0.2;
+            const currX = centerX;
+            const currY = centerY;
             const nextX = next.screen.x + mapState.cameraX * next.screen.scale * 0.2;
             const nextY = next.screen.y + mapState.cameraY * next.screen.scale * 0.2;
-            const hot = curr.node.index === mapState.hoveredIndex || next.node.index === mapState.hoveredIndex;
+            const hot = next.node.index === mapState.hoveredIndex;
             const activity = runtime.mapScanInProgress ? 1 : (runtime.lastScanSource === "none" ? 0.18 : 0.52);
             link.hot = hot;
             link.activity = activity;
@@ -3006,16 +3070,14 @@
           // packet travel pass
           for (let i = 0; i < packetPool.length; i += 1) {
             const packet = packetPool[i];
-            if (!packet.active || linkCount < 2) continue;
-            const fromLink = mapState.links[packet.from % linkCount];
+            if (!packet.active || linkCount < 1) continue;
             const toLink = mapState.links[packet.to % linkCount];
-            const fromNode = mapState.drawNodes[fromLink?.from ?? 0];
             const toNode = mapState.drawNodes[toLink?.to ?? 0];
-            if (!fromNode || !toNode) continue;
-            const sx = fromNode.screen.x + (toNode.screen.x - fromNode.screen.x) * packet.t;
-            const sy = fromNode.screen.y + (toNode.screen.y - fromNode.screen.y) * packet.t;
-            const tx = fromNode.screen.x + (toNode.screen.x - fromNode.screen.x) * Math.max(0, packet.t - mapState.maxPacketTail);
-            const ty = fromNode.screen.y + (toNode.screen.y - fromNode.screen.y) * Math.max(0, packet.t - mapState.maxPacketTail);
+            if (!toNode) continue;
+            const sx = centerX + (toNode.screen.x - centerX) * packet.t;
+            const sy = centerY + (toNode.screen.y - centerY) * packet.t;
+            const tx = centerX + (toNode.screen.x - centerX) * Math.max(0, packet.t - mapState.maxPacketTail);
+            const ty = centerY + (toNode.screen.y - centerY) * Math.max(0, packet.t - mapState.maxPacketTail);
             ctx.strokeStyle = packet.hueBias ? themeRgba("--good-0", 0.65, "#b7ff2a") : themeRgba("--beam-0", 0.52, "#00f2ff");
             ctx.lineWidth = mapState.heavyMode ? 1 : 1.4;
             ctx.beginPath();
@@ -3173,8 +3235,9 @@
               mapState.selectedIndex = hit;
               const selected = findNodeByIndex(hit);
               if (selected) {
-                showCfgStatus(`Node selected: ${selected.network.ssid || selected.network.bssid || `Node ${hit + 1}`}`);
-                nativeUi.mapAlertText.innerHTML = `Selected: ${escapeHtml(selected.network.ssid || `Hidden-${hit + 1}`)}<br/>BSSID: ${escapeHtml(selected.network.bssid || "N/A")}<br/>Signal: ${escapeHtml(`${selected.network.signalLevel ?? "--"} dBm`)}`;
+                showCfgStatus(`Node selected: ${selected.network.hostname || selected.network.ipAddress || `Node ${hit + 1}`}`);
+                nativeUi.mapAlertText.innerHTML = `Selected: ${escapeHtml(formatHostname(selected.network, `Device_${hit + 1}`))}<br/>IP: ${escapeHtml(selected.network.ipAddress || "N/A")}<br/>RTT: ${escapeHtml(formatLatency(selected.network.rttMs))}`;
+                openDeviceDetail(selected.network);
               }
             }
           }
@@ -3230,7 +3293,7 @@
             const now = performance.now();
             const nextKeys = new Set();
             mapState.nodes = networks.map((network, index) => {
-              const key = network.bssid || network.ssid || `node-${index}`;
+              const key = network.ipAddress || network.macAddress || `node-${index}`;
               nextKeys.add(key);
               if (!mapState.discoverAt.has(key)) {
                 mapState.discoverAt.set(key, now);
@@ -3240,11 +3303,11 @@
                 key,
                 index,
                 network,
-                accent: signalAccent(Number(network.signalLevel ?? -90)),
+                accent: deviceAccent(network),
                 angle: layout.angle,
                 ring: layout.ring,
                 depthSeed: layout.depthSeed,
-                label: String(network.ssid || `Node_${index + 1}`).slice(0, 18),
+                label: String(network.hostname || network.ipAddress || `Node_${index + 1}`).slice(0, 18),
               };
             });
             for (const key of [...mapState.discoverAt.keys()]) {
@@ -3287,24 +3350,27 @@
         holoMapRenderer.sync(networks);
 
         nativeUi.mapNodesList.innerHTML = networks.slice(0, 6).map((network, index) => {
-          const accent = signalAccent(Number(network.signalLevel ?? -90));
-          const ssid = escapeHtml(network.ssid || `Hidden-${index + 1}`);
-          const sec = escapeHtml(formatSecurity(network.capabilities));
-          const freq = escapeHtml(network.frequency ? `${network.frequency} MHz` : "Unknown band");
+          const accent = deviceAccent(network);
+          const name = escapeHtml(formatHostname(network, `Device_${index + 1}`));
+          const ip = escapeHtml(network.ipAddress || "Unknown IP");
+          const latency = escapeHtml(formatLatency(network.rttMs));
+          const vendor = escapeHtml(formatVendor(network));
           return `
-            <div class="relative group holo-interactive">
+            <div class="relative group holo-interactive cursor-pointer" data-device-ip="${escapeHtml(network.ipAddress)}">
               <div class="holo-panel-soft border rounded p-3 aspect-video flex flex-col justify-between overflow-hidden relative holo-bloom" style="border-color:${accent.color}66; box-shadow:0 0 12px ${accent.glow};">
                 <div class="absolute inset-0 opacity-10" style="background:${accent.color};"></div>
                 <div class="flex justify-between items-start">
                   <span class="text-[10px] font-mono uppercase" style="color:${accent.color};">Node_${index + 1}</span>
-                  <span class="material-symbols-outlined text-xs holo-text-accent-strong">wifi</span>
+                  <span class="material-symbols-outlined text-xs holo-text-accent-strong">${network.isGateway ? "router" : "lan"}</span>
                 </div>
-                <p class="holo-text-accent text-[11px] font-bold leading-none tracking-tight truncate">${ssid}</p>
-                <p class="text-[9px] holo-text-dim font-mono">${freq} // ${sec}</p>
+                <p class="holo-text-accent text-[11px] font-bold leading-none tracking-tight truncate">${name}</p>
+                <p class="text-[9px] holo-text-dim font-mono">${ip} // ${latency}</p>
+                <p class="text-[9px] holo-text-dim font-mono truncate">${vendor}</p>
               </div>
             </div>
           `;
         }).join("");
+        bindDeviceListClicks();
       }
 
       function syncBridgeState(pushConfigToggle) {
@@ -3377,7 +3443,7 @@
         runtime.lastDeviceInfo = null;
         updateDeviceUi();
         syncBridgeState(false);
-        renderWifiNetworks([], "none", "Waiting for live scan data");
+        renderWifiNetworks([], "none", "Waiting for LAN device data");
         showCfgStatus("Settings reset.");
       }
 
@@ -3430,6 +3496,18 @@
         }
       }
 
+      function buildLanScanConfig() {
+        const perfMode = cfgCtrls.perfMode.value;
+        return {
+          maxConcurrency: perfMode === "low" ? 24 : 48,
+          probeTimeoutMs: perfMode === "low" ? 650 : 450,
+          maxTargets: 254,
+          maxSubnetPrefix: 24,
+          allowPortFallback: true,
+          fallbackPorts: [443, 80],
+        };
+      }
+
       function requestNativeWifiScan(userInitiated) {
         syncBridgeState(false);
         if (!runtime.bridgeState.available || !runtime.bridgeState.enabled) {
@@ -3438,27 +3516,23 @@
           }
           return;
         }
-        if (!userInitiated && !runtime.bridgeState.scanPermissionGranted) {
-          nativeUi.wifiScanState.textContent = "Tap Scan To Grant";
-          nativeUi.wifiScanMeta.textContent = "Auto scan paused until permissions are granted";
+        if (!runtime.bridgeState.canScan) {
+          nativeUi.wifiScanState.textContent = "No IPv4 Link";
+          nativeUi.wifiScanMeta.textContent = "Connect to a local network first";
           updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           return;
         }
-        const result = nativeBridge.call("requestWifiScan");
+        const result = nativeBridge.call("lanScanStart", JSON.stringify(buildLanScanConfig()));
         if (result?.ok === false) {
           nativeUi.wifiScanState.textContent = result.code || "Error";
           if (userInitiated) {
-            showCfgStatus(result.message || "Wi-Fi scan failed.");
+            showCfgStatus(result.message || "LAN discovery failed.");
           }
-        } else if (result?.status === "permission_requested") {
-          nativeUi.wifiScanState.textContent = "Permission Requested";
-          nativeUi.wifiScanMeta.textContent = "Grant permissions to continue live scanning";
-          updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
         } else {
           runtime.mapScanInProgress = true;
           holoMapRenderer.setScanState(true);
           nativeUi.wifiScanState.textContent = "Scanning";
-          nativeUi.wifiScanMeta.textContent = "Native scan request sent to Android";
+          nativeUi.wifiScanMeta.textContent = "Native LAN discovery request sent to Android";
           updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           renderMapFromScan();
         }
@@ -3536,30 +3610,56 @@
           }
           return;
         }
-        if (detail.type === "wifi_scan_results") {
+        if (detail.type === "lan_scan_device") {
+          const device = payload.device || null;
+          if (!device) return;
+          const next = [...runtime.lastScanResults];
+          const existingIndex = next.findIndex((item) => item.ipAddress === device.ipAddress);
+          if (existingIndex >= 0) next[existingIndex] = { ...next[existingIndex], ...device };
+          else next.push(device);
+          renderWifiNetworks(next, "real", `${next.length} LAN devices discovered`);
+          return;
+        }
+        if (detail.type === "lan_scan_done") {
           runtime.mapScanInProgress = false;
-          const results = Array.isArray(payload.results) ? payload.results : [];
+          holoMapRenderer.setScanState(false);
+          const results = Array.isArray(payload.devices) ? payload.devices : [];
+          runtime.lastGatewayIp = String(payload.gatewayIp || "");
+          runtime.lastLocalIp = String(payload.localIp || "");
+          runtime.lastSubnet = String(payload.subnet || "");
           runtime.lastScanCapturedAt = Number(payload.capturedAt || Date.now());
           if (results.length > 0) {
-            renderWifiNetworks(results, payload.source || "real", `${payload.count || results.length} networks captured`);
-            nativeUi.wifiScanState.textContent = payload.source === "cached" ? "Cached Results" : "Live Results";
+            renderWifiNetworks(results, "real", `${payload.count || results.length} LAN devices captured`);
+            nativeUi.wifiScanState.textContent = "Live Results";
           } else {
-            renderWifiNetworks([], payload.source || "real", "No nearby networks found");
+            renderWifiNetworks([], "real", "No LAN devices detected");
             nativeUi.wifiScanState.textContent = "No Results";
           }
           return;
         }
-        if (detail.type === "scan_status") {
+        if (detail.type === "lan_scan_status") {
           const status = payload.status || "idle";
-          runtime.mapScanInProgress = ["started", "scanning", "in_progress"].includes(status);
+          runtime.mapScanInProgress = ["started", "scanning", "in_progress", "progress"].includes(status);
+          if (runtime.mapScanInProgress) runtime.lastScanSource = "real";
           if (!runtime.mapScanInProgress) {
             holoMapRenderer.setScanState(false);
           }
           nativeUi.wifiScanState.textContent = status.replaceAll("_", " ").toUpperCase();
+          if (payload.gatewayIp) runtime.lastGatewayIp = String(payload.gatewayIp || "");
+          if (payload.localIp) runtime.lastLocalIp = String(payload.localIp || "");
+          if (payload.subnet) runtime.lastSubnet = String(payload.subnet || "");
           if (payload.message) {
             nativeUi.wifiScanMeta.textContent = payload.message;
             updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           }
+          return;
+        }
+        if (detail.type === "lan_scan_error") {
+          runtime.mapScanInProgress = false;
+          holoMapRenderer.setScanState(false);
+          nativeUi.wifiScanState.textContent = "ERROR";
+          nativeUi.wifiScanMeta.textContent = payload.message || "LAN discovery failed";
+          updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           return;
         }
         if (detail.type === "export_status") {
@@ -3583,12 +3683,12 @@
 
       function onListTabSelected() {
         syncBridgeState(false);
-        if (cfgCtrls.autoScan.checked && runtime.bridgeState.enabled && runtime.bridgeState.scanPermissionGranted) {
+        if (cfgCtrls.autoScan.checked && runtime.bridgeState.enabled && runtime.bridgeState.canScan) {
           requestNativeWifiScan(false);
           return;
         }
         if (runtime.lastScanResults.length === 0) {
-          nativeUi.wifiScanMeta.textContent = "Waiting for live scan data";
+          nativeUi.wifiScanMeta.textContent = "Waiting for LAN device data";
           updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
         }
       }
@@ -3634,6 +3734,8 @@
       window.addEventListener("resize", () => rendererRegistry?.resizeActive?.(), { passive: true });
       window.addEventListener("orientationchange", () => rendererRegistry?.resizeActive?.(), { passive: true });
       window.addEventListener(NATIVE_EVENT, handleNativeEvent);
+      nativeUi.deviceDetailBackdrop?.addEventListener("click", closeDeviceDetail);
+      nativeUi.deviceDetailClose?.addEventListener("click", closeDeviceDetail);
       ui.btnTheme?.addEventListener("click", openThemeModal);
       nativeUi.themeModalClose?.addEventListener("click", closeThemeModal);
       nativeUi.speedtestThemeBackdrop?.addEventListener("click", closeThemeModal);
@@ -3649,6 +3751,8 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && nativeUi.speedtestThemeModal && !nativeUi.speedtestThemeModal.classList.contains("hidden")) {
           closeThemeModal();
+        } else if (event.key === "Escape" && nativeUi.deviceDetailModal && !nativeUi.deviceDetailModal.classList.contains("hidden")) {
+          closeDeviceDetail();
         }
       });
       cfgSaveBtn?.addEventListener("click", saveConfig);
@@ -3667,19 +3771,23 @@
       nativeUi.cfgExportDiagBtn?.addEventListener("click", exportDiagnostics);
       window.addEventListener("beforeunload", () => {
         if (isSpeedtestRunning()) nativeBridge.invoke("speedtestAbort");
+        if (runtime.mapScanInProgress) nativeBridge.invoke("lanScanStop");
         rendererRegistry?.stopAll?.();
       }, { once: true });
       loadConfig();
       applyMapModeButtonStyles();
       syncBridgeState(true);
       updateDeviceUi();
-      const initialScan = nativeBridge.call("getLastWifiScan");
+      const initialScan = nativeBridge.call("lanScanGetLast");
       if (initialScan?.ok && initialScan.scan) {
         const scan = initialScan.scan;
         runtime.lastScanCapturedAt = Number(scan.capturedAt || 0);
-        renderWifiNetworks(Array.isArray(scan.results) ? scan.results : [], scan.source || "none", "Restored last native scan snapshot");
+        runtime.lastGatewayIp = String(scan.gatewayIp || "");
+        runtime.lastLocalIp = String(scan.localIp || "");
+        runtime.lastSubnet = String(scan.subnet || "");
+        renderWifiNetworks(Array.isArray(scan.devices) ? scan.devices : [], "cached", "Restored last native LAN snapshot");
       } else {
-        renderWifiNetworks([], "none", "Waiting for live scan data");
+        renderWifiNetworks([], "none", "Waiting for LAN device data");
       }
       resetUI();
     })();

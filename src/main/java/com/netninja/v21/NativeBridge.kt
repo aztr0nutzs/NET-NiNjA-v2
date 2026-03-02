@@ -53,4 +53,15 @@ class NativeBridge(
   fun speedtestReset() {
     activity.resetSpeedtestFromJs()
   }
+
+  @JavascriptInterface
+  fun lanScanStart(jsonConfig: String): String = activity.startLanScanFromJs(jsonConfig)
+
+  @JavascriptInterface
+  fun lanScanStop() {
+    activity.stopLanScanFromJs()
+  }
+
+  @JavascriptInterface
+  fun lanScanGetLast(): String = activity.getLastLanScanJson()
 }
