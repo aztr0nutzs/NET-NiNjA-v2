@@ -175,7 +175,7 @@
   }
   .cpbtn:active{ transform:scale(.97); filter:brightness(1.15); }
   .cpbtn:disabled{ opacity:.35; cursor:not-allowed; }
-  .btnrow{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .btnrow{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
 
   .btn-override{
     background:rgba(255,0,229,.08);
@@ -193,6 +193,17 @@
     border:1px solid rgba(0,234,255,.65);
     color:#000;
     box-shadow: var(--cGlow);
+    font-family:var(--display);
+    font-weight:900;
+    font-style:italic;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .btn-reset{
+    background:rgba(255,242,0,.08);
+    border:1px solid rgba(255,242,0,.52);
+    color:var(--y);
+    box-shadow: var(--yGlow);
     font-family:var(--display);
     font-weight:900;
     font-style:italic;
@@ -809,12 +820,16 @@
 
     <div class="btnrow">
       <button class="cpbtn btn-override" id="btnAbort">
-        <span class="material-symbols-outlined" style="font-size:18px;">terminal</span>
-        OVERRIDE
+        <span class="material-symbols-outlined" style="font-size:18px;">stop_circle</span>
+        STOP
+      </button>
+      <button class="cpbtn btn-reset" id="btnReset">
+        <span class="material-symbols-outlined" style="font-size:18px;">restart_alt</span>
+        RESET
       </button>
       <button class="cpbtn btn-exec" id="btnStart">
         <span class="material-symbols-outlined" style="font-size:18px;">rocket_launch</span>
-        EXECUTE
+        START
       </button>
     </div>
   </footer>
@@ -881,6 +896,7 @@
 
   const btnStart = $('btnStart');
   const btnAbort = $('btnAbort');
+  const btnReset = $('btnReset');
   const btnSettings = $('btnSettings');
   const sigLabel = $('sigLabel');
 
@@ -1295,6 +1311,8 @@
   }
 
   function resetUI(){
+    state.running = false;
+    state.aborted = false;
     state.phase = 'idle';
     state.currentMbps = 0;
     state.targetMbps = 0;
@@ -1327,6 +1345,9 @@
 
     setStatus('IDLE_STANDBY', 'var(--pink)');
     probeStatus.textContent = 'ACTIVE_OPERATIONAL';
+    btnStart.disabled = false;
+    btnAbort.disabled = true;
+    btnReset.disabled = false;
 
     log('SYS','y', 'reset complete. ready when you are.');
   }
@@ -1637,8 +1658,6 @@
 
   btnAbort.addEventListener('click', ()=>{
     if(!state.running){
-      resetUI();
-      emitHostEvent('nn_speedtest_reset');
       return;
     }
     state.aborted = true;
@@ -1647,7 +1666,15 @@
     probeStatus.textContent = 'OVERRIDE_ENGAGED';
     log('SYS','p','override triggered. stopping test.');
     btnStart.disabled = false;
+    btnAbort.disabled = true;
+    btnReset.disabled = false;
     emitHostEvent('nn_speedtest_abort');
+  });
+
+  btnReset.addEventListener('click', ()=>{
+    if(state.running) return;
+    resetUI();
+    emitHostEvent('nn_speedtest_reset');
   });
 
   btnStart.addEventListener('click', async ()=>{
@@ -1656,6 +1683,8 @@
       resetUI();
       state.running = true;
       btnStart.disabled = true;
+      btnAbort.disabled = false;
+      btnReset.disabled = true;
       setStatus('RUNNING', 'var(--cyan)');
       probeStatus.textContent = 'RUNNING_DIAGNOSTICS';
       emitHostEvent('nn_speedtest_start', { safeMode: state.safeMode });
@@ -1672,6 +1701,8 @@
     probeStatus.textContent = 'RUNNING_DIAGNOSTICS';
 
     btnStart.disabled = true;
+    btnAbort.disabled = false;
+    btnReset.disabled = true;
 
     // server label
     const place = [state.city, state.country].filter(Boolean).join(', ');
@@ -1718,9 +1749,13 @@
 
       state.running = false;
       btnStart.disabled = false;
+      btnAbort.disabled = true;
+      btnReset.disabled = false;
     }catch(e){
       state.running = false;
       btnStart.disabled = false;
+      btnAbort.disabled = true;
+      btnReset.disabled = false;
       if(state.aborted){
         log('SYS','p','test stopped. no hard feelings (i lied).');
       }else{
@@ -1770,6 +1805,8 @@
     if (data.type === 'speedtest_done') {
       state.running = false;
       btnStart.disabled = false;
+      btnAbort.disabled = true;
+      btnReset.disabled = false;
       probeStatus.textContent = 'STANDBY_READY';
       setStatus('COMPLETE', 'var(--g)');
       setProgress(pSum, 100);
@@ -1777,13 +1814,15 @@
     if (data.type === 'speedtest_error') {
       state.running = false;
       btnStart.disabled = false;
+      btnAbort.disabled = true;
+      btnReset.disabled = false;
       probeStatus.textContent = 'STANDBY_READY';
       setStatus('ERROR', 'var(--pink)');
     }
   });
 
   resetUI();
-  log('SYS','y','core online. waiting for EXECUTE.');
+  log('SYS','y','core online. waiting for START.');
   log('TIP','c','best accuracy: close other downloads, avoid VPN, and do 2-3 runs.');
 })();
 </script>
