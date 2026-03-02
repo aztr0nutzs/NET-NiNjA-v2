@@ -9,23 +9,23 @@
 9        android:targetSdkVersion="35" />
 10
 11    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-11-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:2:3-74
-11-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:2:20-71
+11-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:2:3-74
+11-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:2:20-71
 12    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-12-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:3:3-74
-12-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:3:20-71
+12-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:3:3-74
+12-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:3:20-71
 13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-13-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:4:3-77
-13-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:4:20-74
+13-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:4:3-77
+13-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:4:20-74
 14    <uses-permission android:name="android.permission.INTERNET" />
-14-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:5:3-65
-14-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:5:20-62
+14-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:5:3-65
+14-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:5:20-62
 15    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-15-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:6:3-77
-15-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:6:20-74
+15-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:6:3-77
+15-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:6:20-74
 16    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
-16-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:7:3-76
-16-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:7:20-73
+16-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:7:3-76
+16-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:7:20-73
 17
 18    <permission
 18-->[androidx.core:core:1.13.1] C:\Users\Aztr0nutZs\.gradle\caches\8.9\transforms\9ce6e4f3696170f2fe5652e9d5a9f2c9\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
@@ -39,44 +39,44 @@
 22-->[androidx.core:core:1.13.1] C:\Users\Aztr0nutZs\.gradle\caches\8.9\transforms\9ce6e4f3696170f2fe5652e9d5a9f2c9\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
 23
 24    <application
-24-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:9:3-27:17
+24-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:9:3-27:17
 25        android:allowBackup="true"
-25-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:10:5-31
+25-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:10:5-31
 26        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 26-->[androidx.core:core:1.13.1] C:\Users\Aztr0nutZs\.gradle\caches\8.9\transforms\9ce6e4f3696170f2fe5652e9d5a9f2c9\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
 27        android:debuggable="true"
 28        android:extractNativeLibs="false"
 29        android:icon="@mipmap/ic_launcher"
-29-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:11:5-39
+29-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:11:5-39
 30        android:label="NET NiNjA"
-30-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:12:5-30
+30-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:12:5-30
 31        android:roundIcon="@mipmap/ic_launcher_round"
-31-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:13:5-50
+31-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:13:5-50
 32        android:supportsRtl="true"
-32-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:14:5-31
+32-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:14:5-31
 33        android:theme="@style/Theme.NetNinja" >
-33-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:15:5-42
+33-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:15:5-42
 34        <activity
-34-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:16:5-26:16
+34-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:16:5-26:16
 35            android:name="com.netninja.v21.MainActivity"
-35-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:17:7-35
+35-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:17:7-35
 36            android:configChanges="keyboardHidden|orientation|screenSize"
-36-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:21:7-68
+36-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:21:7-68
 37            android:exported="true"
-37-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:18:7-30
+37-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:18:7-30
 38            android:launchMode="singleTask"
-38-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:19:7-38
+38-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:19:7-38
 39            android:screenOrientation="portrait" >
-39-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:20:7-43
+39-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:20:7-43
 40            <intent-filter>
-40-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:22:7-25:23
+40-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:22:7-25:23
 41                <action android:name="android.intent.action.MAIN" />
-41-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:23:9-60
-41-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:23:17-58
+41-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:23:9-60
+41-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:23:17-58
 42
 43                <category android:name="android.intent.category.LAUNCHER" />
-43-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:24:9-68
-43-->C:\Users\Aztr0nutZs\Desktop\NET-NiNjA-v2\src\main\AndroidManifest.xml:24:19-66
+43-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:24:9-68
+43-->C:\Users\Aztr0nutZs\StudioProjects\NET-NiNjA-v2\src\main\AndroidManifest.xml:24:19-66
 44            </intent-filter>
 45        </activity>
 46

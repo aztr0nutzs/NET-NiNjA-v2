@@ -263,9 +263,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun bridgeStateObject(): JSONObject {
-    val activeNetwork = connectivityManager.activeNetwork
-    val linkProperties = activeNetwork?.let { connectivityManager.getLinkProperties(it) }
-    val canDiscoverLan = linkProperties?.linkAddresses?.any { it.address.hostAddress?.contains(".") == true } == true
+    val canDiscoverLan = lanDiscovery.canScan()
     return JSONObject()
       .put("available", true)
       .put("enabled", bridgeEnabled)

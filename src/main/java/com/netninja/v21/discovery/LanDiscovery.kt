@@ -3,6 +3,9 @@ package com.netninja.v21.discovery
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.LinkAddress
+import android.net.LinkProperties
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.RouteInfo
 import android.net.wifi.WifiManager
 import kotlinx.coroutines.CancellationException
@@ -90,7 +93,10 @@ class LanDiscovery(
   }
 
   private data class NetworkContext(
+    val network: Network,
+    val interfaceName: String?,
     val subnetCidr: String,
+    val subnetBase: Long,
     val localIp: String,
     val gatewayIp: String?,
     val targets: List<String>,
@@ -108,6 +114,11 @@ class LanDiscovery(
     val localIp: String?,
     val gatewayIp: String?,
     val prefixLength: Int?,
+  )
+
+  private data class SelectedNetwork(
+    val network: Network,
+    val linkProperties: LinkProperties,
   )
 
   private data class TcpProbeResult(
@@ -186,6 +197,8 @@ class LanDiscovery(
 
   fun getLastSnapshotJson(): String = lastSnapshot.toString()
 
+  fun canScan(): Boolean = findPreferredLanNetwork() != null
+
   private suspend fun stopInternal() {
     activeJob?.cancelAndJoin()
     activeJob = null
@@ -226,6 +239,7 @@ class LanDiscovery(
       }
     }.awaitAll()
 
+    harvestArpPeers(networkContext, callback)
     val snapshot = buildSnapshot(networkContext, done = true)
     lastSnapshot = snapshot
     callback(Event.Done(snapshot))
@@ -305,9 +319,8 @@ class LanDiscovery(
   }
 
   private fun resolveNetworkContext(config: ScanConfig): NetworkContext {
-    val activeNetwork = connectivityManager.activeNetwork ?: error("No active network.")
-    val linkProperties = connectivityManager.getLinkProperties(activeNetwork)
-      ?: error("No link properties for active network.")
+    val selectedNetwork = findPreferredLanNetwork() ?: error("No active LAN network.")
+    val linkProperties = selectedNetwork.linkProperties
     val linkAddress = linkProperties.linkAddresses.firstOrNull(::isUsableIpv4LinkAddress)
     val dhcpSnapshot = dhcpSnapshot()
     val fallbackAddress = if (linkAddress == null) fallbackIpv4Address() else null
@@ -324,9 +337,13 @@ class LanDiscovery(
     val hostTargets = buildTargetIps(localIp, effectivePrefix)
       .filter { it != localIp }
       .take(config.maxTargets.coerceIn(32, 512))
+    val subnetBase = ipToLong(networkAddress(localIp, effectivePrefix))
 
     return NetworkContext(
+      network = selectedNetwork.network,
+      interfaceName = linkProperties.interfaceName,
       subnetCidr = "${networkAddress(localIp, effectivePrefix)}/$effectivePrefix",
+      subnetBase = subnetBase,
       localIp = localIp,
       gatewayIp = gatewayIp,
       targets = hostTargets,
@@ -345,14 +362,14 @@ class LanDiscovery(
     val inetAddress = InetAddress.getByName(ip)
 
     val startedAt = System.nanoTime()
-    var reachable = runCatching { inetAddress.isReachable(config.probeTimeoutMs.coerceAtLeast(150)) }.getOrDefault(false)
+    var reachable = icmpReachable(inetAddress, networkContext.interfaceName, config.probeTimeoutMs)
     var method = "icmp"
     var rttMs = if (reachable) (System.nanoTime() - startedAt) / 1_000_000.0 else null
 
     if (!reachable && config.allowPortFallback) {
       for (port in config.fallbackPorts.take(5)) {
         val portStartedAt = System.nanoTime()
-        val tcpResult = tcpReachable(ip, port, config.probeTimeoutMs)
+        val tcpResult = tcpReachable(networkContext, ip, port, config.probeTimeoutMs)
         if (tcpResult.reachable) {
           reachable = true
           method = tcpResult.method
@@ -365,6 +382,10 @@ class LanDiscovery(
     val arpAfter = readArpTable()
     val mac = arpAfter[ip] ?: arpBefore[ip]
     if (!reachable && mac.isNullOrBlank()) return null
+    if (!reachable && !mac.isNullOrBlank()) {
+      reachable = true
+      method = "arp"
+    }
 
     val hostname = resolveHostname(inetAddress)
     val vendor = lookupVendor(mac)
@@ -382,16 +403,36 @@ class LanDiscovery(
       metadata = JSONObject()
         .put("subnet", networkContext.subnetCidr)
         .put("reachable", reachable)
+        .put("interface", networkContext.interfaceName ?: JSONObject.NULL)
         .put("source", "lan-discovery"),
     )
   }
 
+  private fun icmpReachable(
+    inetAddress: InetAddress,
+    interfaceName: String?,
+    timeoutMs: Int,
+  ): Boolean {
+    val networkInterface = interfaceName?.let { name ->
+      runCatching { NetworkInterface.getByName(name) }.getOrNull()
+    }
+    val timeout = timeoutMs.coerceAtLeast(150)
+    return runCatching {
+      if (networkInterface != null) {
+        inetAddress.isReachable(networkInterface, 1, timeout)
+      } else {
+        inetAddress.isReachable(timeout)
+      }
+    }.getOrDefault(false)
+  }
+
   private fun tcpReachable(
+    networkContext: NetworkContext,
     ip: String,
     port: Int,
     timeoutMs: Int,
   ): TcpProbeResult {
-    val socket = Socket()
+    val socket = runCatching { networkContext.network.socketFactory.createSocket() }.getOrElse { Socket() }
     activeSockets += socket
     return try {
       socket.connect(InetSocketAddress(ip, port), timeoutMs.coerceAtLeast(120))
@@ -415,6 +456,38 @@ class LanDiscovery(
       activeSockets -= socket
       runCatching { socket.close() }
     }
+  }
+
+  private fun harvestArpPeers(
+    networkContext: NetworkContext,
+    callback: (Event) -> Unit,
+  ) {
+    readArpTable()
+      .filterKeys { ip -> isIpInSubnet(ip, networkContext.subnetBase, networkContext.effectivePrefix) }
+      .forEach { (ip, mac) ->
+        val existing = deviceCache[ip]
+        val inetAddress = runCatching { InetAddress.getByName(ip) }.getOrNull()
+        val method = existing?.method?.takeIf { it.isNotBlank() && it != "unknown" } ?: "arp"
+        upsertDevice(
+          LanDevice(
+            ipAddress = ip,
+            macAddress = mac,
+            hostname = existing?.hostname ?: inetAddress?.let(::resolveHostname),
+            vendor = existing?.vendor ?: lookupVendor(mac),
+            rttMs = existing?.rttMs,
+            reachable = true,
+            deviceType = existing?.deviceType ?: guessDeviceType(ip, existing?.hostname, existing?.vendor ?: lookupVendor(mac), networkContext),
+            isGateway = ip == networkContext.gatewayIp,
+            isLocalDevice = ip == networkContext.localIp,
+            method = method,
+            metadata = JSONObject(existing?.metadata?.toString() ?: "{}")
+              .put("subnet", networkContext.subnetCidr)
+              .put("interface", networkContext.interfaceName ?: JSONObject.NULL)
+              .put("source", "arp-cache"),
+          ),
+          callback,
+        )
+      }
   }
 
   private fun buildSnapshot(
@@ -517,6 +590,28 @@ class LanDiscovery(
   private fun isUsableIpv4LinkAddress(linkAddress: LinkAddress): Boolean =
     linkAddress.address is Inet4Address && !linkAddress.address.isLoopbackAddress
 
+  private fun findPreferredLanNetwork(): SelectedNetwork? {
+    val activeNetwork = connectivityManager.activeNetwork
+    return connectivityManager.allNetworks
+      .mapNotNull { network ->
+        val linkProperties = connectivityManager.getLinkProperties(network) ?: return@mapNotNull null
+        if (!linkProperties.linkAddresses.any(::isUsableIpv4LinkAddress)) return@mapNotNull null
+        val caps = connectivityManager.getNetworkCapabilities(network)
+        val isLanTransport = caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true ||
+          caps?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true
+        val isActive = network == activeNetwork
+        val score = when {
+          isLanTransport && isActive -> 0
+          isLanTransport -> 1
+          isActive -> 2
+          else -> 3
+        }
+        score to SelectedNetwork(network = network, linkProperties = linkProperties)
+      }
+      .minByOrNull { it.first }
+      ?.second
+  }
+
   private fun RouteInfo.isDefaultGatewayV4(): Boolean =
     isDefaultRoute && gateway is Inet4Address
 
@@ -550,6 +645,12 @@ class LanDiscovery(
 
   private fun networkAddress(ip: String, prefixLength: Int): String =
     longToIp(ipToLong(ip) and prefixMask(prefixLength))
+
+  private fun isIpInSubnet(
+    ip: String,
+    subnetBase: Long,
+    prefixLength: Int,
+  ): Boolean = (ipToLong(ip) and prefixMask(prefixLength)) == subnetBase
 
   private fun prefixMask(prefixLength: Int): Long {
     val bits = prefixLength.coerceIn(0, 32)

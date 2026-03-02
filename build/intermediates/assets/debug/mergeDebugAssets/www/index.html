@@ -12,6 +12,7 @@
       if (!window.HoloThemeManager) return;
       window.HoloThemeManager.applyTheme(window.HoloThemeManager.DEFAULT_THEME_ID);
       window.HoloThemeManager.applyThemeForScreen("speedtest");
+      window.__NETNINJA_THEME_BOOTSTRAPPED = true;
     })();
   </script>
 
@@ -113,7 +114,44 @@
   </style>
 
   <style>
-    body { min-height: max(884px, 100dvh); background: var(--bg-0); color: var(--text-0); }
+    html,
+    body {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    body {
+      width: 100%;
+      max-width: 100%;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      background: var(--bg-0);
+      color: var(--text-0);
+      box-sizing: border-box;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    canvas,
+    img,
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    .holo-screen,
+    .holo-layer {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
 
     @keyframes holoPulse {
       0%, 100% { transform: scale(1); filter: blur(28px); opacity: .28; }
@@ -705,10 +743,23 @@
       border: 1px solid rgba(0, 212, 255, 0.2);
     }
     .app-nav {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
       background: linear-gradient(180deg, rgba(1, 1, 1, 0.96), rgba(8, 3, 10, 0.95));
       backdrop-filter: blur(18px);
       border-top: 1px solid rgba(255, 0, 221, 0.35);
       box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(250, 255, 0, 0.24);
+    }
+    .app-nav__grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 4px;
+      width: 100%;
+      max-width: 100%;
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .italic-heavy {
       font-style: italic;
@@ -720,32 +771,53 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      padding: 2px 0;
+      gap: 3px;
+      min-width: 0;
+      width: 100%;
+      min-height: 54px;
+      padding: 2px;
+      overflow: hidden;
       color: #66e8ff;
       transition: color 0.16s ease, transform 0.16s ease, text-shadow 0.16s ease;
       font-family: "Orbitron", "Space Grotesk", sans-serif;
       font-weight: 900;
       letter-spacing: 0.07em;
+      line-height: 1;
+      text-align: center;
       text-shadow: 0 0 8px rgba(0, 212, 255, 0.35);
+      box-sizing: border-box;
     }
     .nav-tab .material-symbols-outlined {
       font-size: 24px;
       font-variation-settings: "FILL" 0;
     }
     .nav-tab .nav-icon-word {
-      font-size: 12px;
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: clamp(9px, 2.8vw, 12px);
       text-transform: uppercase;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.08em;
       font-family: "Orbitron", "Space Grotesk", sans-serif;
       font-style: italic;
       font-weight: 900;
       line-height: 1;
     }
     .nav-tab .tab-label {
-      font-size: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: clamp(8px, 2.35vw, 10px);
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.05em;
+      line-height: 1;
     }
     .nav-tab:hover {
       color: var(--neon-yellow-green);
@@ -769,6 +841,29 @@
     .nav-emoji {
       font-size: 14px;
       line-height: 1;
+    }
+    @media (max-width: 380px) {
+      .app-nav__grid {
+        gap: 2px;
+        padding-inline: 4px;
+      }
+      .nav-tab {
+        gap: 2px;
+        min-height: 50px;
+        padding-inline: 1px;
+      }
+      .nav-tab .nav-icon-word {
+        font-size: 8px;
+        letter-spacing: 0.04em;
+      }
+      .nav-tab .tab-label {
+        gap: 2px;
+        font-size: 8px;
+        letter-spacing: 0.02em;
+      }
+      .nav-emoji {
+        font-size: 10px;
+      }
     }
     .holo-center-intel {
       position: relative;
@@ -1239,8 +1334,8 @@
       </div>
     </div>
 
-    <header class="relative z-20 flex items-center justify-between p-4 pt-3 sm:p-6 sm:pt-6 bg-gradient-to-b from-void-black/75 to-transparent">
-      <div class="flex flex-col">
+    <header class="relative z-20 flex flex-wrap items-start justify-between gap-3 p-4 pt-3 sm:p-6 sm:pt-6 bg-gradient-to-b from-void-black/75 to-transparent">
+      <div class="flex min-w-0 flex-col">
         <span class="text-[10px] tracking-[0.3em] holo-text-subtle font-mono uppercase">SYSTEM STATUS</span>
         <h2 class="text-sm sm:text-base leading-tight flex items-center gap-2 italic-heavy chromatic-aberration holo-text-good">
           <span class="material-symbols-outlined text-base">terminal</span>
@@ -1248,14 +1343,15 @@
         </h2>
       </div>
 
-      <div class="flex gap-4 items-center">
+      <div class="relative z-40 flex shrink-0 items-center gap-3">
         <div class="text-right hidden sm:block">
           <p class="text-[10px] holo-text-dim uppercase font-mono">Neural Link</p>
           <p class="text-xs font-bold holo-text-accent-strong font-mono tracking-widest">ENCRYPTED</p>
         </div>
 
-        <button id="btnTheme" class="tap-glow size-10 rounded-full holo-orb-btn flex items-center justify-center" type="button" aria-label="Speedtest theme picker" aria-haspopup="dialog" aria-controls="speedtestThemeModal" aria-expanded="false">
-          <span class="material-symbols-outlined">palette</span>
+        <button id="btnTheme" class="theme-launch tap-glow holo-orb-btn holo-focus-ring" type="button" aria-label="Open speedtest theme picker" aria-haspopup="dialog" aria-controls="speedtestThemeModal" aria-expanded="false">
+          <span class="material-symbols-outlined theme-launch__icon" aria-hidden="true">palette</span>
+          <span>THEME</span>
         </button>
 
         <button id="btnSettings" class="tap-glow size-10 rounded-full holo-orb-btn flex items-center justify-center" type="button">
@@ -1437,7 +1533,7 @@
 
   <!-- Global bottom navigation -->
   <nav id="bottomNav" class="app-nav fixed bottom-0 left-0 right-0 z-40">
-    <div class="flex gap-2 px-4 pb-8 pt-4">
+    <div class="app-nav__grid">
       <button id="navEngine" class="nav-tab italic-heavy flex-1" type="button" aria-label="Core engine tab">
         <span class="nav-icon-word" aria-hidden="true">SPEED</span>
         <span class="tab-label"><span class="nav-emoji" aria-hidden="true">⚙️</span> Core</span>
@@ -1462,11 +1558,12 @@
     <div class="theme-modal__sheet" role="document">
       <div class="theme-modal__header">
         <h3 id="speedtestThemeTitle" class="theme-modal__title">Speedtest Theme</h3>
-        <button id="themeModalClose" class="theme-modal__close" type="button" aria-label="Close theme picker">✕</button>
+        <button id="themeClose" class="theme-modal__close" type="button" aria-label="Close theme picker">✕</button>
       </div>
       <p class="theme-modal__subtitle">Theme applies to Speedtest screen only.</p>
       <div id="themeList" class="theme-modal__list" role="listbox" aria-label="Speedtest themes"></div>
-      <button id="themeResetBtn" class="theme-modal__reset" type="button">Reset to Default</button>
+      <p id="themeDebugLine" class="theme-debug-line" data-debug="off"></p>
+      <button id="themeReset" class="theme-modal__reset" type="button">Reset to Default</button>
     </div>
   </div>
 
@@ -1566,9 +1663,10 @@
         deviceDetailJson: $("deviceDetailJson"),
         speedtestThemeModal: $("speedtestThemeModal"),
         speedtestThemeBackdrop: $("speedtestThemeBackdrop"),
-        themeModalClose: $("themeModalClose"),
+        themeClose: $("themeClose"),
         themeList: $("themeList"),
-        themeResetBtn: $("themeResetBtn"),
+        themeReset: $("themeReset"),
+        themeDebugLine: $("themeDebugLine"),
       };
 
       const State = Object.freeze({
@@ -1971,8 +2069,8 @@
       const getVar = (varName, fallback = "") => getThemeColor(varName, fallback);
 
       const ensureSpeedtestLoop = () => {
-        if (!speedtestRendererActive || !isSpeedtestRunning() || raf) return;
-        raf = speedtestRendererActive && isSpeedtestRunning() ? requestAnimationFrame(tick) : 0;
+        if (!speedtestRendererActive || raf) return;
+        raf = requestAnimationFrame(tick);
       };
 
       const speedtestRendererController = {
@@ -2142,7 +2240,7 @@
         advanceNeedle(dt);
         gaugeRenderer.render(now, cur.needleDeg, cur.display);
         updateGaugeColorProfile(state === State.PING ? cur.display * 25 : cur.display);
-        raf = speedtestRendererActive && isSpeedtestRunning() ? requestAnimationFrame(tick) : 0;
+        raf = speedtestRendererActive ? requestAnimationFrame(tick) : 0;
       };
 
       ui.btnStart.addEventListener("click", startRun);
@@ -2184,6 +2282,43 @@
       };
 
       let themeModalRestoreFocus = null;
+      const THEME_DEBUG_ENABLED =
+        new URLSearchParams(window.location.search).get("debugThemes") === "1" ||
+        localStorage.getItem("netninja.debug.themes") === "1";
+
+      function setThemeDebugLine(message) {
+        if (!nativeUi.themeDebugLine) return;
+        nativeUi.themeDebugLine.dataset.debug = THEME_DEBUG_ENABLED ? "on" : "off";
+        nativeUi.themeDebugLine.textContent = THEME_DEBUG_ENABLED ? message : "";
+      }
+
+      function getThemeSystemStatus() {
+        const registry = window.HoloThemeManager?.getThemeRegistry?.() || window.HoloThemeRegistry || window.HoloThemes || null;
+        const themes = registry && typeof registry.getAllThemes === "function" ? registry.getAllThemes() : [];
+        const activeThemeId = window.HoloThemeManager?.getThemeIdForScreen?.("speedtest")
+          || document.documentElement.dataset.themeId
+          || "holo_cyan";
+        return {
+          registryReady: !!window.__NETNINJA_THEME_REGISTRY_READY,
+          managerReady: !!window.HoloThemeManager && !!window.__NETNINJA_THEME_MANAGER_READY,
+          bootstrapped: !!window.__NETNINJA_THEME_BOOTSTRAPPED,
+          themeCount: Array.isArray(themes) ? themes.length : 0,
+          activeThemeId,
+        };
+      }
+
+      function syncThemeButtonState() {
+        if (!ui.btnTheme) return;
+        const status = getThemeSystemStatus();
+        ui.btnTheme.hidden = false;
+        ui.btnTheme.style.display = "inline-flex";
+        ui.btnTheme.style.visibility = "visible";
+        ui.btnTheme.style.pointerEvents = "auto";
+        ui.btnTheme.title = status.themeCount > 0
+          ? `Theme: ${status.activeThemeId}`
+          : "No themes loaded";
+        setThemeDebugLine(`registry ${status.registryReady ? "ready" : "missing"} / manager ${status.managerReady ? "ready" : "missing"} / themes ${status.themeCount} / active ${status.activeThemeId}`);
+      }
 
       function currentThemeIdForSpeedtest() {
         if (!window.HoloThemeManager) return "holo_cyan";
@@ -2226,21 +2361,31 @@
 
       function renderThemeList() {
         if (!nativeUi.themeList) return;
-        const registry = window.HoloThemeRegistry;
+        const registry = window.HoloThemeManager?.getThemeRegistry?.() || window.HoloThemeRegistry || window.HoloThemes;
+        syncThemeButtonState();
         if (!registry || typeof registry.getAllThemes !== "function") {
-          nativeUi.themeList.innerHTML = "";
+          nativeUi.themeList.innerHTML = `<div class="theme-modal__empty">No themes loaded.</div>`;
+          setThemeDebugLine("theme scripts missing / 0 themes");
+          return;
+        }
+        const themes = registry.getAllThemes();
+        if (!Array.isArray(themes) || themes.length === 0) {
+          nativeUi.themeList.innerHTML = `<div class="theme-modal__empty">No themes loaded.</div>`;
+          setThemeDebugLine("theme registry empty / 0 themes");
           return;
         }
         const activeThemeId = currentThemeIdForSpeedtest();
         nativeUi.themeList.innerHTML = "";
-        registry.getAllThemes().forEach((theme) => {
+        themes.forEach((theme) => {
           nativeUi.themeList.appendChild(buildThemeOption(theme, activeThemeId));
         });
+        setThemeDebugLine(`themes loaded / ${themes.length} found / active ${activeThemeId}`);
       }
 
       function openThemeModal() {
         if (!nativeUi.speedtestThemeModal) return;
         themeModalRestoreFocus = document.activeElement;
+        syncThemeButtonState();
         renderThemeList();
         nativeUi.speedtestThemeModal.classList.remove("hidden");
         nativeUi.speedtestThemeModal.classList.add("is-open");
@@ -2257,8 +2402,77 @@
           themeModalRestoreFocus.focus();
         }
       }
+      if (window.HoloThemeManager) {
+        setThemeDebugLine(`theme manager ready / active ${window.HoloThemeManager.getThemeIdForScreen("speedtest")}`);
+      } else {
+        setThemeDebugLine("theme manager missing");
+      }
+      syncThemeButtonState();
+      const RENDER_DEBUG_ENABLED =
+        new URLSearchParams(window.location.search).get("debugRenderers") === "1" ||
+        localStorage.getItem("netninja.debug.renderers") === "1";
+
+      function logRendererLifecycle(action, screenId) {
+        if (!RENDER_DEBUG_ENABLED || !screenId) return;
+        console.debug(`[renderer] ${action}: ${screenId}`);
+      }
+
+      function screenIdForTab(tab) {
+        if (tab === "engine") return "speedtest";
+        if (tab === "map") return "map";
+        return tab;
+      }
+
+      function initialTabFromDom() {
+        for (const [tab, screen] of Object.entries(screens)) {
+          if (screen && !screen.classList.contains("hidden")) {
+            return tab;
+          }
+        }
+        return "engine";
+      }
+
+      function activeScreenIdFromDom() {
+        for (const [tab, screen] of Object.entries(screens)) {
+          if (screen && !screen.classList.contains("hidden")) {
+            return screenIdForTab(tab);
+          }
+        }
+        return "speedtest";
+      }
+
+      function syncActiveRendererAfterLayout(force = false) {
+        const activeScreenId = activeScreenIdFromDom();
+        if (window.HoloThemeManager) {
+          window.HoloThemeManager.applyThemeForScreen(activeScreenId);
+        }
+        const supportsRenderer = activeScreenId === "speedtest" || activeScreenId === "map";
+        if (!supportsRenderer) {
+          rendererRegistry?.stopAll?.();
+          return;
+        }
+        logRendererLifecycle(force ? "force-start" : "start", activeScreenId);
+        rendererRegistry?.start?.(activeScreenId, force ? { force: true } : undefined);
+        rendererRegistry?.resizeActive?.();
+      }
+
+      function scheduleInitialRendererStartup() {
+        const run = () => {
+          syncActiveRendererAfterLayout(true);
+          requestAnimationFrame(() => {
+            rendererRegistry?.resizeActive?.();
+            syncActiveRendererAfterLayout(true);
+          });
+        };
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", run, { once: true });
+        } else {
+          run();
+        }
+      }
+
       function setActive(tab) {
-        const nextScreenId = tab === "engine" ? "speedtest" : tab;
+        const nextScreenId = screenIdForTab(tab);
         const prevScreenId = rendererRegistry?.getActiveScreenId?.() || null;
         const screenChanged = prevScreenId !== nextScreenId;
         const leavingLanScreens = (!screens.list?.classList.contains("hidden") || !screens.map?.classList.contains("hidden")) && tab !== "list" && tab !== "map";
@@ -2291,20 +2505,18 @@
         }
 
         if (screenChanged && prevScreenId) {
+          logRendererLifecycle("stop", prevScreenId);
           rendererRegistry?.stop?.(prevScreenId);
         }
         if (window.HoloThemeManager) {
           window.HoloThemeManager.applyThemeForScreen(nextScreenId);
         }
         if (tab !== "engine") closeThemeModal();
-        if (screenChanged || !prevScreenId) {
-          rendererRegistry?.start?.(nextScreenId);
-        }
         if (tab === "map") renderMapFromScan();
-        rendererRegistry?.resizeActive?.();
+        requestAnimationFrame(() => {
+          syncActiveRendererAfterLayout(screenChanged || !prevScreenId);
+        });
       }
-      // initial state: engine screen
-      setActive("engine");
       // Event bindings
       nav.engine?.addEventListener("click", () => {
         setActive("engine");
@@ -3338,11 +3550,6 @@
       const holoMapRenderer = createHoloMapRenderer();
       rendererRegistry?.register?.("speedtest", speedtestRendererController);
       rendererRegistry?.register?.("map", holoMapRenderer);
-      if (!screens.engine?.classList.contains("hidden")) {
-        rendererRegistry?.start?.("speedtest");
-      } else if (!screens.map?.classList.contains("hidden")) {
-        rendererRegistry?.start?.("map");
-      }
 
       function renderMapFromScan() {
         const networks = filteredMapNetworks();
@@ -3499,12 +3706,12 @@
       function buildLanScanConfig() {
         const perfMode = cfgCtrls.perfMode.value;
         return {
-          maxConcurrency: perfMode === "low" ? 24 : 48,
-          probeTimeoutMs: perfMode === "low" ? 650 : 450,
+          maxConcurrency: perfMode === "low" ? 32 : 64,
+          probeTimeoutMs: perfMode === "low" ? 400 : 325,
           maxTargets: 254,
           maxSubnetPrefix: 24,
           allowPortFallback: true,
-          fallbackPorts: [443, 80],
+          fallbackPorts: [443, 80, 53, 22, 554],
         };
       }
 
@@ -3737,9 +3944,9 @@
       nativeUi.deviceDetailBackdrop?.addEventListener("click", closeDeviceDetail);
       nativeUi.deviceDetailClose?.addEventListener("click", closeDeviceDetail);
       ui.btnTheme?.addEventListener("click", openThemeModal);
-      nativeUi.themeModalClose?.addEventListener("click", closeThemeModal);
+      nativeUi.themeClose?.addEventListener("click", closeThemeModal);
       nativeUi.speedtestThemeBackdrop?.addEventListener("click", closeThemeModal);
-      nativeUi.themeResetBtn?.addEventListener("click", () => {
+      nativeUi.themeReset?.addEventListener("click", () => {
         if (!window.HoloThemeManager) return;
         const defaultTheme = window.HoloThemeManager.resetThemeForScreen("speedtest");
         window.HoloThemeManager.applyTheme(defaultTheme);
@@ -3774,6 +3981,9 @@
         if (runtime.mapScanInProgress) nativeBridge.invoke("lanScanStop");
         rendererRegistry?.stopAll?.();
       }, { once: true });
+      document.addEventListener("DOMContentLoaded", syncThemeButtonState, { once: true });
+      setActive(initialTabFromDom());
+      scheduleInitialRendererStartup();
       loadConfig();
       applyMapModeButtonStyles();
       syncBridgeState(true);

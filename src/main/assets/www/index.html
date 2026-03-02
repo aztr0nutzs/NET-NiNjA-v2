@@ -12,6 +12,7 @@
       if (!window.HoloThemeManager) return;
       window.HoloThemeManager.applyTheme(window.HoloThemeManager.DEFAULT_THEME_ID);
       window.HoloThemeManager.applyThemeForScreen("speedtest");
+      window.__NETNINJA_THEME_BOOTSTRAPPED = true;
     })();
   </script>
 
@@ -113,6 +114,15 @@
   </style>
 
   <style>
+    html,
+    body {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
     body {
       width: 100%;
       max-width: 100%;
@@ -120,6 +130,27 @@
       overflow-x: hidden;
       background: var(--bg-0);
       color: var(--text-0);
+      box-sizing: border-box;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    canvas,
+    img,
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    .holo-screen,
+    .holo-layer {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
     }
 
     @keyframes holoPulse {
@@ -713,7 +744,7 @@
     }
     .app-nav {
       width: 100%;
-      max-width: 100vw;
+      max-width: 100%;
       overflow: hidden;
       background: linear-gradient(180deg, rgba(1, 1, 1, 0.96), rgba(8, 3, 10, 0.95));
       backdrop-filter: blur(18px);
@@ -723,11 +754,12 @@
     .app-nav__grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 6px;
+      gap: 4px;
       width: 100%;
       max-width: 100%;
-      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
       box-sizing: border-box;
+      overflow: hidden;
     }
     .italic-heavy {
       font-style: italic;
@@ -739,10 +771,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 3px;
       min-width: 0;
       width: 100%;
-      padding: 2px 4px;
+      min-height: 54px;
+      padding: 2px;
       overflow: hidden;
       color: #66e8ff;
       transition: color 0.16s ease, transform 0.16s ease, text-shadow 0.16s ease;
@@ -764,23 +797,27 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 12px;
+      font-size: clamp(9px, 2.8vw, 12px);
       text-transform: uppercase;
-      letter-spacing: 0.11em;
+      letter-spacing: 0.08em;
       font-family: "Orbitron", "Space Grotesk", sans-serif;
       font-style: italic;
       font-weight: 900;
       line-height: 1;
     }
     .nav-tab .tab-label {
-      display: block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 10px;
+      font-size: clamp(8px, 2.35vw, 10px);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.05em;
+      line-height: 1;
     }
     .nav-tab:hover {
       color: var(--neon-yellow-green);
@@ -807,23 +844,25 @@
     }
     @media (max-width: 380px) {
       .app-nav__grid {
-        gap: 4px;
-        padding-inline: 8px;
+        gap: 2px;
+        padding-inline: 4px;
       }
       .nav-tab {
-        gap: 3px;
-        padding-inline: 2px;
+        gap: 2px;
+        min-height: 50px;
+        padding-inline: 1px;
       }
       .nav-tab .nav-icon-word {
-        font-size: 10px;
-        letter-spacing: 0.08em;
+        font-size: 8px;
+        letter-spacing: 0.04em;
       }
       .nav-tab .tab-label {
-        font-size: 9px;
-        letter-spacing: 0.05em;
+        gap: 2px;
+        font-size: 8px;
+        letter-spacing: 0.02em;
       }
       .nav-emoji {
-        font-size: 12px;
+        font-size: 10px;
       }
     }
     .holo-center-intel {
@@ -1295,8 +1334,8 @@
       </div>
     </div>
 
-    <header class="relative z-20 flex items-center justify-between p-4 pt-3 sm:p-6 sm:pt-6 bg-gradient-to-b from-void-black/75 to-transparent">
-      <div class="flex flex-col">
+    <header class="relative z-20 flex flex-wrap items-start justify-between gap-3 p-4 pt-3 sm:p-6 sm:pt-6 bg-gradient-to-b from-void-black/75 to-transparent">
+      <div class="flex min-w-0 flex-col">
         <span class="text-[10px] tracking-[0.3em] holo-text-subtle font-mono uppercase">SYSTEM STATUS</span>
         <h2 class="text-sm sm:text-base leading-tight flex items-center gap-2 italic-heavy chromatic-aberration holo-text-good">
           <span class="material-symbols-outlined text-base">terminal</span>
@@ -1304,7 +1343,7 @@
         </h2>
       </div>
 
-      <div class="flex gap-4 items-center">
+      <div class="relative z-40 flex shrink-0 items-center gap-3">
         <div class="text-right hidden sm:block">
           <p class="text-[10px] holo-text-dim uppercase font-mono">Neural Link</p>
           <p class="text-xs font-bold holo-text-accent-strong font-mono tracking-widest">ENCRYPTED</p>
@@ -1312,7 +1351,7 @@
 
         <button id="btnTheme" class="theme-launch tap-glow holo-orb-btn holo-focus-ring" type="button" aria-label="Open speedtest theme picker" aria-haspopup="dialog" aria-controls="speedtestThemeModal" aria-expanded="false">
           <span class="material-symbols-outlined theme-launch__icon" aria-hidden="true">palette</span>
-          <span>Theme</span>
+          <span>THEME</span>
         </button>
 
         <button id="btnSettings" class="tap-glow size-10 rounded-full holo-orb-btn flex items-center justify-center" type="button">
@@ -2253,6 +2292,34 @@
         nativeUi.themeDebugLine.textContent = THEME_DEBUG_ENABLED ? message : "";
       }
 
+      function getThemeSystemStatus() {
+        const registry = window.HoloThemeManager?.getThemeRegistry?.() || window.HoloThemeRegistry || window.HoloThemes || null;
+        const themes = registry && typeof registry.getAllThemes === "function" ? registry.getAllThemes() : [];
+        const activeThemeId = window.HoloThemeManager?.getThemeIdForScreen?.("speedtest")
+          || document.documentElement.dataset.themeId
+          || "holo_cyan";
+        return {
+          registryReady: !!window.__NETNINJA_THEME_REGISTRY_READY,
+          managerReady: !!window.HoloThemeManager && !!window.__NETNINJA_THEME_MANAGER_READY,
+          bootstrapped: !!window.__NETNINJA_THEME_BOOTSTRAPPED,
+          themeCount: Array.isArray(themes) ? themes.length : 0,
+          activeThemeId,
+        };
+      }
+
+      function syncThemeButtonState() {
+        if (!ui.btnTheme) return;
+        const status = getThemeSystemStatus();
+        ui.btnTheme.hidden = false;
+        ui.btnTheme.style.display = "inline-flex";
+        ui.btnTheme.style.visibility = "visible";
+        ui.btnTheme.style.pointerEvents = "auto";
+        ui.btnTheme.title = status.themeCount > 0
+          ? `Theme: ${status.activeThemeId}`
+          : "No themes loaded";
+        setThemeDebugLine(`registry ${status.registryReady ? "ready" : "missing"} / manager ${status.managerReady ? "ready" : "missing"} / themes ${status.themeCount} / active ${status.activeThemeId}`);
+      }
+
       function currentThemeIdForSpeedtest() {
         if (!window.HoloThemeManager) return "holo_cyan";
         return window.HoloThemeManager.getThemeIdForScreen("speedtest");
@@ -2295,6 +2362,7 @@
       function renderThemeList() {
         if (!nativeUi.themeList) return;
         const registry = window.HoloThemeManager?.getThemeRegistry?.() || window.HoloThemeRegistry || window.HoloThemes;
+        syncThemeButtonState();
         if (!registry || typeof registry.getAllThemes !== "function") {
           nativeUi.themeList.innerHTML = `<div class="theme-modal__empty">No themes loaded.</div>`;
           setThemeDebugLine("theme scripts missing / 0 themes");
@@ -2317,6 +2385,7 @@
       function openThemeModal() {
         if (!nativeUi.speedtestThemeModal) return;
         themeModalRestoreFocus = document.activeElement;
+        syncThemeButtonState();
         renderThemeList();
         nativeUi.speedtestThemeModal.classList.remove("hidden");
         nativeUi.speedtestThemeModal.classList.add("is-open");
@@ -2338,6 +2407,7 @@
       } else {
         setThemeDebugLine("theme manager missing");
       }
+      syncThemeButtonState();
       const RENDER_DEBUG_ENABLED =
         new URLSearchParams(window.location.search).get("debugRenderers") === "1" ||
         localStorage.getItem("netninja.debug.renderers") === "1";
@@ -2348,7 +2418,18 @@
       }
 
       function screenIdForTab(tab) {
-        return tab === "engine" ? "speedtest" : tab;
+        if (tab === "engine") return "speedtest";
+        if (tab === "map") return "map";
+        return tab;
+      }
+
+      function initialTabFromDom() {
+        for (const [tab, screen] of Object.entries(screens)) {
+          if (screen && !screen.classList.contains("hidden")) {
+            return tab;
+          }
+        }
+        return "engine";
       }
 
       function activeScreenIdFromDom() {
@@ -2377,7 +2458,9 @@
 
       function scheduleInitialRendererStartup() {
         const run = () => {
+          syncActiveRendererAfterLayout(true);
           requestAnimationFrame(() => {
+            rendererRegistry?.resizeActive?.();
             syncActiveRendererAfterLayout(true);
           });
         };
@@ -2429,20 +2512,11 @@
           window.HoloThemeManager.applyThemeForScreen(nextScreenId);
         }
         if (tab !== "engine") closeThemeModal();
-        if (nextScreenId === "speedtest" || nextScreenId === "map") {
-          if (screenChanged || !prevScreenId) {
-            logRendererLifecycle("start", nextScreenId);
-            rendererRegistry?.start?.(nextScreenId);
-          }
-        } else if (screenChanged && prevScreenId) {
-          rendererRegistry?.stopAll?.();
-        }
         if (tab === "map") renderMapFromScan();
-        rendererRegistry?.resizeActive?.();
-        requestAnimationFrame(() => rendererRegistry?.resizeActive?.());
+        requestAnimationFrame(() => {
+          syncActiveRendererAfterLayout(screenChanged || !prevScreenId);
+        });
       }
-      // initial state: engine screen
-      setActive("engine");
       // Event bindings
       nav.engine?.addEventListener("click", () => {
         setActive("engine");
@@ -3476,7 +3550,6 @@
       const holoMapRenderer = createHoloMapRenderer();
       rendererRegistry?.register?.("speedtest", speedtestRendererController);
       rendererRegistry?.register?.("map", holoMapRenderer);
-      scheduleInitialRendererStartup();
 
       function renderMapFromScan() {
         const networks = filteredMapNetworks();
@@ -3908,6 +3981,9 @@
         if (runtime.mapScanInProgress) nativeBridge.invoke("lanScanStop");
         rendererRegistry?.stopAll?.();
       }, { once: true });
+      document.addEventListener("DOMContentLoaded", syncThemeButtonState, { once: true });
+      setActive(initialTabFromDom());
+      scheduleInitialRendererStartup();
       loadConfig();
       applyMapModeButtonStyles();
       syncBridgeState(true);

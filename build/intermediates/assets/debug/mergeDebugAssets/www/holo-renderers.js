@@ -21,16 +21,24 @@
           items.push(renderer);
         }
       },
-      start(screenId) {
+      start(screenId, options = {}) {
         if (!screenId) return;
+        const force = !!options.force;
         if (activeScreenId && activeScreenId !== screenId) {
           this.stop(activeScreenId);
         }
-        if (activeScreenId === screenId) {
+        if (activeScreenId === screenId && !force) {
           return;
         }
+        const items = list(screenId);
+        if (force) {
+          items.forEach((renderer) => renderer.stop());
+        }
         activeScreenId = screenId;
-        list(screenId).forEach((renderer) => renderer.start());
+        items.forEach((renderer) => {
+          renderer.resize();
+          renderer.start();
+        });
       },
       stop(screenId) {
         if (!screenId) return;

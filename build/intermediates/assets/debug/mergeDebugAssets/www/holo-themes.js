@@ -292,4 +292,6 @@
       return this.order.map((id) => registry[id]);
     }
   };
+  global.HoloThemes = global.HoloThemeRegistry;
+  global.__NETNINJA_THEME_REGISTRY_READY = true;
 })(window);

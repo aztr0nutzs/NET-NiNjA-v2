@@ -1561,25 +1561,6 @@
             "outputFile": "com.netninja.v21-debug-23:/values_values.arsc.flat",
             "map": [
                 {
-                    "source": "C:\\Users\\Aztr0nutZs\\Desktop\\NET-NiNjA-v2\\src\\main\\res\\values\\themes.xml",
-                    "from": {
-                        "startLines": "1",
-                        "startColumns": "2",
-                        "startOffsets": "62",
-                        "endLines": "5",
-                        "endColumns": "10",
-                        "endOffsets": "362"
-                    },
-                    "to": {
-                        "startLines": "1715",
-                        "startColumns": "4",
-                        "startOffsets": "113831",
-                        "endLines": "1719",
-                        "endColumns": "10",
-                        "endOffsets": "114127"
-                    }
-                },
-                {
                     "source": "C:\\Users\\Aztr0nutZs\\.gradle\\caches\\8.9\\transforms\\af28bae13f26579296303d52e17099c7\\transformed\\lifecycle-viewmodel-2.6.2\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2",
@@ -1669,6 +1650,25 @@
                     }
                 },
                 {
+                    "source": "C:\\Users\\Aztr0nutZs\\StudioProjects\\NET-NiNjA-v2\\src\\main\\res\\values\\themes.xml",
+                    "from": {
+                        "startLines": "1",
+                        "startColumns": "2",
+                        "startOffsets": "62",
+                        "endLines": "5",
+                        "endColumns": "10",
+                        "endOffsets": "362"
+                    },
+                    "to": {
+                        "startLines": "1715",
+                        "startColumns": "4",
+                        "startOffsets": "113831",
+                        "endLines": "1719",
+                        "endColumns": "10",
+                        "endOffsets": "114127"
+                    }
+                },
+                {
                     "source": "C:\\Users\\Aztr0nutZs\\.gradle\\caches\\8.9\\transforms\\874c2e3aa8e2d1776d813fb862f33eb2\\transformed\\savedstate-1.2.1\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2",
@@ -1683,6 +1683,23 @@
                         "startOffsets": "16999",
                         "endColumns": "53",
                         "endOffsets": "17048"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Aztr0nutZs\\StudioProjects\\NET-NiNjA-v2\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "0",
+                        "startColumns": "11",
+                        "startOffsets": "11",
+                        "endColumns": "53",
+                        "endOffsets": "53"
+                    },
+                    "to": {
+                        "startLines": "299",
+                        "startColumns": "4",
+                        "startOffsets": "19429",
+                        "endColumns": "46",
+                        "endOffsets": "19471"
                     }
                 },
                 {
@@ -1738,23 +1755,6 @@
                         "endLines": "1958,1964,1974,2945,2949",
                         "endColumns": "24,24,24,24,24",
                         "endOffsets": "127390,127568,127852,160314,160441"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\Aztr0nutZs\\Desktop\\NET-NiNjA-v2\\src\\main\\res\\values\\strings.xml",
-                    "from": {
-                        "startLines": "0",
-                        "startColumns": "11",
-                        "startOffsets": "11",
-                        "endColumns": "53",
-                        "endOffsets": "53"
-                    },
-                    "to": {
-                        "startLines": "299",
-                        "startColumns": "4",
-                        "startOffsets": "19429",
-                        "endColumns": "46",
-                        "endOffsets": "19471"
                     }
                 }
             ]
