@@ -990,6 +990,16 @@
       text-transform: uppercase;
       line-height: 1;
     }
+
+    .replacement-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      z-index: 35;
+      background: #000;
+    }
   </style>
 </head>
 
@@ -1011,6 +1021,7 @@
 
   <!-- WiFi List screen -->
   <section id="wifiListScreen" class="wifi-list-screen holo-screen hidden relative flex min-h-[100dvh] w-full flex-col items-center overflow-y-auto holo-layer holo-scanlines">
+    <iframe id="networksFrame" class="replacement-frame" src="cyber_networks.html" title="Insights graphs"></iframe>
     <!-- Header -->
     <div class="w-full holo-header p-4 sm:p-6 flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -1192,6 +1203,7 @@
 
   <!-- WiFi Map Screen -->
   <section id="wifiMapScreen" class="holo-screen hidden relative flex min-h-[100dvh] w-full flex-col overflow-hidden holo-layer holo-scanlines">
+    <iframe id="nodesFrame" class="replacement-frame" src="holo_devices2.html" title="Public nodes"></iframe>
     <!-- Map header -->
     <div class="w-full flex items-center justify-between p-4 sm:p-6 holo-header">
       <div class="flex items-center gap-2">
@@ -1316,6 +1328,7 @@
   </section>
 
   <div id="engineScreen" class="holo-screen relative flex min-h-[100dvh] w-full flex-col justify-between holo-layer holo-scanlines">
+    <iframe id="speedFrame" class="replacement-frame" src="cyber_speed.html" title="Speedtest"></iframe>
 
     <!-- Header video (speed.mp4) -->
     <div class="relative z-30 w-full header-video-frame">
@@ -2060,10 +2073,10 @@
       ) && !aborted;
 
       const stopSpeedtestLoop = () => {
-        if (raf) {
-          cancelAnimationFrame(raf);
-          raf = 0;
-        }
+        if (!raf) return;
+        const frameId = raf;
+        raf = 0;
+        cancelAnimationFrame(frameId);
       };
 
       const getVar = (varName, fallback = "") => getThemeColor(varName, fallback);
@@ -2269,6 +2282,16 @@
         list: document.getElementById("wifiListScreen"),
         map: document.getElementById("wifiMapScreen"),
         config: document.getElementById("configScreen"),
+      };
+      const replacementFrames = {
+        speed: document.getElementById("speedFrame"),
+        networks: document.getElementById("networksFrame"),
+        nodes: document.getElementById("nodesFrame"),
+      };
+      const postToReplacementFrame = (frameKey, type, payload = {}) => {
+        const frame = replacementFrames[frameKey];
+        if (!frame || !frame.contentWindow) return;
+        frame.contentWindow.postMessage({ source: "netninja-host", type, payload }, "*");
       };
       const detachParallax = [
         motion.attachParallax(document.getElementById("engineScreen")),
@@ -2553,6 +2576,28 @@
           ui.scanJitter.style.opacity = "0";
           ui.statusText.textContent = (state === State.IDLE ? "READY" : ui.statusText.textContent);
         }, 350);
+      });
+
+      window.addEventListener("message", (event) => {
+        const data = event.data || {};
+        if (data.source !== "netninja-screen") return;
+        const payload = data.payload || {};
+        if (data.type === "nn_speedtest_start") {
+          ui.btnStart?.click();
+          return;
+        }
+        if (data.type === "nn_speedtest_abort") {
+          ui.btnAbort?.click();
+          return;
+        }
+        if (data.type === "nn_speedtest_reset") {
+          ui.btnReset?.click();
+          return;
+        }
+        if (data.type === "nn_nav_tab") {
+          const tab = ["engine", "list", "map", "config"].includes(payload.tab) ? payload.tab : "engine";
+          setActive(tab);
+        }
       });
 
       const NATIVE_EVENT = "netninja:native";
@@ -3877,14 +3922,17 @@
         }
         if (detail.type === "speedtest_update") {
           applyNativeSpeedtestUpdate(payload);
+          postToReplacementFrame("speed", "speedtest_update", payload);
           return;
         }
         if (detail.type === "speedtest_done") {
           handleSpeedtestDone(payload);
+          postToReplacementFrame("speed", "speedtest_done", payload);
           return;
         }
         if (detail.type === "speedtest_error") {
           handleSpeedtestError(payload);
+          postToReplacementFrame("speed", "speedtest_error", payload);
         }
       }
 
