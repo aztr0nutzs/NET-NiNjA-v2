@@ -38,4 +38,19 @@ class NativeBridge(
 
   @JavascriptInterface
   fun exportDiagnostics(payload: String?): String = activity.exportDiagnosticsFromJs(payload)
+
+  @JavascriptInterface
+  fun speedtestStart(jsonConfig: String) {
+    activity.startSpeedtestFromJs(jsonConfig)
+  }
+
+  @JavascriptInterface
+  fun speedtestAbort() {
+    activity.abortSpeedtestFromJs()
+  }
+
+  @JavascriptInterface
+  fun speedtestReset() {
+    activity.resetSpeedtestFromJs()
+  }
 }

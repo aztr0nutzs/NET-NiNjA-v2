@@ -23,6 +23,7 @@ import android.webkit.WebViewClient
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.netninja.v21.speedtest.SpeedtestEngine
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.OutputStreamWriter
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity() {
   private lateinit var webView: WebView
   private lateinit var wifiManager: WifiManager
   private lateinit var prefs: SharedPreferences
+  private val speedtestEngine = SpeedtestEngine()
 
   private var bridgeEnabled = false
   private var pendingDiagnosticsJson: String? = null
@@ -157,8 +159,14 @@ class MainActivity : AppCompatActivity() {
   }
 
   override fun onDestroy() {
+    speedtestEngine.abort()
     unregisterReceiver(wifiScanReceiver)
     super.onDestroy()
+  }
+
+  override fun onStop() {
+    speedtestEngine.abort()
+    super.onStop()
   }
 
   @Deprecated("Deprecated in Java")
@@ -274,6 +282,7 @@ class MainActivity : AppCompatActivity() {
       )
       .put("bridge", bridgeStateObject())
       .put("deviceInfo", deviceInfoObject())
+      .put("speedtestDefaults", SpeedtestEngine.defaultConfigJson())
       .put(
         "lastWifiScan",
         JSONObject()
@@ -306,6 +315,42 @@ class MainActivity : AppCompatActivity() {
       .put("locationServicesEnabled", isLocationServicesEnabled())
       .put("scanPermissionGranted", missingPermissions.isEmpty())
       .put("missingPermissions", JSONArray(missingPermissions))
+  }
+
+  fun startSpeedtestFromJs(jsonConfig: String?) {
+    val config = runCatching { SpeedtestEngine.configFromJson(jsonConfig) }
+      .getOrElse { error ->
+        emitNativeEvent(
+          type = "speedtest_error",
+          payload = JSONObject()
+            .put("phase", "error")
+            .put("message", error.message ?: "Invalid speedtest configuration."),
+        )
+        return
+      }
+
+    speedtestEngine.startSpeedtest(config) { update ->
+      when (update.phase) {
+        "done" -> emitNativeEvent(type = "speedtest_done", payload = update.toJson())
+        "error" -> emitNativeEvent(type = "speedtest_error", payload = update.toJson())
+        else -> emitNativeEvent(type = "speedtest_update", payload = update.toJson())
+      }
+    }
+  }
+
+  fun abortSpeedtestFromJs() {
+    speedtestEngine.abort()
+    emitNativeEvent(
+      type = "speedtest_error",
+      payload = JSONObject()
+        .put("phase", "error")
+        .put("code", "aborted")
+        .put("message", "Speedtest aborted."),
+    )
+  }
+
+  fun resetSpeedtestFromJs() {
+    speedtestEngine.abort()
   }
 
   private fun deviceInfoObject(): JSONObject =

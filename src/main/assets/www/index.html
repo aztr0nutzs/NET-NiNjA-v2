@@ -1878,6 +1878,8 @@
 
       const resetUI = () => {
         aborted = false;
+        runStart = 0;
+        phaseStart = 0;
         setPhase(State.IDLE);
         lockButtons(false);
 
@@ -1888,6 +1890,7 @@
         cur.up = 0;
         cur.display = 0;
         cur.needleDeg = 140;
+        cur.needleVel = 0;
 
         ui.latencyVal.textContent = "--";
         ui.jitterVal.textContent = "--";
@@ -1911,16 +1914,6 @@
         ui.wavePath.setAttribute("d", "M0 100 L20 40 L40 80 L60 20 L80 90 L100 10 L120 70 L140 30 L160 85 L180 45 L200 100 Z");
       };
 
-      const rand = (a, b) => a + Math.random() * (b - a);
-
-      const profile = {
-        pingMs: () => Math.round(rand(8, 22)),
-        jitterMs: () => Math.round(rand(1, 6)),
-        lossPct: () => Math.round(rand(0, 2) * 10) / 10,
-        downPeak: () => rand(650, 980),
-        upPeak: () => rand(70, 180),
-      };
-
       const needleForMbps = (mbps) => {
         const max = 1000;
         const t = clamp(mbps / max, 0, 1);
@@ -1941,12 +1934,6 @@
         ui.wavePath.setAttribute("d", d);
       };
 
-      const PING_DUR = 1200;
-      const DOWN_DUR = 5200;
-      const UP_DUR = 3800;
-
-      let downPeak = 0;
-      let upPeak = 0;
       let speedtestRendererActive = false;
 
       const isSpeedtestRunning = () => (
@@ -1984,40 +1971,109 @@
         },
       };
 
+      const buildSpeedtestConfig = () => ({
+        pingAttempts: 6,
+        downloadDurationMs: 10000,
+        uploadDurationMs: 8000,
+        downloadParallelism: 4,
+        uploadParallelism: 2,
+        updateIntervalMs: 150,
+        servers: [
+          {
+            id: "hetzner-ash",
+            name: "Hetzner ASH",
+            pingUrl: "https://ash-speed.hetzner.com/",
+            downloadUrl: "https://ash-speed.hetzner.com/100MB.bin",
+            uploadUrl: "https://httpbingo.org/upload",
+          },
+          {
+            id: "hetzner-fsn1",
+            name: "Hetzner FSN1",
+            pingUrl: "https://fsn1-speed.hetzner.com/",
+            downloadUrl: "https://fsn1-speed.hetzner.com/100MB.bin",
+            uploadUrl: "https://httpbingo.org/upload",
+          },
+          {
+            id: "hetzner-hel1",
+            name: "Hetzner HEL1",
+            pingUrl: "https://hel1-speed.hetzner.com/",
+            downloadUrl: "https://hel1-speed.hetzner.com/100MB.bin",
+            uploadUrl: "https://httpbingo.org/upload",
+          },
+        ],
+      });
+
+      const syncTimer = (elapsedMs) => {
+        ui.timerText.textContent = mmss(Math.max(0, Number(elapsedMs || 0)));
+      };
+
+      const applySpeedtestMetrics = (payload) => {
+        if (Number.isFinite(payload.pingMs)) {
+          cur.ping = Number(payload.pingMs);
+          ui.latencyVal.textContent = String(Math.round(cur.ping));
+          ui.microPingVal.textContent = String(Math.round(cur.ping));
+        }
+        if (Number.isFinite(payload.jitterMs)) {
+          cur.jitter = Number(payload.jitterMs);
+          ui.jitterVal.textContent = String(Math.round(cur.jitter));
+          ui.microJitterVal.textContent = String(Math.round(cur.jitter));
+        }
+        if (Number.isFinite(payload.lossPct)) {
+          cur.loss = Number(payload.lossPct);
+          ui.lossVal.textContent = fmt1(cur.loss);
+          ui.microLossVal.textContent = fmt1(cur.loss);
+        }
+        if (Number.isFinite(payload.downMbps)) {
+          cur.down = Number(payload.downMbps);
+          ui.downVal.textContent = fmt1(cur.down);
+        }
+        if (payload.uploadAvailable === false) {
+          ui.upVal.textContent = "N/A";
+          ui.microUpVal.textContent = "N/A";
+        } else if (Number.isFinite(payload.upMbps)) {
+          cur.up = Number(payload.upMbps);
+          ui.upVal.textContent = fmt1(cur.up);
+          ui.microUpVal.textContent = fmt1(cur.up);
+        }
+      };
+
       const startRun = () => {
         if (state !== State.IDLE && state !== State.DONE && state !== State.ABORTED) return;
+        if (!nativeBridge.available() || typeof window.NetNinjaBridge?.speedtestStart !== "function") {
+          ui.statusText.textContent = "NO BRIDGE";
+          return;
+        }
 
         aborted = false;
         lockButtons(true);
 
         runStart = performance.now();
-        phaseStart = runStart;
         setPhase(State.PING);
-
-        cur.ping = profile.pingMs();
-        cur.jitter = profile.jitterMs();
-        cur.loss = profile.lossPct();
-
-        ui.latencyVal.textContent = String(cur.ping);
-        ui.jitterVal.textContent = String(cur.jitter);
-        ui.lossVal.textContent = String(cur.loss);
-        ui.microPingVal.textContent = String(cur.ping);
-        ui.microJitterVal.textContent = String(cur.jitter);
-        ui.microLossVal.textContent = String(cur.loss);
 
         cur.display = 0;
         cur.sweepStart = runStart;
         cur.needleVel = 0;
         lastTick = 0;
+        syncTimer(0);
         setMainReadout(cur.display);
         setNeedleAngle(needleForMbps(0));
         setNeedleTarget(needleForMbps(0));
+        ui.upVal.textContent = "0.0";
+        ui.microUpVal.textContent = "0.0";
+        ui.downVal.textContent = "0.0";
+        ui.latencyVal.textContent = "--";
+        ui.jitterVal.textContent = "--";
+        ui.lossVal.textContent = "--";
+        ui.microPingVal.textContent = "--";
+        ui.microJitterVal.textContent = "--";
+        ui.microLossVal.textContent = "--";
 
         stopSpeedtestLoop();
         ensureSpeedtestLoop();
+        nativeBridge.invoke("speedtestStart", JSON.stringify(buildSpeedtestConfig()));
       };
 
-      const abortRun = () => {
+      const abortRun = (notifyNative = true) => {
         if (state === State.IDLE || state === State.DONE || state === State.ABORTED) return;
         aborted = true;
         setPhase(State.ABORTED);
@@ -2029,11 +2085,19 @@
         gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
 
         stopSpeedtestLoop();
+        if (notifyNative) nativeBridge.invoke("speedtestAbort");
       };
 
       const finishRun = () => {
+        stopSpeedtestLoop();
         setPhase(State.DONE);
         lockButtons(false);
+        aborted = false;
+        setThroughputReadout(cur.down);
+        setNeedleAngle(needleForMbps(cur.down));
+        setNeedleTarget(needleForMbps(cur.down));
+        updateGaugeColorProfile(cur.down);
+        gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
       };
 
       let lastTick = 0;
@@ -2043,8 +2107,6 @@
           return;
         }
 
-        const elapsed = now - runStart;
-        ui.timerText.textContent = mmss(elapsed);
         const dt = lastTick ? (now - lastTick) : 16.7;
         lastTick = now;
 
@@ -2056,76 +2118,6 @@
 
         updateWaveform(now, scanIntensity);
 
-        if (state === State.PING) {
-          const t = ease((now - phaseStart) / PING_DUR);
-          ui.unitLabel.textContent = "ms";
-          const shown = lerp(0, cur.ping ?? 12, t);
-          cur.display = shown;
-          setMainReadout(cur.display);
-
-          const sweepRaw = clamp((now - cur.sweepStart) / 850, 0, 1);
-          const sweep = sweepRaw < 1 ? (Math.sin(sweepRaw * Math.PI) * 0.9 + sweepRaw) : 1;
-          setNeedleTarget(lerp(needleForMbps(0), needleForMbps(120), clamp(sweep, 0, 1)));
-
-          if ((now - phaseStart) >= PING_DUR) {
-            phaseStart = now;
-            downPeak = profile.downPeak();
-            ui.unitLabel.textContent = "Mbps";
-            setPhase(State.DOWNLOAD);
-          }
-        }
-        else if (state === State.DOWNLOAD) {
-          const raw = (now - phaseStart) / DOWN_DUR;
-          const t = ease(raw);
-
-          const ramp = lerp(0, downPeak, t);
-          const noise = Math.sin(now / 180) * (downPeak * 0.015) + Math.sin(now / 70) * (downPeak * 0.006);
-          const val = clamp(ramp + noise, 0, downPeak * 1.02);
-
-          cur.down = val;
-          ui.downVal.textContent = fmt1(cur.down);
-
-          cur.display = val;
-          setThroughputReadout(cur.display);
-          setNeedleTarget(needleForMbps(val));
-
-          if (raw >= 1) {
-            phaseStart = now;
-            upPeak = profile.upPeak();
-            setPhase(State.UPLOAD);
-          }
-        }
-        else if (state === State.UPLOAD) {
-          const raw = (now - phaseStart) / UP_DUR;
-          const t = ease(raw);
-
-          const ramp = lerp(0, upPeak, t);
-          const noise = Math.sin(now / 200) * (upPeak * 0.03) + Math.sin(now / 90) * (upPeak * 0.01);
-          const val = clamp(ramp + noise, 0, upPeak * 1.05);
-
-          cur.up = val;
-          ui.upVal.textContent = fmt1(cur.up);
-          ui.microUpVal.textContent = fmt1(cur.up);
-
-          cur.display = val;
-          setThroughputReadout(cur.display);
-          setNeedleTarget(needleForMbps(val));
-
-          if (raw >= 1) {
-            setThroughputReadout(cur.down);
-            setNeedleTarget(needleForMbps(cur.down));
-            advanceNeedle(dt);
-            gaugeRenderer.render(now, cur.needleDeg, cur.display);
-            finishRun();
-            stopSpeedtestLoop();
-            return;
-          }
-        }
-        else {
-          stopSpeedtestLoop();
-          return;
-        }
-
         advanceNeedle(dt);
         gaugeRenderer.render(now, cur.needleDeg, cur.display);
         updateGaugeColorProfile(state === State.PING ? cur.display * 25 : cur.display);
@@ -2136,6 +2128,7 @@
       ui.btnAbort.addEventListener("click", abortRun);
       ui.btnReset.addEventListener("click", () => {
         stopSpeedtestLoop();
+        nativeBridge.invoke("speedtestReset");
         resetUI();
       });
 
@@ -2248,6 +2241,10 @@
         const prevScreenId = rendererRegistry?.getActiveScreenId?.() || null;
         const screenChanged = prevScreenId !== nextScreenId;
 
+        if (screenChanged && prevScreenId === "speedtest" && nextScreenId !== "speedtest" && isSpeedtestRunning()) {
+          abortRun(true);
+        }
+
         // Hide all screens
         Object.values(screens).forEach((s) => {
           if (s) s.classList.add("hidden");
@@ -2325,6 +2322,15 @@
       const nativeBridge = {
         available() {
           return !!(window.NetNinjaBridge && typeof window.NetNinjaBridge.getBridgeState === "function");
+        },
+        invoke(method, ...args) {
+          if (!this.available() || typeof window.NetNinjaBridge[method] !== "function") return false;
+          try {
+            window.NetNinjaBridge[method](...args);
+            return true;
+          } catch {
+            return false;
+          }
         },
         call(method, ...args) {
           if (!this.available() || typeof window.NetNinjaBridge[method] !== "function") return null;
@@ -3458,6 +3464,67 @@
         }
       }
 
+      function applyNativeSpeedtestUpdate(payload) {
+        applySpeedtestMetrics(payload);
+        syncTimer(payload.elapsedMs);
+
+        if (payload.phase === "ping") {
+          if (state !== State.PING) setPhase(State.PING);
+          ui.unitLabel.textContent = "ms";
+          cur.display = Number.isFinite(cur.ping) ? cur.ping : 0;
+          setMainReadout(cur.display);
+          const sweepTarget = lerp(needleForMbps(0), needleForMbps(120), clamp(Number(payload.progress || 0), 0, 1));
+          setNeedleTarget(sweepTarget);
+        } else if (payload.phase === "download") {
+          if (state !== State.DOWNLOAD) setPhase(State.DOWNLOAD);
+          cur.display = Number.isFinite(cur.down) ? cur.down : 0;
+          setThroughputReadout(cur.display);
+          setNeedleTarget(needleForMbps(cur.display));
+        } else if (payload.phase === "upload") {
+          if (state !== State.UPLOAD) setPhase(State.UPLOAD);
+          if (payload.uploadAvailable === false) {
+            cur.display = 0;
+            setMainReadout(0);
+            setNeedleTarget(needleForMbps(0));
+            ui.unitLabel.textContent = "Mbps";
+          } else {
+            cur.display = Number.isFinite(cur.up) ? cur.up : 0;
+            setThroughputReadout(cur.display);
+            setNeedleTarget(needleForMbps(cur.display));
+          }
+        }
+
+        ensureSpeedtestLoop();
+      }
+
+      function handleSpeedtestDone(payload) {
+        applySpeedtestMetrics(payload);
+        syncTimer(payload.elapsedMs);
+        cur.display = Number.isFinite(cur.down) ? cur.down : 0;
+        finishRun();
+      }
+
+      function handleSpeedtestError(payload) {
+        if (payload.code === "aborted" || payload.message === "Speedtest aborted.") {
+          if (state !== State.ABORTED) {
+            aborted = true;
+            setPhase(State.ABORTED);
+            lockButtons(false);
+          }
+          stopSpeedtestLoop();
+          setNeedleTarget(needleForMbps(0));
+          gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
+          return;
+        }
+        aborted = true;
+        setPhase(State.ABORTED);
+        lockButtons(false);
+        ui.statusText.textContent = "ERROR";
+        stopSpeedtestLoop();
+        setNeedleTarget(needleForMbps(0));
+        gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
+      }
+
       function handleNativeEvent(event) {
         const detail = event.detail || {};
         const payload = detail.payload || {};
@@ -3499,6 +3566,18 @@
           if (payload.status === "saved") showCfgStatus("Diagnostics exported.");
           else if (payload.status === "cancelled") showCfgStatus("Diagnostics export cancelled.");
           else if (payload.status === "error") showCfgStatus(payload.message || "Diagnostics export failed.");
+          return;
+        }
+        if (detail.type === "speedtest_update") {
+          applyNativeSpeedtestUpdate(payload);
+          return;
+        }
+        if (detail.type === "speedtest_done") {
+          handleSpeedtestDone(payload);
+          return;
+        }
+        if (detail.type === "speedtest_error") {
+          handleSpeedtestError(payload);
         }
       }
 
@@ -3586,7 +3665,10 @@
         else showCfgStatus("Device snapshot unavailable.");
       });
       nativeUi.cfgExportDiagBtn?.addEventListener("click", exportDiagnostics);
-      window.addEventListener("beforeunload", () => rendererRegistry?.stopAll?.(), { once: true });
+      window.addEventListener("beforeunload", () => {
+        if (isSpeedtestRunning()) nativeBridge.invoke("speedtestAbort");
+        rendererRegistry?.stopAll?.();
+      }, { once: true });
       loadConfig();
       applyMapModeButtonStyles();
       syncBridgeState(true);
