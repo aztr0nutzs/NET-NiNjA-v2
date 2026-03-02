@@ -1899,10 +1899,10 @@
       ) && !aborted;
 
       const stopSpeedtestLoop = () => {
-        if (raf) {
-          cancelAnimationFrame(raf);
-          raf = 0;
-        }
+        if (!raf) return;
+        const frameId = raf;
+        raf = 0;
+        cancelAnimationFrame(frameId);
       };
 
       const ensureSpeedtestLoop = () => {
