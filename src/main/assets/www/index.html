@@ -2665,8 +2665,13 @@
           lastHeight: 0,
           dpr: 1,
           maxPackets: 24,
+          maxPacketTail: 0.055,
           maxBgParticles: 28,
+          maxLinks: 0,
           heavyMode: false,
+          beamDashSpeed: 0.8,
+          beamDashPattern: [9, 12],
+          beamDashPatternHeavy: [5, 13],
         };
 
         const MAX_PACKET_POOL = 160;
@@ -2683,7 +2688,9 @@
           oy: ((index * 53) % 100) / 100,
           drift: 0.00018 + ((index % 7) * 0.00003),
           size: 0.8 + ((index % 5) * 0.45),
+          streak: 8 + ((index % 5) * 4),
         }));
+        const screenProbe = { x: 0, y: 0, z: 0, scale: 1, orbitAngle: 0 };
 
         let rafId = 0;
         let lastTs = performance.now();
@@ -2730,30 +2737,34 @@
           const nodeCount = mapState.nodes.length;
           const scale = mapState.dpr > 1.4 ? 0.75 : 1;
           mapState.heavyMode = nodeCount > 80;
-          mapState.maxPackets = Math.max(8, Math.floor((nodeCount > 80 ? 16 : nodeCount > 40 ? 28 : 40) * scale));
-          mapState.maxBgParticles = Math.max(10, Math.floor((mapState.heavyMode ? 24 : 44) * scale));
+          mapState.maxPackets = Math.max(6, Math.floor((nodeCount > 80 ? 10 : nodeCount > 40 ? 22 : 34) * scale));
+          mapState.maxPacketTail = mapState.heavyMode ? 0.03 : 0.055;
+          mapState.maxBgParticles = Math.max(10, Math.floor((mapState.heavyMode ? 18 : nodeCount > 48 ? 30 : 44) * scale));
+          mapState.maxLinks = Math.max(10, Math.min(nodeCount, mapState.heavyMode ? 72 : 120));
+          mapState.beamDashSpeed = mapState.heavyMode ? 0.42 : 0.8;
         };
 
-        const toScreenPoint = (node, timeMs) => {
+        const toScreenPoint = (target, node, timeMs) => {
           const cX = mapState.lastWidth * 0.5 + mapState.panX;
           const cY = mapState.lastHeight * 0.5 + mapState.panY;
           const t = timeMs * 0.001;
           const orbitSpeed = runtime.mapScanInProgress ? 0.65 : 0.22;
           const orbitAngle = node.angle + t * orbitSpeed + (node.index * 0.07);
           const bob = Math.sin(t * 1.7 + node.index) * 7;
-          const x = cX + Math.cos(orbitAngle) * node.ring * mapState.zoom;
-          const y = cY + Math.sin(orbitAngle) * node.ring * 0.62 * mapState.zoom + bob;
+          target.x = cX + Math.cos(orbitAngle) * node.ring * mapState.zoom;
+          target.y = cY + Math.sin(orbitAngle) * node.ring * 0.62 * mapState.zoom + bob;
           const zRaw = Math.sin(orbitAngle * 0.85 + node.depthSeed * Math.PI * 2);
-          const z = (zRaw + 1) * 0.5;
-          const scale = 0.62 + (z * 0.8);
-          return { x, y, z, scale, orbitAngle };
+          target.z = (zRaw + 1) * 0.5;
+          target.scale = 0.62 + (target.z * 0.8);
+          target.orbitAngle = orbitAngle;
+          return target;
         };
 
         const pickNodeAt = (x, y, timeMs) => {
           let hit = -1;
           let hitDepth = -Infinity;
           for (const node of mapState.nodes) {
-            const screen = toScreenPoint(node, timeMs);
+            const screen = toScreenPoint(screenProbe, node, timeMs);
             const radius = 8 + screen.scale * 7;
             const dx = x - screen.x;
             const dy = y - screen.y;
@@ -2780,6 +2791,33 @@
 
         const findNodeByIndex = (index) => mapState.nodes.find((item) => item.index === index);
 
+        const rebuildLinkCache = () => {
+          const nodeCount = mapState.drawNodes.length;
+          const targetCount = Math.min(nodeCount, mapState.maxLinks);
+          if (mapState.links.length < targetCount) {
+            for (let i = mapState.links.length; i < targetCount; i += 1) {
+              mapState.links.push({
+                from: 0,
+                to: 0,
+                activity: 0,
+                hot: false,
+                dashOffset: 0,
+                pulseT: 0,
+              });
+            }
+          }
+          mapState.links.length = targetCount;
+          for (let i = 0; i < targetCount; i += 1) {
+            const link = mapState.links[i];
+            link.from = i;
+            link.to = (i + 1) % nodeCount;
+            link.hot = false;
+            link.activity = 0;
+            link.dashOffset = 0;
+            link.pulseT = 0;
+          }
+        };
+
         const updatePacketPool = (ts, linkCount) => {
           let activeCount = 0;
           for (let i = 0; i < packetPool.length; i += 1) {
@@ -2794,7 +2832,7 @@
           }
           if (!runtime.mapScanInProgress && runtime.lastScanSource === "none") return;
           if (linkCount < 2) return;
-          const desired = Math.min(mapState.maxPackets, Math.max(6, Math.floor(linkCount * (runtime.mapScanInProgress ? 0.5 : 0.2))));
+          const desired = Math.min(mapState.maxPackets, Math.max(4, Math.floor(linkCount * (runtime.mapScanInProgress ? 0.45 : 0.16))));
           if (activeCount >= desired) return;
           for (let i = 0; i < packetPool.length && activeCount < desired; i += 1) {
             const packet = packetPool[i];
@@ -2851,6 +2889,14 @@
             ctx.beginPath();
             ctx.arc(x, y, p.size, 0, Math.PI * 2);
             ctx.fill();
+            if (!mapState.heavyMode && i % 3 === 0) {
+              ctx.strokeStyle = themeRgba("--particle-0", 0.04 + ((i % 5) * 0.01), "#7df4ff");
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x - p.streak, y + p.streak * 0.45);
+              ctx.stroke();
+            }
           }
 
           ctx.save();
@@ -2858,10 +2904,13 @@
           for (let ring = 1; ring <= 5; ring += 1) {
             ctx.strokeStyle = themeRgba("--ring-0", 0.04 + ring * 0.025, "#00d4ff");
             ctx.lineWidth = 1;
+            ctx.setLineDash(ring % 2 === 0 ? mapState.beamDashPatternHeavy : mapState.beamDashPattern);
+            ctx.lineDashOffset = -(ts * 0.008 * (ring % 2 === 0 ? 1 : -1)) - (ring * 4);
             ctx.beginPath();
             ctx.ellipse(0, 0, ring * 66 * mapState.zoom, ring * 40 * mapState.zoom, Math.sin(ts * 0.00022 + ring) * 0.06, 0, Math.PI * 2);
             ctx.stroke();
           }
+          ctx.setLineDash([]);
           if (runtime.mapScanInProgress) {
             const wave = mapState.scanWaveRadius;
             ctx.strokeStyle = themeRgba("--good-0", 0.16 + Math.sin(mapState.scanWavePulse) * 0.08, "#b7ff2a");
@@ -2882,24 +2931,21 @@
           for (let i = 0; i < nodeCount; i += 1) {
             const cached = mapState.drawNodes[i];
             cached.node = mapState.nodes[i];
-            const point = toScreenPoint(mapState.nodes[i], ts);
-            cached.screen.x = point.x;
-            cached.screen.y = point.y;
-            cached.screen.z = point.z;
-            cached.screen.scale = point.scale;
-            cached.screen.orbitAngle = point.orbitAngle;
-            cached.depthScore = point.z;
+            toScreenPoint(cached.screen, mapState.nodes[i], ts);
+            cached.depthScore = cached.screen.z;
           }
           mapState.drawNodes.length = nodeCount;
           mapState.drawNodes.sort((a, b) => a.depthScore - b.depthScore);
+          rebuildLinkCache();
 
-          const linkCount = mapState.drawNodes.length;
+          const linkCount = mapState.links.length;
           updatePacketPool(ts, linkCount);
 
           // links + animated beams pass
           for (let i = 0; i < linkCount; i += 1) {
-            const curr = mapState.drawNodes[i];
-            const next = mapState.drawNodes[(i + 1) % linkCount];
+            const link = mapState.links[i];
+            const curr = mapState.drawNodes[link.from];
+            const next = mapState.drawNodes[link.to];
             if (!next || linkCount < 2) break;
 
             const currX = curr.screen.x + mapState.cameraX * curr.screen.scale * 0.2;
@@ -2907,30 +2953,44 @@
             const nextX = next.screen.x + mapState.cameraX * next.screen.scale * 0.2;
             const nextY = next.screen.y + mapState.cameraY * next.screen.scale * 0.2;
             const hot = curr.node.index === mapState.hoveredIndex || next.node.index === mapState.hoveredIndex;
-            const activity = runtime.mapScanInProgress ? 1 : (runtime.lastScanSource === "none" ? 0.2 : 0.55);
+            const activity = runtime.mapScanInProgress ? 1 : (runtime.lastScanSource === "none" ? 0.18 : 0.52);
+            link.hot = hot;
+            link.activity = activity;
+            link.dashOffset = -((ts * 0.024 * mapState.beamDashSpeed) + (i * 6.5));
+            link.pulseT = ((ts * 0.0014) + (i * 0.17)) % 1;
 
             const beamGradient = ctx.createLinearGradient(currX, currY, nextX, nextY);
             beamGradient.addColorStop(0, themeRgba("--ring-0", 0.12 + activity * 0.14, "#00d4ff"));
             beamGradient.addColorStop(0.5, themeRgba("--accent-1", 0.2 + activity * 0.16, "#a855f7"));
             beamGradient.addColorStop(1, themeRgba("--ring-0", 0.10 + activity * 0.12, "#00d4ff"));
 
-            ctx.strokeStyle = beamGradient;
-            ctx.globalAlpha = hot ? 0.9 : 0.42;
-            ctx.lineWidth = hot ? 2.4 : 1.2;
+            ctx.strokeStyle = hot ? themeRgba("--good-0", 0.18 + activity * 0.16, "#b7ff2a") : themeRgba("--accent-1", 0.12 + activity * 0.1, "#a855f7");
+            ctx.globalAlpha = hot ? 0.34 : 0.16 + activity * 0.12;
+            ctx.lineWidth = hot ? 4.2 : 2.4;
             ctx.beginPath();
             ctx.moveTo(currX, currY);
             ctx.lineTo(nextX, nextY);
             ctx.stroke();
 
+            ctx.setLineDash(mapState.heavyMode ? mapState.beamDashPatternHeavy : mapState.beamDashPattern);
+            ctx.lineDashOffset = link.dashOffset;
+            ctx.strokeStyle = beamGradient;
+            ctx.globalAlpha = hot ? 0.95 : 0.46 + activity * 0.08;
+            ctx.lineWidth = hot ? 2.6 : 1.2;
+            ctx.beginPath();
+            ctx.moveTo(currX, currY);
+            ctx.lineTo(nextX, nextY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
             if (!mapState.heavyMode && (runtime.mapScanInProgress || runtime.lastScanSource !== "none")) {
-              const beamPulse = ((ts * 0.0012) + (i * 0.18)) % 1;
-              const px = currX + (nextX - currX) * beamPulse;
-              const py = currY + (nextY - currY) * beamPulse;
+              const px = currX + (nextX - currX) * link.pulseT;
+              const py = currY + (nextY - currY) * link.pulseT;
               ctx.fillStyle = hot ? themeRgba("--good-0", 0.92, "#b7ff2a") : themeRgba("--ring-0", 0.75, "#00d4ff");
               ctx.shadowColor = ctx.fillStyle;
-              ctx.shadowBlur = 10;
+              ctx.shadowBlur = 14;
               ctx.beginPath();
-              ctx.arc(px, py, 1.9, 0, Math.PI * 2);
+              ctx.arc(px, py, 2.2, 0, Math.PI * 2);
               ctx.fill();
               ctx.shadowBlur = 0;
             }
@@ -2941,19 +3001,33 @@
           for (let i = 0; i < packetPool.length; i += 1) {
             const packet = packetPool[i];
             if (!packet.active || linkCount < 2) continue;
-            const fromNode = mapState.drawNodes[packet.from % linkCount];
-            const toNode = mapState.drawNodes[packet.to % linkCount];
+            const fromLink = mapState.links[packet.from % linkCount];
+            const toLink = mapState.links[packet.to % linkCount];
+            const fromNode = mapState.drawNodes[fromLink?.from ?? 0];
+            const toNode = mapState.drawNodes[toLink?.to ?? 0];
             if (!fromNode || !toNode) continue;
             const sx = fromNode.screen.x + (toNode.screen.x - fromNode.screen.x) * packet.t;
             const sy = fromNode.screen.y + (toNode.screen.y - fromNode.screen.y) * packet.t;
+            const tx = fromNode.screen.x + (toNode.screen.x - fromNode.screen.x) * Math.max(0, packet.t - mapState.maxPacketTail);
+            const ty = fromNode.screen.y + (toNode.screen.y - fromNode.screen.y) * Math.max(0, packet.t - mapState.maxPacketTail);
+            ctx.strokeStyle = packet.hueBias ? themeRgba("--good-0", 0.65, "#b7ff2a") : themeRgba("--beam-0", 0.52, "#00f2ff");
+            ctx.lineWidth = mapState.heavyMode ? 1 : 1.4;
+            ctx.beginPath();
+            ctx.moveTo(tx, ty);
+            ctx.lineTo(sx, sy);
+            ctx.stroke();
             ctx.fillStyle = packet.hueBias ? themeRgba("--good-0", 0.9, "#b7ff2a") : themeRgba("--ring-0", 0.85, "#00d4ff");
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.shadowBlur = mapState.heavyMode ? 0 : 12;
             ctx.beginPath();
             ctx.arc(sx, sy, mapState.heavyMode ? 1.1 : 1.6, 0, Math.PI * 2);
             ctx.fill();
+            ctx.shadowBlur = 0;
           }
 
           // core + node pass
           const coreGlow = 20 + (Math.sin(ts * 0.004) * 3);
+          const coreSweep = (ts * 0.0011) % (Math.PI * 2);
           ctx.fillStyle = themeRgba("--panel-1", 0.9, "#111c25");
           ctx.beginPath();
           ctx.arc(centerX, centerY, 22, 0, Math.PI * 2);
@@ -2967,6 +3041,18 @@
           ctx.beginPath();
           ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
           ctx.fill();
+          ctx.strokeStyle = themeRgba("--accent-1", 0.38, "#a855f7");
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, coreGlow + 9, coreSweep, coreSweep + 1.35);
+          ctx.stroke();
+          if (!mapState.heavyMode) {
+            ctx.strokeStyle = themeRgba("--beam-0", 0.24, "#00f2ff");
+            ctx.lineWidth = 4.4;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 12, coreSweep * 0.7, coreSweep * 0.7 + 0.8);
+            ctx.stroke();
+          }
 
           const wave = mapState.scanWaveRadius;
           for (let i = 0; i < mapState.drawNodes.length; i += 1) {
@@ -2989,23 +3075,38 @@
             const dy = (drawY - centerY) / 0.58;
             const waveDist = Math.hypot(dx, dy);
             const waveBoost = runtime.mapScanInProgress && Math.abs(waveDist - wave) < 18 ? 0.28 : 0;
+            const haloBoost = (1 - discoverPhase) * 0.4 + waveBoost * 0.8;
 
             ctx.globalAlpha = Math.min(1, baseOpacity + waveBoost);
             if (!mapState.heavyMode) {
               ctx.filter = `blur(${Math.max(0, (1 - screen.scale) * 2.1).toFixed(2)}px)`;
+            }
+            if (!mapState.heavyMode) {
+              ctx.fillStyle = accent.glow;
+              ctx.beginPath();
+              ctx.arc(drawX, drawY, radius + 5 + (screen.z * 5) + haloBoost * 8, 0, Math.PI * 2);
+              ctx.fill();
             }
             ctx.fillStyle = accent.color;
             ctx.beginPath();
             ctx.arc(drawX, drawY, radius, 0, Math.PI * 2);
             ctx.fill();
 
-          ctx.filter = "none";
+            ctx.filter = "none";
             ctx.globalAlpha = isHover || isSelected ? 1 : Math.min(1, baseOpacity + 0.26 + waveBoost * 0.5);
             ctx.strokeStyle = isHover ? getThemeColor("--good-0", "#b7ff2a") : accent.color;
             ctx.lineWidth = isHover ? 2.6 : 1.2;
             ctx.beginPath();
             ctx.arc(drawX, drawY, radius + (isHover ? 4.4 : 2.2), 0, Math.PI * 2);
             ctx.stroke();
+            if (waveBoost > 0.1) {
+              ctx.globalAlpha = Math.min(1, 0.5 + waveBoost);
+              ctx.strokeStyle = themeRgba("--good-0", 0.75, "#b7ff2a");
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.arc(drawX, drawY, radius + 7 + (waveBoost * 14), 0, Math.PI * 2);
+              ctx.stroke();
+            }
 
             const shouldDrawLabel = mapState.heavyMode
               ? (isHover || isSelected)
