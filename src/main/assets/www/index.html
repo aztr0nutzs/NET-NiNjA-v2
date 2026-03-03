@@ -1900,8 +1900,9 @@
 
       const stopSpeedtestLoop = () => {
         if (raf) {
-          cancelAnimationFrame(raf);
+          const frameId = raf;
           raf = 0;
+          cancelAnimationFrame(frameId);
         }
       };
 
