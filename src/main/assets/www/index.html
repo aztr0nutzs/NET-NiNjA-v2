@@ -2143,10 +2143,18 @@
       ) && !aborted;
 
       const stopSpeedtestLoop = () => {
+<<<<<<< ours
         if (!raf) return;
         const frameId = raf;
         raf = 0;
         cancelAnimationFrame(frameId);
+=======
+        if (raf) {
+          const frameId = raf;
+          raf = 0;
+          cancelAnimationFrame(frameId);
+        }
+>>>>>>> theirs
       };
 
       const getVar = (varName, fallback = "") => getThemeColor(varName, fallback);
