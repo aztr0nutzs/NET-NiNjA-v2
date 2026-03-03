@@ -358,7 +358,7 @@ pre,
 .theme-modal {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 1000000;
 }
 
 .theme-modal__backdrop {
