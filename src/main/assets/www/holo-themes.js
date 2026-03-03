@@ -1,4 +1,5 @@
 (function attachThemeRegistry(global) {
+  const DEFAULT_THEME_ID = "holo_cyan";
   const registry = {
     holo_cyan: {
       id: "holo_cyan",
@@ -285,12 +286,20 @@
   global.HoloThemeRegistry = {
     themes: registry,
     order: Object.keys(registry),
+    DEFAULT_THEME_ID,
+    hasTheme(id) {
+      return !!(id && registry[id]);
+    },
     getTheme(id) {
-      return registry[id] || registry.holo_cyan;
+      return id && registry[id] ? registry[id] : null;
+    },
+    getDefaultTheme() {
+      return registry[DEFAULT_THEME_ID] || null;
     },
     getAllThemes() {
       return this.order.map((id) => registry[id]);
     }
   };
   global.HoloThemes = global.HoloThemeRegistry;
+  global.__NETNINJA_THEME_REGISTRY_READY = true;
 })(window);

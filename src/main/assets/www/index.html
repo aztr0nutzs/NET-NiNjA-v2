@@ -9,14 +9,6 @@
   <script src="holo-theme-manager.js"></script>
   <script src="native-bridge.js"></script>
   <script src="control-wiring-debug.js"></script>
-  <script>
-    (function bootstrapTheme() {
-      if (!window.HoloThemeManager) return;
-      window.HoloThemeManager.applyTheme(window.HoloThemeManager.DEFAULT_THEME_ID);
-      window.HoloThemeManager.applyThemeForScreen("speedtest");
-      window.__NETNINJA_THEME_BOOTSTRAPPED = true;
-    })();
-  </script>
 
   <link href="vendor/fonts/google-fonts.css" rel="stylesheet"/>
   <link href="holo-theme.css" rel="stylesheet"/>
@@ -2400,7 +2392,7 @@
         const themes = registry && typeof registry.getAllThemes === "function" ? registry.getAllThemes() : [];
         const activeThemeId = window.HoloThemeManager?.getThemeIdForScreen?.("speedtest")
           || document.documentElement.dataset.themeId
-          || "holo_cyan";
+          || "default";
         return {
           registryReady: !!window.__NETNINJA_THEME_REGISTRY_READY,
           managerReady: !!window.HoloThemeManager && !!window.__NETNINJA_THEME_MANAGER_READY,
@@ -2424,7 +2416,7 @@
       }
 
       function currentThemeIdForSpeedtest() {
-        if (!window.HoloThemeManager) return "holo_cyan";
+        if (!window.HoloThemeManager) return null;
         return window.HoloThemeManager.getThemeIdForScreen("speedtest");
       }
 
@@ -2453,7 +2445,7 @@
         option.addEventListener("click", () => {
           if (!window.HoloThemeManager) return;
           const selected = window.HoloThemeManager.setThemeIdForScreen("speedtest", theme.id);
-          window.HoloThemeManager.applyTheme(selected);
+          if (!selected) return;
           if (runtime.config) applyVisualConfig(runtime.config);
           updateGaugeColorProfile(cur.display);
           gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
@@ -2507,7 +2499,7 @@
         }
       }
       if (window.HoloThemeManager) {
-        setThemeDebugLine(`theme manager ready / active ${window.HoloThemeManager.getThemeIdForScreen("speedtest")}`);
+        setThemeDebugLine(`theme manager ready / active ${window.HoloThemeManager.getThemeIdForScreen("speedtest") || "default"}`);
       } else {
         setThemeDebugLine("theme manager missing");
       }
@@ -2554,8 +2546,9 @@
       function syncActiveRendererAfterLayout(screenId = activeScreenIdFromDom(), options = {}) {
         const force = !!options.force;
         const resizeFirst = !!options.resizeFirst;
-        if (window.HoloThemeManager) {
+        if (options.applyTheme !== false && window.HoloThemeManager) {
           window.HoloThemeManager.applyThemeForScreen(screenId);
+          window.__NETNINJA_THEME_BOOTSTRAPPED = true;
         }
         if (runtime.config) {
           applyVisualConfig(runtime.config);
@@ -2583,6 +2576,7 @@
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               syncActiveRendererAfterLayout(activeScreenIdFromDom(), {
+                applyTheme: true,
                 force: true,
                 resizeFirst: true,
               });
@@ -2597,6 +2591,7 @@
       }
 
       function setActive(tab, options = {}) {
+        const applyThemeOverride = options.applyTheme !== false;
         const deferRendererStart = !!options.deferRendererStart;
         const nextScreenId = screenIdForTab(tab);
         const prevScreenId = rendererRegistry?.getActiveScreenId?.() || null;
@@ -2634,7 +2629,7 @@
           logRendererLifecycle("stop", prevScreenId);
           rendererRegistry?.stop?.(prevScreenId);
         }
-        if (window.HoloThemeManager) {
+        if (applyThemeOverride && window.HoloThemeManager) {
           window.HoloThemeManager.applyThemeForScreen(nextScreenId);
         }
         if (runtime.config) {
@@ -4314,7 +4309,7 @@
         rendererRegistry?.stopAll?.();
       }, { once: true });
       document.addEventListener("DOMContentLoaded", syncThemeButtonState, { once: true });
-      setActive(initialTabFromDom(), { deferRendererStart: true });
+      setActive(initialTabFromDom(), { applyTheme: false, deferRendererStart: true });
       loadConfig();
       applyMapModeButtonStyles();
       holoMapRenderer.setOverdriveState(runtime.mapOverdriveEnabled);

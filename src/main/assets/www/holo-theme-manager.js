@@ -82,13 +82,41 @@
   function resolveTheme(themeId) {
     const registry = global.HoloThemeRegistry || global.HoloThemes;
     if (!registry || typeof registry.getTheme !== "function") return null;
-    return registry.getTheme(themeId || DEFAULT_THEME_ID);
+    return registry.getTheme(themeId);
   }
 
   function getThemeRegistry() {
     const registry = global.HoloThemeRegistry || global.HoloThemes;
     if (!registry || typeof registry.getAllThemes !== "function") return null;
     return registry;
+  }
+
+  function hasValidThemeId(themeId) {
+    const registry = getThemeRegistry();
+    if (!registry) return false;
+    if (typeof registry.hasTheme === "function") {
+      return registry.hasTheme(themeId);
+    }
+    return !!resolveTheme(themeId);
+  }
+
+  function getStyleTag() {
+    return document.getElementById("theme-vars");
+  }
+
+  function clearAppliedTheme() {
+    const styleTag = getStyleTag();
+    if (styleTag) {
+      styleTag.remove();
+    }
+    document.documentElement.removeAttribute("data-theme-id");
+    document.documentElement.removeAttribute("data-theme-override");
+    document.documentElement.removeAttribute("data-theme-particles");
+    document.documentElement.style.removeProperty("--scanline-opacity");
+    document.documentElement.style.removeProperty("--effect-glow-strength");
+    document.documentElement.style.removeProperty("--effect-bloom-strength");
+    debugLog("cleared override");
+    return null;
   }
 
   function applyEffects(theme) {
@@ -109,10 +137,10 @@
   function applyTheme(themeId) {
     const theme = resolveTheme(themeId);
     if (!theme) {
-      debugLog("applyTheme fallback", { requested: themeId, resolved: DEFAULT_THEME_ID, reason: "missing-registry" });
-      return DEFAULT_THEME_ID;
+      debugLog("applyTheme skipped", { requested: themeId, reason: "invalid-theme" });
+      return clearAppliedTheme();
     }
-    let styleTag = document.getElementById("theme-vars");
+    let styleTag = getStyleTag();
     if (!styleTag) {
       styleTag = document.createElement("style");
       styleTag.id = "theme-vars";
@@ -123,6 +151,7 @@
       .join("");
     styleTag.textContent = `:root{${vars}}`;
     document.documentElement.dataset.themeId = theme.id;
+    document.documentElement.dataset.themeOverride = "on";
     applyEffects(theme);
     debugLog("applied", { themeId: theme.id, themeCount: getThemeRegistry()?.getAllThemes?.().length || 0 });
     return theme.id;
@@ -130,29 +159,38 @@
 
   function getThemeIdForScreen(screenId) {
     const raw = readStoredThemeId(screenId);
-    const theme = resolveTheme(raw || DEFAULT_THEME_ID);
-    return theme?.id || DEFAULT_THEME_ID;
+    return hasValidThemeId(raw) ? raw : null;
   }
 
   function setThemeIdForScreen(screenId, themeId) {
+    if (!hasValidThemeId(themeId)) {
+      debugLog("setThemeIdForScreen skipped", { screenId, requested: themeId });
+      return null;
+    }
     const resolved = applyTheme(themeId);
+    if (!resolved) return null;
     writeStoredThemeId(screenId, resolved);
     return resolved;
   }
 
   function resetThemeForScreen(screenId) {
     removeStoredThemeId(screenId);
-    const resolved = applyTheme(DEFAULT_THEME_ID);
-    return resolved;
+    clearAppliedTheme();
+    return null;
   }
 
   function applyThemeForScreen(screenId) {
-    const resolved = getThemeIdForScreen(screenId);
-    return applyTheme(resolved);
+    const storedThemeId = getThemeIdForScreen(screenId);
+    if (!storedThemeId) {
+      return clearAppliedTheme();
+    }
+    return applyTheme(storedThemeId);
   }
 
   global.HoloThemeManager = {
     DEFAULT_THEME_ID,
+    clearAppliedTheme,
+    hasValidThemeId,
     getThemeRegistry,
     getThemeIdForScreen,
     setThemeIdForScreen,
@@ -160,4 +198,5 @@
     applyTheme,
     applyThemeForScreen
   };
+  global.__NETNINJA_THEME_MANAGER_READY = true;
 })(window);
