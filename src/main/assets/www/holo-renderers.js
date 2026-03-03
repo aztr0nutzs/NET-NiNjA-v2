@@ -10,6 +10,11 @@
       return renderersByScreen.get(screenId);
     }
 
+    function forScreen(screenId, callback) {
+      if (!screenId || typeof callback !== "function") return;
+      list(screenId).forEach((renderer) => callback(renderer));
+    }
+
     return {
       register(screenId, renderer) {
         if (!screenId || !renderer) return;
@@ -24,25 +29,27 @@
       start(screenId, options = {}) {
         if (!screenId) return;
         const force = !!options.force;
+        const skipResize = !!options.skipResize;
         if (activeScreenId && activeScreenId !== screenId) {
           this.stop(activeScreenId);
         }
         if (activeScreenId === screenId && !force) {
           return;
         }
-        const items = list(screenId);
         if (force) {
-          items.forEach((renderer) => renderer.stop());
+          forScreen(screenId, (renderer) => renderer.stop());
         }
         activeScreenId = screenId;
-        items.forEach((renderer) => {
-          renderer.resize();
+        forScreen(screenId, (renderer) => {
+          if (!skipResize) {
+            renderer.resize();
+          }
           renderer.start();
         });
       },
       stop(screenId) {
         if (!screenId) return;
-        list(screenId).forEach((renderer) => renderer.stop());
+        forScreen(screenId, (renderer) => renderer.stop());
         if (activeScreenId === screenId) {
           activeScreenId = null;
         }
@@ -53,9 +60,12 @@
         }
         activeScreenId = null;
       },
-      resizeActive() {
-        if (!activeScreenId) return;
-        list(activeScreenId).forEach((renderer) => renderer.resize());
+      resize(screenId) {
+        forScreen(screenId, (renderer) => renderer.resize());
+      },
+      resizeActive(screenId = activeScreenId) {
+        if (!screenId) return;
+        this.resize(screenId);
       },
       getActiveScreenId() {
         return activeScreenId;

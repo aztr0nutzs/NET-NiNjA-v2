@@ -2144,18 +2144,10 @@
       ) && !aborted;
 
       const stopSpeedtestLoop = () => {
-<<<<<<< ours
         if (!raf) return;
         const frameId = raf;
         raf = 0;
         cancelAnimationFrame(frameId);
-=======
-        if (raf) {
-          const frameId = raf;
-          raf = 0;
-          cancelAnimationFrame(frameId);
-        }
->>>>>>> theirs
       };
 
       const getVar = (varName, fallback = "") => getThemeColor(varName, fallback);
@@ -2535,48 +2527,66 @@
         return tab;
       }
 
-      function initialTabFromDom() {
+      function isScreenVisible(screen) {
+        if (!screen) return false;
+        if (screen.hidden || screen.classList.contains("hidden")) return false;
+        const style = window.getComputedStyle(screen);
+        return style.display !== "none" && style.visibility !== "hidden";
+      }
+
+      function visibleScreenEntryFromDom() {
         for (const [tab, screen] of Object.entries(screens)) {
-          if (screen && !screen.classList.contains("hidden")) {
-            return tab;
+          if (isScreenVisible(screen)) {
+            return { tab, screenId: screenIdForTab(tab) };
           }
         }
-        return "engine";
+        return { tab: "engine", screenId: "speedtest" };
+      }
+
+      function initialTabFromDom() {
+        return visibleScreenEntryFromDom().tab;
       }
 
       function activeScreenIdFromDom() {
-        for (const [tab, screen] of Object.entries(screens)) {
-          if (screen && !screen.classList.contains("hidden")) {
-            return screenIdForTab(tab);
-          }
-        }
-        return "speedtest";
+        return visibleScreenEntryFromDom().screenId;
       }
 
-      function syncActiveRendererAfterLayout(force = false) {
-        const activeScreenId = activeScreenIdFromDom();
+      function syncActiveRendererAfterLayout(screenId = activeScreenIdFromDom(), options = {}) {
+        const force = !!options.force;
+        const resizeFirst = !!options.resizeFirst;
         if (window.HoloThemeManager) {
-          window.HoloThemeManager.applyThemeForScreen(activeScreenId);
+          window.HoloThemeManager.applyThemeForScreen(screenId);
         }
         if (runtime.config) {
           applyVisualConfig(runtime.config);
         }
-        const supportsRenderer = activeScreenId === "speedtest" || activeScreenId === "map";
+        const supportsRenderer = rendererRegistry?.has?.(screenId);
         if (!supportsRenderer) {
           rendererRegistry?.stopAll?.();
           return;
         }
-        logRendererLifecycle(force ? "force-start" : "start", activeScreenId);
-        rendererRegistry?.start?.(activeScreenId, force ? { force: true } : undefined);
-        rendererRegistry?.resizeActive?.();
+        if (resizeFirst) {
+          rendererRegistry?.resize?.(screenId);
+        }
+        logRendererLifecycle(force ? "force-start" : "start", screenId);
+        rendererRegistry?.start?.(screenId, {
+          force,
+          skipResize: resizeFirst,
+        });
+        if (!resizeFirst) {
+          rendererRegistry?.resizeActive?.(screenId);
+        }
       }
 
       function scheduleInitialRendererStartup() {
         const run = () => {
-          syncActiveRendererAfterLayout(true);
           requestAnimationFrame(() => {
-            rendererRegistry?.resizeActive?.();
-            syncActiveRendererAfterLayout(true);
+            requestAnimationFrame(() => {
+              syncActiveRendererAfterLayout(activeScreenIdFromDom(), {
+                force: true,
+                resizeFirst: true,
+              });
+            });
           });
         };
         if (document.readyState === "loading") {
@@ -2586,7 +2596,8 @@
         }
       }
 
-      function setActive(tab) {
+      function setActive(tab, options = {}) {
+        const deferRendererStart = !!options.deferRendererStart;
         const nextScreenId = screenIdForTab(tab);
         const prevScreenId = rendererRegistry?.getActiveScreenId?.() || null;
         const screenChanged = prevScreenId !== nextScreenId;
@@ -2631,9 +2642,13 @@
         }
         if (tab !== "engine") closeThemeModal();
         if (tab === "map") renderMapFromScan();
-        requestAnimationFrame(() => {
-          syncActiveRendererAfterLayout(screenChanged || !prevScreenId);
-        });
+        if (!deferRendererStart) {
+          requestAnimationFrame(() => {
+            syncActiveRendererAfterLayout(nextScreenId, {
+              force: screenChanged || !prevScreenId,
+            });
+          });
+        }
       }
       // Event bindings
       nav.engine?.addEventListener("click", () => {
@@ -4299,12 +4314,12 @@
         rendererRegistry?.stopAll?.();
       }, { once: true });
       document.addEventListener("DOMContentLoaded", syncThemeButtonState, { once: true });
-      setActive(initialTabFromDom());
-      scheduleInitialRendererStartup();
+      setActive(initialTabFromDom(), { deferRendererStart: true });
       loadConfig();
       applyMapModeButtonStyles();
       holoMapRenderer.setOverdriveState(runtime.mapOverdriveEnabled);
       holoMapRenderer.setCloakState(runtime.mapCloakEnabled);
+      scheduleInitialRendererStartup();
       syncBridgeState(true);
       updateDeviceUi();
       const initialScan = nativeBridge?.call?.("lanScanGetLast");
