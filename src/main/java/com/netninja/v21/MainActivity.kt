@@ -1,13 +1,16 @@
 package com.netninja.v21
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -26,6 +29,7 @@ class MainActivity : AppCompatActivity() {
   private lateinit var webView: WebView
   private lateinit var wifiManager: WifiManager
   private lateinit var connectivityManager: ConnectivityManager
+  private lateinit var locationManager: LocationManager
   private lateinit var prefs: SharedPreferences
 
   private val speedtestEngine = SpeedtestEngine()
@@ -85,6 +89,7 @@ class MainActivity : AppCompatActivity() {
     }
     wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     connectivityManager = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    locationManager = applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     lanDiscovery = LanDiscovery(applicationContext)
 
     webView = WebView(this)
@@ -263,18 +268,32 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun bridgeStateObject(): JSONObject {
-    val canDiscoverLan = lanDiscovery.canScan()
+    val missingPermissions = requiredBridgePermissions()
+      .filterNot(::hasPermission)
+      .map(::permissionLabel)
+    val canDiscoverLan = lanDiscovery.canScan() && missingPermissions.isEmpty()
     return JSONObject()
       .put("available", true)
       .put("enabled", bridgeEnabled)
       .put("debugBuild", isDebugBuild())
       .put("canScan", canDiscoverLan)
-      .put("locationServicesEnabled", true)
-      .put("scanPermissionGranted", true)
-      .put("missingPermissions", JSONArray())
+      .put("locationServicesEnabled", isLocationEnabled())
+      .put("scanPermissionGranted", missingPermissions.isEmpty())
+      .put("missingPermissions", JSONArray(missingPermissions))
   }
 
   fun startSpeedtestFromJs(jsonConfig: String?) {
+    if (!bridgeEnabled) {
+      emitNativeEvent(
+        type = "speedtest_error",
+        payload = JSONObject()
+          .put("phase", "error")
+          .put("code", "bridge_disabled")
+          .put("message", "Enable native bridge before starting the speedtest."),
+      )
+      return
+    }
+
     val config = runCatching { SpeedtestEngine.configFromJson(jsonConfig) }
       .getOrElse { error ->
         emitNativeEvent(
@@ -380,6 +399,28 @@ class MainActivity : AppCompatActivity() {
 
   private fun isDebugBuild(): Boolean =
     (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
+  private fun requiredBridgePermissions(): List<String> =
+    listOf(
+      Manifest.permission.INTERNET,
+      Manifest.permission.ACCESS_NETWORK_STATE,
+      Manifest.permission.ACCESS_WIFI_STATE,
+    )
+
+  private fun hasPermission(permission: String): Boolean =
+    checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
+
+  private fun permissionLabel(permission: String): String =
+    permission.substringAfterLast('.')
+
+  private fun isLocationEnabled(): Boolean =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      locationManager.isLocationEnabled
+    } else {
+      runCatching {
+        Settings.Secure.getInt(contentResolver, Settings.Secure.LOCATION_MODE) != Settings.Secure.LOCATION_MODE_OFF
+      }.getOrDefault(false)
+    }
 
   companion object {
     private const val BRIDGE_NAME = "NetNinjaBridge"

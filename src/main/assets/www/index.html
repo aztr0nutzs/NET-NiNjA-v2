@@ -7,6 +7,7 @@
 
   <script src="holo-themes.js"></script>
   <script src="holo-theme-manager.js"></script>
+  <script src="native-bridge.js"></script>
   <script>
     (function bootstrapTheme() {
       if (!window.HoloThemeManager) return;
@@ -999,12 +1000,67 @@
       border: 0;
       z-index: 35;
       background: #000;
+      display: none;
+      pointer-events: none;
+    }
+
+    .app-banner {
+      position: fixed;
+      top: max(14px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translate(-50%, -12px);
+      z-index: 140;
+      width: min(calc(100% - 24px), 520px);
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--accent-0) 36%, transparent);
+      background: color-mix(in srgb, var(--panel-0) 92%, black);
+      color: var(--text-0);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(14px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .app-banner.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .app-banner[data-level="success"] {
+      border-color: color-mix(in srgb, var(--good-0) 54%, transparent);
+    }
+
+    .app-banner[data-level="warn"] {
+      border-color: color-mix(in srgb, var(--warn-0) 54%, transparent);
+    }
+
+    .app-banner[data-level="error"] {
+      border-color: color-mix(in srgb, var(--warn-0) 72%, transparent);
+    }
+
+    .map-empty-state {
+      position: absolute;
+      inset: auto 16px 16px;
+      z-index: 28;
+    }
+
+    .map-empty-state.hidden {
+      display: none;
+    }
+
+    [data-disabled-reason] {
+      cursor: not-allowed !important;
+      opacity: 0.58;
+      filter: saturate(0.68);
     }
   </style>
 </head>
 
 <body class="holo-screen font-display overflow-y-auto antialiased">
   <div class="fixed inset-0 vhs-overlay z-50 mix-blend-overlay opacity-30 pointer-events-none"></div>
+  <div id="appBanner" class="app-banner" data-level="info" role="status" aria-live="polite"></div>
 
   <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none holo-layer" id="holoParticleField">
     <div class="absolute top-[15%] left-[20%] w-1.5 h-1.5 neural-node rounded-full blur-[2px] opacity-40" style="animation: drift 7s ease-in-out infinite;"></div>
@@ -1021,7 +1077,7 @@
 
   <!-- WiFi List screen -->
   <section id="wifiListScreen" class="wifi-list-screen holo-screen hidden relative flex min-h-[100dvh] w-full flex-col items-center overflow-y-auto holo-layer holo-scanlines">
-    <iframe id="networksFrame" class="replacement-frame" src="cyber_networks.html" title="Insights graphs"></iframe>
+    <iframe id="networksFrame" class="replacement-frame" title="Insights graphs" hidden aria-hidden="true" tabindex="-1"></iframe>
     <!-- Header -->
     <div class="w-full holo-header p-4 sm:p-6 flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -1031,7 +1087,7 @@
           <h2 class="text-sm sm:text-lg font-black leading-tight tracking-[0.08em] uppercase holo-title-strong" style="font-family:'Orbitron',sans-serif;">NEURAL_DEVICE_SCANNER</h2>
         </div>
       </div>
-      <button class="tap-glow memory-pulse size-12 rounded-full holo-orb-btn flex flex-col items-center justify-center holo-text-good" type="button" aria-label="Memory telemetry">
+      <button id="wifiTelemetryBtn" class="tap-glow memory-pulse size-12 rounded-full holo-orb-btn flex flex-col items-center justify-center holo-text-good" type="button" aria-label="Show device matrix telemetry">
         <span class="memory-word">MEMORY</span>
         <span class="text-[7px] leading-none tracking-[0.2em] uppercase">mem</span>
       </button>
@@ -1203,7 +1259,7 @@
 
   <!-- WiFi Map Screen -->
   <section id="wifiMapScreen" class="holo-screen hidden relative flex min-h-[100dvh] w-full flex-col overflow-hidden holo-layer holo-scanlines">
-    <iframe id="nodesFrame" class="replacement-frame" src="holo_devices2.html" title="Public nodes"></iframe>
+    <iframe id="nodesFrame" class="replacement-frame" title="Public nodes" hidden aria-hidden="true" tabindex="-1"></iframe>
     <!-- Map header -->
     <div class="w-full flex items-center justify-between p-4 sm:p-6 holo-header">
       <div class="flex items-center gap-2">
@@ -1218,7 +1274,7 @@
             <div class="h-full w-2/3" style="background:var(--accent-0);"></div>
           </div>
         </div>
-        <button class="tap-glow size-9 rounded-full holo-orb-btn flex items-center justify-center" type="button">
+        <button id="mapDeviceMatrixBtn" class="tap-glow size-9 rounded-full holo-orb-btn flex items-center justify-center" type="button" aria-label="Open device matrix">
           <span class="material-symbols-outlined">computer</span>
         </button>
       </div>
@@ -1291,6 +1347,13 @@
       </div>
       <!-- Node summary cards -->
       <div id="mapNodesList" class="px-4 py-6 grid grid-cols-2 gap-4"></div>
+      <div id="mapEmptyState" class="map-empty-state hidden">
+        <div class="holo-panel rounded-xl p-4 soft-frost max-w-xs">
+          <div class="text-[10px] uppercase tracking-[0.28em] holo-text-subtle font-mono">No Topology Yet</div>
+          <p class="mt-2 text-[11px] leading-relaxed holo-text-dim font-mono">Run a LAN scan to populate this constellation view.</p>
+          <button id="mapRunScanBtn" class="btn-neon holo-btn holo-btn-secondary mt-3 w-full" type="button">Run Scan</button>
+        </div>
+      </div>
       <!-- Overdrive and Cloak buttons (adapted from wifi_map.html) -->
       <div class="absolute bottom-32 left-4 flex flex-col gap-3 z-30">
         <!-- Overdrive button -->
@@ -1328,7 +1391,7 @@
   </section>
 
   <div id="engineScreen" class="holo-screen relative flex min-h-[100dvh] w-full flex-col justify-between holo-layer holo-scanlines">
-    <iframe id="speedFrame" class="replacement-frame" src="cyber_speed.html" title="Speedtest"></iframe>
+    <iframe id="speedFrame" class="replacement-frame" title="Speedtest" hidden aria-hidden="true" tabindex="-1"></iframe>
 
     <!-- Header video (speed.mp4) -->
     <div class="relative z-30 w-full header-video-frame">
@@ -1354,6 +1417,7 @@
           <span class="material-symbols-outlined text-base">terminal</span>
           PSYCHO-ENGINE / HOLO MERGE
         </h2>
+        <span id="speedEngineMode" class="mt-1 text-[9px] holo-text-subtle font-mono uppercase tracking-[0.22em]">Native Engine Ready</span>
       </div>
 
       <div class="relative z-40 flex shrink-0 items-center gap-3">
@@ -1638,6 +1702,7 @@
       };
 
       const nativeUi = {
+        appBanner: $("appBanner"),
         wifiDeviceList: $("wifiDeviceList"),
         wifiEmptyState: $("wifiEmptyState"),
         wifiScanMeta: $("wifiScanMeta"),
@@ -1650,6 +1715,7 @@
         wifiIntelSignal: $("wifiIntelSignal"),
         wifiIntelBand: $("wifiIntelBand"),
         wifiIntelStatus: $("wifiIntelStatus"),
+        wifiTelemetryBtn: $("wifiTelemetryBtn"),
         wifiScanBtn: $("wifiScanBtn"),
         wifiExportBtn: $("wifiExportBtn"),
         holoMapViewport: $("holoMapViewport"),
@@ -1662,7 +1728,11 @@
         mapGatewayLabel: $("mapGatewayLabel"),
         mapScanStatus: $("mapScanStatus"),
         mapAlertText: $("mapAlertText"),
+        mapAlertCard: $("mapAlertCard"),
         mapLastSync: $("mapLastSync"),
+        mapEmptyState: $("mapEmptyState"),
+        mapRunScanBtn: $("mapRunScanBtn"),
+        mapDeviceMatrixBtn: $("mapDeviceMatrixBtn"),
         mapOverdriveBtn: $("mapOverdriveBtn"),
         mapCloakBtn: $("mapCloakBtn"),
         cfgBridgeSummary: $("cfgBridgeSummary"),
@@ -2171,8 +2241,14 @@
 
       const startRun = () => {
         if (state !== State.IDLE && state !== State.DONE && state !== State.ABORTED) return;
-        if (!nativeBridge.available() || typeof window.NetNinjaBridge?.speedtestStart !== "function") {
+        if (!nativeBridge?.available?.()) {
           ui.statusText.textContent = "NO BRIDGE";
+          showBanner("Native bridge unavailable. Speedtest disabled.", "error");
+          return;
+        }
+        if (!runtime.bridgeState.enabled) {
+          ui.statusText.textContent = "BRIDGE OFF";
+          showBanner("Enable Native Bridge before starting the speedtest.", "warn");
           return;
         }
 
@@ -2202,7 +2278,8 @@
 
         stopSpeedtestLoop();
         ensureSpeedtestLoop();
-        nativeBridge.invoke("speedtestStart", JSON.stringify(buildSpeedtestConfig()));
+        nativeBridge?.invoke?.("speedtestStart", JSON.stringify(buildSpeedtestConfig()));
+        showBanner("Speedtest started.", "success");
       };
 
       const abortRun = (notifyNative = true) => {
@@ -2217,7 +2294,8 @@
         gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
 
         stopSpeedtestLoop();
-        if (notifyNative) nativeBridge.invoke("speedtestAbort");
+        if (notifyNative) nativeBridge?.invoke?.("speedtestAbort");
+        showBanner("Speedtest aborted.", "warn");
       };
 
       const finishRun = () => {
@@ -2230,6 +2308,7 @@
         setNeedleTarget(needleForMbps(cur.down));
         updateGaugeColorProfile(cur.down);
         gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
+        showBanner("Speedtest complete.", "success");
       };
 
       let lastTick = 0;
@@ -2260,14 +2339,14 @@
       ui.btnAbort.addEventListener("click", abortRun);
       ui.btnReset.addEventListener("click", () => {
         stopSpeedtestLoop();
-        nativeBridge.invoke("speedtestReset");
+        nativeBridge?.invoke?.("speedtestReset");
         resetUI();
+        showBanner("Speedtest reset.", "success");
       });
 
       $("btnSettings").addEventListener("click", () => {
-        const overlay = document.querySelector(".vhs-overlay");
-        const curOp = parseFloat(getComputedStyle(overlay).opacity || "0.30");
-        overlay.style.opacity = (curOp < 0.35) ? "0.45" : "0.28";
+        setActive("config");
+        showBanner("Opened Shield settings.", "success");
       });
 
       // Bottom navigation binding and screen toggling
@@ -2374,6 +2453,7 @@
           if (!window.HoloThemeManager) return;
           const selected = window.HoloThemeManager.setThemeIdForScreen("speedtest", theme.id);
           window.HoloThemeManager.applyTheme(selected);
+          if (runtime.config) applyVisualConfig(runtime.config);
           updateGaugeColorProfile(cur.display);
           gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
           renderThemeList();
@@ -2469,6 +2549,9 @@
         if (window.HoloThemeManager) {
           window.HoloThemeManager.applyThemeForScreen(activeScreenId);
         }
+        if (runtime.config) {
+          applyVisualConfig(runtime.config);
+        }
         const supportsRenderer = activeScreenId === "speedtest" || activeScreenId === "map";
         if (!supportsRenderer) {
           rendererRegistry?.stopAll?.();
@@ -2504,7 +2587,7 @@
           abortRun(true);
         }
         if (leavingLanScreens && runtime.mapScanInProgress) {
-          nativeBridge.invoke("lanScanStop");
+          nativeBridge?.invoke?.("lanScanStop");
           runtime.mapScanInProgress = false;
         }
 
@@ -2533,6 +2616,9 @@
         }
         if (window.HoloThemeManager) {
           window.HoloThemeManager.applyThemeForScreen(nextScreenId);
+        }
+        if (runtime.config) {
+          applyVisualConfig(runtime.config);
         }
         if (tab !== "engine") closeThemeModal();
         if (tab === "map") renderMapFromScan();
@@ -2602,36 +2688,17 @@
 
       const NATIVE_EVENT = "netninja:native";
       const cfgKey = "nn_cfg";
-      const nativeBridge = {
-        available() {
-          return !!(window.NetNinjaBridge && typeof window.NetNinjaBridge.getBridgeState === "function");
-        },
-        invoke(method, ...args) {
-          if (!this.available() || typeof window.NetNinjaBridge[method] !== "function") return false;
-          try {
-            window.NetNinjaBridge[method](...args);
-            return true;
-          } catch {
-            return false;
-          }
-        },
-        call(method, ...args) {
-          if (!this.available() || typeof window.NetNinjaBridge[method] !== "function") return null;
-          try {
-            return JSON.parse(window.NetNinjaBridge[method](...args));
-          } catch {
-            return null;
-          }
-        },
-      };
+      const nativeBridge = window.NetNinjaNativeBridge || null;
       const runtime = {
         bridgeState: {
-          available: nativeBridge.available(),
+          available: !!nativeBridge?.available?.(),
           enabled: false,
           canScan: false,
           scanPermissionGranted: false,
           locationServicesEnabled: false,
+          missingPermissions: [],
         },
+        config: null,
         lastDeviceInfo: null,
         lastScanResults: [],
         lastScanSource: "none",
@@ -2644,13 +2711,14 @@
         mapCloakEnabled: false,
         mapScanInProgress: false,
         selectedLanDevice: null,
+        alertCardVisible: true,
       };
       const defaultConfig = () => ({
         autoScan: false,
-        holoFX: false,
-        alerts: false,
+        holoFX: true,
+        alerts: true,
         demoMode: false,
-        bridgeEnabled: false,
+        bridgeEnabled: true,
         neonIntensity: 70,
         scanSpeed: 50,
         accentMode: "blue",
@@ -2671,6 +2739,7 @@
       const cfgResetBtn = document.getElementById("cfgResetBtn");
       const cfgStatusMsg = document.getElementById("cfgStatusMsg");
       let cfgStatusTimer = 0;
+      let bannerTimer = 0;
 
       const escapeHtml = (value) => String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -2725,12 +2794,63 @@
         };
       }
 
+      function setControlDisabled(control, disabled, reason) {
+        if (!control) return;
+        control.disabled = !!disabled;
+        control.setAttribute("aria-disabled", disabled ? "true" : "false");
+        if (disabled && reason) {
+          control.dataset.disabledReason = reason;
+          control.title = reason;
+        } else {
+          delete control.dataset.disabledReason;
+          control.removeAttribute("title");
+        }
+      }
+
+      function applyAccentMode(mode) {
+        const palette = {
+          blue: { accent0: "#00d4ff", accent1: "#a855f7", ring0: "#00f2ff", ring1: "#a855f7" },
+          violet: { accent0: "#8f7aff", accent1: "#c084fc", ring0: "#a59bff", ring1: "#c084fc" },
+          pink: { accent0: "#ff3ab5", accent1: "#ff7ad9", ring0: "#ff6fc7", ring1: "#ff7ad9" },
+          green: { accent0: "#43f9a4", accent1: "#00d4ff", ring0: "#75ffc0", ring1: "#00d4ff" },
+        }[mode] || { accent0: "#00d4ff", accent1: "#a855f7", ring0: "#00f2ff", ring1: "#a855f7" };
+
+        document.documentElement.style.setProperty("--accent-0", palette.accent0);
+        document.documentElement.style.setProperty("--accent-1", palette.accent1);
+        document.documentElement.style.setProperty("--ring-0", palette.ring0);
+        document.documentElement.style.setProperty("--ring-1", palette.ring1);
+        document.documentElement.style.setProperty("--beam-0", palette.ring0);
+      }
+
+      function applyVisualConfig(config) {
+        const glowStrength = Math.max(0.4, Number(config.neonIntensity || 0) / 70);
+        const bloomStrength = Math.max(0.35, Number(config.neonIntensity || 0) / 85);
+        document.documentElement.style.setProperty("--effect-glow-strength", glowStrength.toFixed(2));
+        document.documentElement.style.setProperty("--effect-bloom-strength", bloomStrength.toFixed(2));
+        document.querySelector(".vhs-overlay")?.style.setProperty("display", config.holoFX ? "block" : "none");
+        document.getElementById("holoParticleField")?.style.setProperty("display", config.holoFX ? "block" : "none");
+        if (nativeUi.mapAlertCard) {
+          nativeUi.mapAlertCard.classList.toggle("hidden", config.alerts === false);
+        }
+        runtime.alertCardVisible = config.alerts !== false;
+        applyAccentMode(config.accentMode);
+      }
+
+      function applyConfigPreview(config) {
+        runtime.config = { ...config };
+        applyPerfMode(config.perfMode);
+        applyVisualConfig(config);
+        updateGaugeColorProfile(cur.display);
+        gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
+        renderMapFromScan();
+      }
+
       function setConfigControls(data) {
         cfgCtrls.autoScan.checked = !!data.autoScan;
         cfgCtrls.holoFX.checked = !!data.holoFX;
         cfgCtrls.alerts.checked = !!data.alerts;
         cfgCtrls.demoMode.checked = false;
-        cfgCtrls.demoMode.disabled = true;
+        setControlDisabled(cfgCtrls.demoMode, true, "Fallback mode is not bundled in this build.");
         cfgCtrls.bridgeEnabled.checked = !!data.bridgeEnabled;
         cfgCtrls.neonIntensity.value = Number(data.neonIntensity);
         cfgCtrls.scanSpeed.value = Number(data.scanSpeed);
@@ -2745,16 +2865,67 @@
         cfgStatusTimer = setTimeout(() => cfgStatusMsg.classList.add("hidden"), 2400);
       }
 
+      function showBanner(message, level = "info", options = {}) {
+        if (!nativeUi.appBanner || !message) return;
+        const alertsEnabled = runtime.config?.alerts !== false;
+        const severity = String(level || "info");
+        if (!alertsEnabled && !["error", "warn"].includes(severity)) return;
+        nativeUi.appBanner.dataset.level = severity;
+        nativeUi.appBanner.textContent = String(message);
+        nativeUi.appBanner.classList.add("is-visible");
+        clearTimeout(bannerTimer);
+        if (options.sticky) return;
+        bannerTimer = setTimeout(() => {
+          nativeUi.appBanner.classList.remove("is-visible");
+        }, options.durationMs || 2400);
+      }
+
+      function hideBanner() {
+        clearTimeout(bannerTimer);
+        nativeUi.appBanner?.classList.remove("is-visible");
+      }
+
+      nativeBridge?.setFeedbackHandler?.((message, level) => {
+        showBanner(message, level);
+      });
+
       function updateBridgeUi() {
         const bridge = runtime.bridgeState;
+        const missingPermissions = Array.isArray(bridge.missingPermissions) ? bridge.missingPermissions : [];
+        const bridgeDisabledReason = !bridge.available
+          ? "Native bridge is unavailable in this shell."
+          : !bridge.enabled
+            ? "Enable Native Bridge in Shield settings."
+            : !bridge.canScan
+              ? "Connect to an IPv4 LAN before scanning."
+              : "";
+
         nativeUi.wifiBridgeState.textContent = !bridge.available ? "Unavailable" : bridge.enabled ? "Armed" : "Disabled";
-        nativeUi.wifiPermissionState.textContent = !bridge.available ? "N/A" : "No Prompt";
+        nativeUi.wifiPermissionState.textContent = !bridge.available
+          ? "N/A"
+          : missingPermissions.length > 0
+            ? `Missing: ${missingPermissions.join(", ")}`
+            : bridge.locationServicesEnabled
+              ? "Granted"
+              : "Location Off";
         nativeUi.wifiScanState.textContent = !bridge.canScan ? "No IPv4 Link" : bridge.enabled ? "Ready" : "Standby";
+        $("speedEngineMode").textContent = !bridge.available
+          ? "Native Engine Unavailable"
+          : bridge.enabled
+            ? "Native Engine Ready"
+            : "Bridge Disabled";
         nativeUi.cfgBridgeSummary.textContent = !bridge.available
           ? "Native bridge unavailable in this shell."
           : bridge.enabled
             ? (bridge.canScan ? "Bridge enabled. LAN discovery ready." : "Bridge enabled. Connect to a local network to scan.")
             : "Bridge loaded but disabled by config.";
+
+        setControlDisabled(ui.btnStart, !bridge.available || !bridge.enabled, bridgeDisabledReason || "Speedtest ready.");
+        setControlDisabled(nativeUi.wifiScanBtn, !!bridgeDisabledReason, bridgeDisabledReason || "LAN scanner ready.");
+        setControlDisabled(nativeUi.wifiExportBtn, !bridge.available || !bridge.enabled, !bridge.available || !bridge.enabled ? "Enable Native Bridge before exporting diagnostics." : "");
+        setControlDisabled(nativeUi.cfgRefreshDeviceBtn, !bridge.available || !bridge.enabled, !bridge.available || !bridge.enabled ? "Enable Native Bridge before requesting device info." : "");
+        setControlDisabled(nativeUi.cfgExportDiagBtn, !bridge.available || !bridge.enabled, !bridge.available || !bridge.enabled ? "Enable Native Bridge before exporting diagnostics." : "");
+        setControlDisabled(nativeUi.mapRunScanBtn, !!bridgeDisabledReason, bridgeDisabledReason || "LAN scanner ready.");
       }
 
       function updateDeviceUi() {
@@ -2931,6 +3102,7 @@
         }
         nativeUi.mapLastSync.textContent = formatScanTime(runtime.lastScanCapturedAt);
         nativeUi.mapScanStatus.textContent = scanLabel;
+        nativeUi.mapEmptyState?.classList.toggle("hidden", runtime.mapScanInProgress || networks.length > 0);
         nativeUi.mapAlertText.innerHTML = live
           ? `Gateway: ${escapeHtml(runtime.lastGatewayIp || "Unknown")}<br/>Last Sync: ${escapeHtml(formatScanTime(runtime.lastScanCapturedAt))}<br/>Source: ${escapeHtml(runtime.lastScanSource.toUpperCase())}`
           : "Trigger Scan To Populate<br/>Last Sync: Never<br/>Source: Native Bridge";
@@ -3065,18 +3237,20 @@
           const nodeCount = mapState.nodes.length;
           const scale = mapState.dpr > 1.4 ? 0.75 : 1;
           mapState.heavyMode = nodeCount > 80;
-          mapState.maxPackets = Math.max(6, Math.floor((nodeCount > 80 ? 10 : nodeCount > 40 ? 22 : 34) * scale));
+          const overdriveBoost = runtime.mapOverdriveEnabled ? 1.35 : 1;
+          mapState.maxPackets = Math.max(6, Math.floor((nodeCount > 80 ? 10 : nodeCount > 40 ? 22 : 34) * scale * overdriveBoost));
           mapState.maxPacketTail = mapState.heavyMode ? 0.03 : 0.055;
           mapState.maxBgParticles = Math.max(10, Math.floor((mapState.heavyMode ? 18 : nodeCount > 48 ? 30 : 44) * scale));
           mapState.maxLinks = Math.max(10, Math.min(nodeCount, mapState.heavyMode ? 72 : 120));
-          mapState.beamDashSpeed = mapState.heavyMode ? 0.42 : 0.8;
+          mapState.beamDashSpeed = (mapState.heavyMode ? 0.42 : 0.8) * overdriveBoost;
         };
 
         const toScreenPoint = (target, node, timeMs) => {
           const cX = mapState.lastWidth * 0.5 + mapState.panX;
           const cY = mapState.lastHeight * 0.5 + mapState.panY;
           const t = timeMs * 0.001;
-          const orbitSpeed = runtime.mapScanInProgress ? 0.65 : 0.22;
+          const scanSpeedFactor = Math.max(0.55, Number(runtime.config?.scanSpeed ?? 50) / 50);
+          const orbitSpeed = (runtime.mapScanInProgress ? 0.65 : 0.22) * scanSpeedFactor * (runtime.mapOverdriveEnabled ? 1.35 : 1);
           const orbitAngle = node.angle + t * orbitSpeed + (node.index * 0.07);
           const bob = Math.sin(t * 1.7 + node.index) * 7;
           target.x = cX + Math.cos(orbitAngle) * node.ring * mapState.zoom;
@@ -3188,7 +3362,8 @@
           mapState.cameraY += (mapState.targetCameraY - mapState.cameraY) * 0.07;
 
           if (runtime.mapScanInProgress) {
-            mapState.scanWaveRadius += dt * 0.22;
+            const scanSpeedFactor = Math.max(0.55, Number(runtime.config?.scanSpeed ?? 50) / 50);
+            mapState.scanWaveRadius += dt * 0.22 * scanSpeedFactor * (runtime.mapOverdriveEnabled ? 1.3 : 1);
             if (mapState.scanWaveRadius > Math.max(mapState.lastWidth, mapState.lastHeight) * 0.7) {
               mapState.scanWaveRadius = 0;
             }
@@ -3586,6 +3761,10 @@
           setCloakState(enabled) {
             canvas.style.opacity = enabled ? "0.58" : "1";
           },
+          setOverdriveState(enabled) {
+            viewport.style.filter = enabled ? "saturate(1.18) brightness(1.06)" : "none";
+            recomputePerfCaps();
+          },
           destroy() {
             this.stop();
           },
@@ -3626,7 +3805,7 @@
       }
 
       function syncBridgeState(pushConfigToggle) {
-        const bridgeState = nativeBridge.call("getBridgeState");
+        const bridgeState = nativeBridge?.request?.("getBridgeState");
         runtime.bridgeState = bridgeState || runtime.bridgeState;
         if (pushConfigToggle && bridgeState) {
           cfgCtrls.bridgeEnabled.checked = !!bridgeState.enabled;
@@ -3635,7 +3814,7 @@
       }
 
       function refreshDeviceInfo() {
-        const result = nativeBridge.call("getDeviceInfo");
+        const result = nativeBridge?.request?.("getDeviceInfo");
         if (result?.ok && result.deviceInfo) {
           runtime.lastDeviceInfo = result.deviceInfo;
           updateDeviceUi();
@@ -3647,7 +3826,7 @@
       }
 
       function loadConfig() {
-        const raw = localStorage.getItem(cfgKey);
+        const raw = nativeBridge?.storage?.get?.(cfgKey) ?? localStorage.getItem(cfgKey);
         let data = defaultConfig();
         if (raw) {
           try {
@@ -3655,15 +3834,18 @@
           } catch {}
         }
         setConfigControls(data);
-        applyPerfMode(cfgCtrls.perfMode.value);
+        applyConfigPreview(getCurrentConfig());
       }
 
       function saveConfig() {
         const data = getCurrentConfig();
-        localStorage.setItem(cfgKey, JSON.stringify(data));
-        applyPerfMode(data.perfMode);
-        if (nativeBridge.available()) {
-          const bridgeState = nativeBridge.call("setBridgeEnabled", !!data.bridgeEnabled);
+        nativeBridge?.storage?.set?.(cfgKey, JSON.stringify(data));
+        if (!nativeBridge?.storage?.set) {
+          localStorage.setItem(cfgKey, JSON.stringify(data));
+        }
+        applyConfigPreview(data);
+        if (nativeBridge?.available?.()) {
+          const bridgeState = nativeBridge.request("setBridgeEnabled", !!data.bridgeEnabled);
           if (bridgeState) {
             runtime.bridgeState = bridgeState;
           }
@@ -3679,15 +3861,19 @@
           renderMapFromScan();
         }
         showCfgStatus("Settings saved.");
+        showBanner("Settings saved.", "success");
       }
 
       function resetConfig() {
-        localStorage.removeItem(cfgKey);
+        nativeBridge?.storage?.remove?.(cfgKey);
+        if (!nativeBridge?.storage?.remove) {
+          localStorage.removeItem(cfgKey);
+        }
         const defaults = defaultConfig();
         setConfigControls(defaults);
-        applyPerfMode(defaults.perfMode);
-        if (nativeBridge.available()) {
-          const bridgeState = nativeBridge.call("setBridgeEnabled", false);
+        applyConfigPreview(defaults);
+        if (nativeBridge?.available?.()) {
+          const bridgeState = nativeBridge.request("setBridgeEnabled", false);
           if (bridgeState) {
             runtime.bridgeState = bridgeState;
           }
@@ -3697,6 +3883,7 @@
         syncBridgeState(false);
         renderWifiNetworks([], "none", "Waiting for LAN device data");
         showCfgStatus("Settings reset.");
+        showBanner("Settings reset.", "success");
       }
 
       function applyPerfMode(mode) {
@@ -3721,6 +3908,7 @@
         syncBridgeState(false);
         if (!runtime.bridgeState.available || !runtime.bridgeState.enabled) {
           showCfgStatus("Enable Native Bridge before exporting diagnostics.");
+          showBanner("Enable Native Bridge before exporting diagnostics.", "warn");
           return;
         }
         const payload = {
@@ -3740,19 +3928,22 @@
             up: ui.upVal.textContent,
           },
         };
-        const result = nativeBridge.call("exportDiagnostics", JSON.stringify(payload));
-        if (result?.ok === false) {
-          showCfgStatus(result.message || "Diagnostics export failed.");
+        const result = nativeBridge.request("exportDiagnostics", JSON.stringify(payload));
+        if (!result || result?.ok === false) {
+          showCfgStatus(result?.message || "Diagnostics export failed.");
         } else {
           nativeUi.wifiScanState.textContent = "Export Requested";
+          showBanner("Diagnostics export requested.", "success");
         }
       }
 
       function buildLanScanConfig() {
         const perfMode = cfgCtrls.perfMode.value;
+        const scanSpeed = Number(runtime.config?.scanSpeed ?? cfgCtrls.scanSpeed.value ?? 50);
+        const timeoutBias = Math.max(0.6, (100 - scanSpeed) / 100);
         return {
           maxConcurrency: perfMode === "low" ? 32 : 64,
-          probeTimeoutMs: perfMode === "low" ? 400 : 325,
+          probeTimeoutMs: Math.round((perfMode === "low" ? 460 : 340) * timeoutBias),
           maxTargets: 254,
           maxSubnetPrefix: 24,
           allowPortFallback: true,
@@ -3765,6 +3956,7 @@
         if (!runtime.bridgeState.available || !runtime.bridgeState.enabled) {
           if (userInitiated) {
             showCfgStatus("Enable Native Bridge first.");
+            showBanner("Enable Native Bridge before scanning LAN.", "warn");
           }
           return;
         }
@@ -3772,13 +3964,14 @@
           nativeUi.wifiScanState.textContent = "No IPv4 Link";
           nativeUi.wifiScanMeta.textContent = "Connect to a local network first";
           updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
+          if (userInitiated) showBanner("Connect to a local IPv4 network first.", "warn");
           return;
         }
-        const result = nativeBridge.call("lanScanStart", JSON.stringify(buildLanScanConfig()));
-        if (result?.ok === false) {
-          nativeUi.wifiScanState.textContent = result.code || "Error";
+        const result = nativeBridge.request("lanScanStart", JSON.stringify(buildLanScanConfig()));
+        if (!result || result?.ok === false) {
+          nativeUi.wifiScanState.textContent = result?.code || "Error";
           if (userInitiated) {
-            showCfgStatus(result.message || "LAN discovery failed.");
+            showCfgStatus(result?.message || "LAN discovery failed.");
           }
         } else {
           runtime.mapScanInProgress = true;
@@ -3787,6 +3980,7 @@
           nativeUi.wifiScanMeta.textContent = "Native LAN discovery request sent to Android";
           updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           renderMapFromScan();
+          if (userInitiated) showBanner("LAN scan started.", "success");
         }
       }
 
@@ -3857,8 +4051,18 @@
         if (detail.type === "bridge_state") {
           runtime.bridgeState = payload;
           updateBridgeUi();
+          if (!payload.enabled && isSpeedtestRunning()) {
+            abortRun(false);
+          }
+          if (!payload.enabled && runtime.mapScanInProgress) {
+            runtime.mapScanInProgress = false;
+            holoMapRenderer.setScanState(false);
+          }
           if (payload.enabled) {
             refreshDeviceInfo();
+          } else {
+            runtime.lastDeviceInfo = null;
+            updateDeviceUi();
           }
           return;
         }
@@ -3883,9 +4087,11 @@
           if (results.length > 0) {
             renderWifiNetworks(results, "real", `${payload.count || results.length} LAN devices captured`);
             nativeUi.wifiScanState.textContent = "Live Results";
+            showBanner(`LAN scan complete. ${results.length} device${results.length === 1 ? "" : "s"} found.`, "success");
           } else {
             renderWifiNetworks([], "real", "No LAN devices detected");
             nativeUi.wifiScanState.textContent = "No Results";
+            showBanner("LAN scan finished. No devices found.", "warn");
           }
           return;
         }
@@ -3901,7 +4107,10 @@
           if (payload.localIp) runtime.lastLocalIp = String(payload.localIp || "");
           if (payload.subnet) runtime.lastSubnet = String(payload.subnet || "");
           if (payload.message) {
-            nativeUi.wifiScanMeta.textContent = payload.message;
+            const pct = Number.isFinite(Number(payload.progress))
+              ? ` (${Math.round(Number(payload.progress) * 100)}%)`
+              : "";
+            nativeUi.wifiScanMeta.textContent = `${payload.message}${pct}`;
             updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
           }
           return;
@@ -3912,12 +4121,20 @@
           nativeUi.wifiScanState.textContent = "ERROR";
           nativeUi.wifiScanMeta.textContent = payload.message || "LAN discovery failed";
           updateWifiListState(runtime.lastScanResults, runtime.lastScanSource, nativeUi.wifiScanMeta.textContent);
+          showBanner(payload.message || "LAN discovery failed.", "error");
           return;
         }
         if (detail.type === "export_status") {
-          if (payload.status === "saved") showCfgStatus("Diagnostics exported.");
-          else if (payload.status === "cancelled") showCfgStatus("Diagnostics export cancelled.");
-          else if (payload.status === "error") showCfgStatus(payload.message || "Diagnostics export failed.");
+          if (payload.status === "saved") {
+            showCfgStatus("Diagnostics exported.");
+            showBanner("Diagnostics exported.", "success");
+          } else if (payload.status === "cancelled") {
+            showCfgStatus("Diagnostics export cancelled.");
+            showBanner("Diagnostics export cancelled.", "warn");
+          } else if (payload.status === "error") {
+            showCfgStatus(payload.message || "Diagnostics export failed.");
+            showBanner(payload.message || "Diagnostics export failed.", "error");
+          }
           return;
         }
         if (detail.type === "speedtest_update") {
@@ -3933,6 +4150,7 @@
         if (detail.type === "speedtest_error") {
           handleSpeedtestError(payload);
           postToReplacementFrame("speed", "speedtest_error", payload);
+          if (payload.message) showBanner(payload.message, payload.code === "aborted" ? "warn" : "error");
         }
       }
 
@@ -3974,8 +4192,10 @@
 
       nativeUi.mapOverdriveBtn?.addEventListener("click", () => {
         runtime.mapOverdriveEnabled = !runtime.mapOverdriveEnabled;
+        holoMapRenderer.setOverdriveState(runtime.mapOverdriveEnabled);
         applyMapModeButtonStyles();
         showCfgStatus(runtime.mapOverdriveEnabled ? "Map Overdrive enabled." : "Map Overdrive disabled.");
+        showBanner(runtime.mapOverdriveEnabled ? "Map Overdrive enabled." : "Map Overdrive disabled.", "success");
       });
 
       nativeUi.mapCloakBtn?.addEventListener("click", () => {
@@ -3984,11 +4204,26 @@
         applyMapModeButtonStyles();
         holoMapRenderer.setCloakState(runtime.mapCloakEnabled);
         showCfgStatus(runtime.mapCloakEnabled ? "Map Cloak enabled." : "Map Cloak disabled.");
+        showBanner(runtime.mapCloakEnabled ? "Map Cloak enabled." : "Map Cloak disabled.", "success");
       });
 
       window.addEventListener("resize", () => rendererRegistry?.resizeActive?.(), { passive: true });
       window.addEventListener("orientationchange", () => rendererRegistry?.resizeActive?.(), { passive: true });
       window.addEventListener(NATIVE_EVENT, handleNativeEvent);
+      nativeUi.wifiTelemetryBtn?.addEventListener("click", () => {
+        const source = runtime.lastScanSource.toUpperCase();
+        const count = runtime.lastScanResults.length;
+        const gateway = runtime.lastGatewayIp || "Unknown";
+        showBanner(`Matrix cache: ${count} device${count === 1 ? "" : "s"} / source ${source} / gateway ${gateway}`, "info");
+      });
+      nativeUi.mapDeviceMatrixBtn?.addEventListener("click", () => {
+        setActive("list");
+        onListTabSelected();
+      });
+      nativeUi.mapRunScanBtn?.addEventListener("click", () => {
+        setActive("list");
+        requestNativeWifiScan(true);
+      });
       nativeUi.deviceDetailBackdrop?.addEventListener("click", closeDeviceDetail);
       nativeUi.deviceDetailClose?.addEventListener("click", closeDeviceDetail);
       ui.btnTheme?.addEventListener("click", openThemeModal);
@@ -3998,6 +4233,7 @@
         if (!window.HoloThemeManager) return;
         const defaultTheme = window.HoloThemeManager.resetThemeForScreen("speedtest");
         window.HoloThemeManager.applyTheme(defaultTheme);
+        if (runtime.config) applyVisualConfig(runtime.config);
         updateGaugeColorProfile(cur.display);
         gaugeRenderer.render(performance.now(), cur.needleDeg, cur.display);
         renderThemeList();
@@ -4012,21 +4248,45 @@
       });
       cfgSaveBtn?.addEventListener("click", saveConfig);
       cfgResetBtn?.addEventListener("click", resetConfig);
+      Object.values(cfgCtrls).forEach((control) => {
+        control?.addEventListener("change", () => {
+          applyConfigPreview(getCurrentConfig());
+          if (control === cfgCtrls.bridgeEnabled && nativeBridge?.available?.()) {
+            const nextBridgeState = nativeBridge.request("setBridgeEnabled", !!cfgCtrls.bridgeEnabled.checked);
+            if (nextBridgeState) {
+              runtime.bridgeState = nextBridgeState;
+              updateBridgeUi();
+            }
+            showBanner(cfgCtrls.bridgeEnabled.checked ? "Native Bridge enabled." : "Native Bridge disabled.", "success");
+          } else {
+            showCfgStatus("Preview updated. Save to persist.");
+          }
+        });
+      });
+      [cfgCtrls.neonIntensity, cfgCtrls.scanSpeed].forEach((control) => {
+        control?.addEventListener("input", () => applyConfigPreview(getCurrentConfig()));
+      });
       nativeUi.wifiScanBtn?.addEventListener("click", () => requestNativeWifiScan(true));
       nativeUi.wifiExportBtn?.addEventListener("click", exportDiagnostics);
       nativeUi.cfgRefreshDeviceBtn?.addEventListener("click", () => {
         syncBridgeState(false);
         if (!runtime.bridgeState.enabled) {
           showCfgStatus("Enable Native Bridge before requesting device info.");
+          showBanner("Enable Native Bridge before requesting device info.", "warn");
           return;
         }
-        if (refreshDeviceInfo()) showCfgStatus("Device snapshot refreshed.");
-        else showCfgStatus("Device snapshot unavailable.");
+        if (refreshDeviceInfo()) {
+          showCfgStatus("Device snapshot refreshed.");
+          showBanner("Device snapshot refreshed.", "success");
+        } else {
+          showCfgStatus("Device snapshot unavailable.");
+          showBanner("Device snapshot unavailable.", "warn");
+        }
       });
       nativeUi.cfgExportDiagBtn?.addEventListener("click", exportDiagnostics);
       window.addEventListener("beforeunload", () => {
-        if (isSpeedtestRunning()) nativeBridge.invoke("speedtestAbort");
-        if (runtime.mapScanInProgress) nativeBridge.invoke("lanScanStop");
+        if (isSpeedtestRunning()) nativeBridge?.invoke?.("speedtestAbort");
+        if (runtime.mapScanInProgress) nativeBridge?.invoke?.("lanScanStop");
         rendererRegistry?.stopAll?.();
       }, { once: true });
       document.addEventListener("DOMContentLoaded", syncThemeButtonState, { once: true });
@@ -4034,9 +4294,11 @@
       scheduleInitialRendererStartup();
       loadConfig();
       applyMapModeButtonStyles();
+      holoMapRenderer.setOverdriveState(runtime.mapOverdriveEnabled);
+      holoMapRenderer.setCloakState(runtime.mapCloakEnabled);
       syncBridgeState(true);
       updateDeviceUi();
-      const initialScan = nativeBridge.call("lanScanGetLast");
+      const initialScan = nativeBridge?.call?.("lanScanGetLast");
       if (initialScan?.ok && initialScan.scan) {
         const scan = initialScan.scan;
         runtime.lastScanCapturedAt = Number(scan.capturedAt || 0);
